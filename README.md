@@ -471,8 +471,8 @@ tail -f logs/build-libnl3-*.log
 | aircrack-ng | 1.7 | libnet, libpcap, openssl | autotools | WiFi security suite (9 tools) |
 | reaver | 1.6.6 | libpcap, libnl3 | autotools | WPS PIN cracking + wash scanner |
 | mdk4 | master | libpcap, libnl3 | make | WiFi testing and attack tool |
-| hcxdumptool | 6.2.7 | libpcap, openssl, ifaddrs | make | WiFi packet capture for hashcat |
-| hcxtools | 6.2.7 | libpcap, openssl | make | Hash conversion tools (6 tools) |
+| hcxdumptool | 7.0.1 | libpcap, openssl, ifaddrs | make | WiFi packet capture for hashcat |
+| hcxtools | 7.0.1 | libpcap, openssl | make | Hash conversion tools (6 tools) |
 | pixiewps | 1.4.2 | - | autotools | WPS Pixie Dust attack |
 | macchanger | 1.7.0 | - | autotools | MAC address spoofing |
 | iw | 5.16 | libnl3 | make | Wireless configuration utility |
