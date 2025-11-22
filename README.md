@@ -105,13 +105,14 @@ export ANDROID_NDK_HOME=/path/to/android-ndk
 ```
 Core Libraries (no dependencies):
   libnl3, libpcap, libcap, libnet, libmnl, openssl, ifaddrs, radiotap
+  zlib, c-ares, libffi, pcre2, libintl-lite, libxml2, libgpg-error, libgcrypt, glib2
 
 Wireless Tools:
-  libnl3 ──────┬─→ iw
-               ├─→ mdk4 (also needs libpcap)
+  libnl3 ──────┬─→ mdk4 (also needs libpcap)
                └─→ aircrack-ng (also needs libpcap, libnet, openssl)
   
   libpcap ─────┬─→ tcpdump
+               ├─→ tshark (also needs glib2, zlib, c-ares, libgcrypt, pcre2, libxml2, libintl-lite, libnl3)
                ├─→ aircrack-ng (also needs libnet, openssl, libnl3)
                ├─→ reaver (also needs libnl3)
                ├─→ hcxdumptool (also needs openssl, ifaddrs)
@@ -122,11 +123,13 @@ Wireless Tools:
                └─→ hcxtools
 
 Network Tools:
-  libmnl ──────→ iproute2
-  nmap, curl, net-tools (no dependencies)
+  libnl3 ──────→ iw
+  libmnl ──────┬─→ iproute2
+               └─→ ethtool
+  nmap, rfkill, net-tools (no dependencies)
 
 Utilities:
-  busybox, nano, pixiewps, macchanger, qca-monitor (no dependencies)
+  busybox, nano, strace, curl, pixiewps, macchanger, qca-monitor, wireless-tools (no dependencies)
 ```
 
 ## Usage
@@ -475,7 +478,6 @@ tail -f logs/build-libnl3-*.log
 | hcxtools | 7.0.1 | libpcap, openssl | make | Hash conversion tools (6 tools) |
 | pixiewps | 1.4.2 | - | autotools | WPS Pixie Dust attack |
 | macchanger | 1.7.0 | - | autotools | MAC address spoofing |
-| iw | 5.16 | libnl3 | make | Wireless configuration utility |
 | wireless-tools | 30.pre9 | - | make | Classic wireless tools (iwconfig, iwlist, iwspy, etc.) |
 | qca-monitor | master | - | make | Qualcomm monitor mode enabler |
 
@@ -485,7 +487,9 @@ tail -f logs/build-libnl3-*.log
 |------|---------|--------------|------|-------------|
 | nmap | 7.93 | - | autotools | Network scanner + ncat + nping |
 | tcpdump | 4.99.1 | libpcap | autotools | Network packet analyzer |
-| curl | 8.0.0 | - | autotools | URL transfer tool |
+| tshark | 4.0.0 | libpcap, glib2, zlib, c-ares, libgcrypt, pcre2, libxml2, libintl-lite, libnl3 | cmake | Wireshark terminal-based packet analyzer |
+| iw | 5.16 | libnl3 | make | Wireless configuration utility |
+| rfkill | 1.0 | - | make | Tool to enable/disable wireless devices |
 | iproute2 | 6.1.0 | libmnl | make | Advanced routing and network configuration (ip, tc, ss, etc.) |
 | net-tools | 2.10 | - | make | Classic network tools (ifconfig, netstat, route, arp, etc.) |
 | ethtool | 6.15 | libmnl | autotools | Ethernet interface configuration and tuning |
@@ -495,9 +499,11 @@ tail -f logs/build-libnl3-*.log
 | Tool | Version | Dependencies | Type | Description |
 |------|---------|--------------|------|-------------|
 | busybox | 1.38.0 | - | make | Multi-call binary with Unix utilities |
-| nano | 8.7 | - | autotools | Text editor |
+| nano | 8.7 | ncurses | autotools | Text editor |
+| strace | 6.12 | - | autotools | System call tracer for debugging |
+| curl | 8.0.0 | - | autotools | URL transfer tool |
 
-**Total: 29 tools/libraries successfully building for Android ARM64 (aarch64), API 21+**
+**Total: 30 tools/libraries successfully building for Android ARM64 (aarch64), API 21+**
 
 ## Development
 
