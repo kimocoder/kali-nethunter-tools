@@ -49,7 +49,7 @@ while [[ $# -gt 0 ]]; do
       ARCH_FILTER="$2"
       shift 2
       ;;
-    build|clean|rebuild|list|status|push|upgrade|update|check|shell|help)
+    build|clean|rebuild|list|status|push|upgrade|update|check|shell|log|help)
       if [ -z "$COMMAND" ]; then
         COMMAND="$1"
       fi
@@ -779,6 +779,8 @@ show_help() {
   echo -e "  ${GREEN}check${RESET}               Verify tool configurations, sources, and binary TLS alignment"
   echo -e "  ${GREEN}push${RESET} [TOOLS...]     Push built tools to Android device via ADB"
   echo -e "  ${GREEN}shell${RESET}               Connect to Android device via ADB shell"
+  echo -e "  ${GREEN}log${RESET} [MODE]          View Android device logs via ADB logcat"
+  echo -e "                      MODE: 1=all logs, 2=kernel only, 3=wireless/networking"
   echo -e "  ${GREEN}update${RESET}              Check if a newer version is available"
   echo -e "  ${GREEN}upgrade${RESET}             Upgrade to the latest version from git repository"
   echo -e "  ${GREEN}help${RESET}                Show this help message"
@@ -786,13 +788,10 @@ show_help() {
   echo -e "${BOLD}${BLUE}Options:${RESET}"
   echo -e "  ${YELLOW}-h, --help${RESET}          Show this help message"
   echo -e "  ${YELLOW}-v, --verbose${RESET}       Enable verbose output"
-  echo -e "  ${YELLOW}--arch${RESET} ARCH         Build for specific architecture (arm64, arm, or both)"
-  echo -e "                      Default: both architectures"
-  echo ""
-  echo -e "${BOLD}${BLUE}Architectures:${RESET}"
-  echo -e "  ${CYAN}arm64${RESET}               64-bit ARM (aarch64-linux-android)"
-  echo -e "  ${CYAN}arm${RESET}                 32-bit ARM (armv7a-linux-androideabi)"
-  echo -e "  ${CYAN}both${RESET}                Build for both architectures (default)"
+  echo -e "  ${YELLOW}--arch${RESET} ARCH         Build for specific architecture (${CYAN}arm64${RESET}, ${CYAN}arm${RESET}, or ${CYAN}both${RESET})"
+  echo -e "                      ${CYAN}arm64${RESET}: 64-bit ARM (aarch64-linux-android)"
+  echo -e "                      ${CYAN}arm${RESET}: 32-bit ARM (armv7a-linux-androideabi)"
+  echo -e "                      ${CYAN}both${RESET}: Build for both architectures (default)"
   echo ""
   echo -e "${BOLD}${BLUE}Examples:${RESET}"
   echo -e "  $0                              ${RESET}# Show help"
@@ -804,6 +803,8 @@ show_help() {
   echo -e "  $0 clean                        ${RESET}# Clean all artifacts (both architectures)"
   echo -e "  $0 list                         ${RESET}# List available tools"
   echo -e "  $0 push iw tcpdump              ${RESET}# Push to device (auto-detects architecture)"
+  echo -e "  $0 shell                        ${RESET}# Connect to device shell"
+  echo -e "  $0 log 3                        ${RESET}# View wireless/networking logs"
   echo -e "  $0 update                       ${RESET}# Check if updates are available"
   echo -e "  $0 upgrade                      ${RESET}# Upgrade to latest version"
   echo ""
@@ -903,7 +904,7 @@ main() {
   architectures=$(get_architectures)
   
   # If building for multiple architectures, handle recursively
-  if [ "$COMMAND" != "list" ] && [ "$COMMAND" != "help" ] && [ "$COMMAND" != "status" ] && [ "$COMMAND" != "update" ] && [ "$COMMAND" != "upgrade" ] && [ "$COMMAND" != "check" ] && [ "$COMMAND" != "shell" ]; then
+  if [ "$COMMAND" != "list" ] && [ "$COMMAND" != "help" ] && [ "$COMMAND" != "status" ] && [ "$COMMAND" != "update" ] && [ "$COMMAND" != "upgrade" ] && [ "$COMMAND" != "check" ] && [ "$COMMAND" != "shell" ] && [ "$COMMAND" != "log" ]; then
     local arch_count
     arch_count=$(echo "$architectures" | wc -w)
     
@@ -1212,6 +1213,58 @@ main() {
       
       # Connect to adb shell
       adb shell
+      ;;
+
+    log)
+      # Check if adb is available
+      if ! command -v adb > /dev/null 2>&1; then
+        log_error "adb command not found. Please install Android SDK platform-tools"
+        exit 1
+      fi
+      
+      # Check if device is connected
+      if ! adb devices | grep -q "device$"; then
+        log_error "No Android device connected. Please connect a device and enable USB debugging"
+        exit 1
+      fi
+      
+      local log_mode="${1:-1}"
+      
+      case "$log_mode" in
+        1)
+          log "Viewing all Android logs (Ctrl+C to stop)..."
+          echo ""
+          adb logcat
+          ;;
+        2)
+          log "Viewing kernel logs only (Ctrl+C to stop)..."
+          echo ""
+          adb logcat -b kernel
+          ;;
+        3)
+          log "Viewing wireless/networking logs (Ctrl+C to stop)..."
+          log "Filtering: wifi, wlan, netlink, mac80211, cfg80211, nl80211, wireless"
+          echo ""
+          adb logcat | grep -iE "wifi|wlan|netlink|mac80211|cfg80211|nl80211|wireless|80211"
+          ;;
+        *)
+          log_error "Invalid log mode: $log_mode"
+          echo ""
+          echo "Usage: $0 log [MODE]"
+          echo ""
+          echo "Available modes:"
+          echo "  1 - All logs (default)"
+          echo "  2 - Kernel logs only"
+          echo "  3 - Wireless/networking logs (wifi, netlink, mac80211, cfg80211, etc.)"
+          echo ""
+          echo "Examples:"
+          echo "  $0 log      # View all logs"
+          echo "  $0 log 1    # View all logs"
+          echo "  $0 log 2    # View kernel logs"
+          echo "  $0 log 3    # View wireless/networking logs"
+          exit 1
+          ;;
+      esac
       ;;
 
     update)
