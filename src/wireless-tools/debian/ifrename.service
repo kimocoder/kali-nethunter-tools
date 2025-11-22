@@ -1,0 +1,12 @@
+[Unit]
+Description=Rename network interface names
+Documentation=man:ifrename(8)
+DefaultDependencies=no
+Wants=network-pre.target
+Before=network-pre.target shutdown.target
+Conflicts=shutdown.target
+ConditionPathExists=/etc/iftab
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/ifrename -d -p -t

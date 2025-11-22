@@ -1,0 +1,26 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	dh_auto_build -- all libiw.a
+
+override_dh_auto_install:
+	dh_auto_install -- install install-static PREFIX=debian/tmp
+	# Hack to make udeb friendly binaries
+	$(MAKE) clean
+	dh_auto_build -- BUILD_NOLIBM=y CFLAGS="-Os -I."
+	dh_install -pwireless-tools-udeb iwconfig iwgetid usr/sbin/
+	dh_install -plibiw30-udeb libiw.so.30 usr/lib/
+
+override_dh_install:
+	dh_install --list-missing
+
+override_dh_installudev:
+	dh_installudev --priority=19
+
+debian/%:debian/%.in
+	sed -e 's/#DEB_HOST_MULTIARCH#/$(DEB_HOST_MULTIARCH)/g' $< > $@
+
+execute_before_dh_installdeb:debian/libiw30t64.preinst debian/libiw30t64.postinst

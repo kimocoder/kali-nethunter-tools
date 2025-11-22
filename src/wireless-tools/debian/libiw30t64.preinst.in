@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+
+# begin-remove-after: released:trixie
+if [ "$1" = install ]; then
+	dpkg-divert --package libiw30t64 --no-rename --add --divert "/lib/#DEB_HOST_MULTIARCH#/libiw.so.30.usr-is-merged" "/lib/#DEB_HOST_MULTIARCH#/libiw.so.30"
+fi
+# end-remove-after
+
+#DEBHELPER#
+
+exit 0

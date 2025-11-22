@@ -1,0 +1,5 @@
+/usr/sbin/iw*
+/usr/share/man/man8/iw*.8
+/usr/share/man/man7/*.7
+/usr/share/man/*/man8/iw*.8
+/usr/share/man/*/man7/*.7

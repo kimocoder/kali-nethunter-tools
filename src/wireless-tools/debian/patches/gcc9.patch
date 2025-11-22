@@ -1,0 +1,15 @@
+Author: Reiner Herrmann <reiner@reiner-h.de>
+Description: Fix build with gcc9 by moving linked libraries to the end
+Bug-Debian: https://bugs.debian.org/925857
+
+--- a/Makefile
++++ b/Makefile
+@@ -150,7 +150,7 @@
+ 
+ # Compilation of the dynamic library
+ $(DYNAMIC): $(OBJS:.o=.so)
+-	$(CC) -shared -o $@ -Wl,-soname,$@ $(STRIPFLAGS) $(LIBS) $(LDFLAGS) -lc $^
++	$(CC) -shared -o $@ -Wl,-soname,$@ $(STRIPFLAGS) $(LDFLAGS) $^ -lc $(LIBS)
+ 
+ # Compilation of the static library
+ $(STATIC): $(OBJS:.o=.so)

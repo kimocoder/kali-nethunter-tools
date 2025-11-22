@@ -1,0 +1,32 @@
+--- a/am65-cpsw-nuss.c
++++ b/am65-cpsw-nuss.c
+@@ -421,7 +421,8 @@ void am65_cpsw_dump_ale(struct ethtool_drvinfo *info maybe_unused,
+ 			break;
+ 
+ 		case ALE_ENTRY_ADDR:
+-			u32 oui_entry = cpsw_ale_get_oui_addr(ale_pos);
++		{
++			u32 oui_entry = cpsw_ale_get_oui_addr(ale_pos);
+ 
+ 			if (oui_entry == 0x2)
+ 				cpsw_ale_dump_oui_entry(i, ale_pos);
+@@ -429,8 +430,10 @@ void am65_cpsw_dump_ale(struct ethtool_drvinfo *info maybe_unused,
+ 				cpsw_ale_dump_addr(i, ale_pos);
+ 			break;
++		}
+ 
+ 		case ALE_ENTRY_VLAN:
+-			u32 vlan_entry_type = cpsw_ale_get_vlan_entry_type(ale_pos);
++		{
++			u32 vlan_entry_type = cpsw_ale_get_vlan_entry_type(ale_pos);
+ 
+ 			if (vlan_entry_type == VLAN_INNER_ENTRY)
+ 				cpsw_ale_dump_inner_vlan_entry(i, ale_pos);
+@@ -443,6 +446,7 @@ void am65_cpsw_dump_ale(struct ethtool_drvinfo *info maybe_unused,
+ 			else if (vlan_entry_type & VLAN_IPV6_ENTRY_MASK)
+ 				cpsw_ale_dump_ipv6_entry(i, ale_pos);
+ 			break;
++		}
+ 
+ 		case ALE_ENTRY_VLAN_ADDR:
+ 			cpsw_ale_dump_vlan_addr(i, ale_pos);
