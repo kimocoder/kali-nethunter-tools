@@ -16,7 +16,7 @@ This build system provides a clean, maintainable architecture for building nativ
 
 ### Core Components
 
-- **builder**: Main orchestration script with dependency management, multi-arch support, and comprehensive cleaning
+- **build.sh**: Main orchestration script with dependency management, multi-arch support, and comprehensive cleaning
 - **build-env.sh**: Environment configuration for NDK paths, compiler toolchain, and global flags
 - **build-{tool}.sh**: Individual tool-specific build scripts
 - **tools.conf**: Declarative tool manifest defining tools, versions, and dependencies
@@ -37,26 +37,26 @@ This build system provides a clean, maintainable architecture for building nativ
 export ANDROID_NDK_HOME=/path/to/android-ndk
 
 # List available tools
-./builder list
+./build.sh list
 
 # Build all tools for both architectures
-./builder build
+./build.sh build
 
 # Build for specific architecture
-./builder build --arch arm64    # 64-bit only
-./builder build --arch arm      # 32-bit only
+./build.sh build --arch arm64    # 64-bit only
+./build.sh build --arch arm      # 32-bit only
 
 # Build specific tools (dependencies auto-built)
-./builder build iw tcpdump
+./build.sh build iw tcpdump
 
 # Check build status
-./builder status
+./build.sh status
 
 # Clean all build artifacts
-./builder clean
+./build.sh clean
 
 # Push to Android device
-./builder push iw tcpdump
+./build.sh push iw tcpdump
 ```
 
 ## Architecture
@@ -65,7 +65,7 @@ export ANDROID_NDK_HOME=/path/to/android-ndk
 
 ```
 .
-├── builder                   # Main orchestrator
+├── build.sh                   # Main orchestrator
 ├── build-env.sh              # Environment configuration (in scripts/)
 ├── scripts/                  # Tool-specific build scripts
 │   ├── build-env.sh          # Environment configuration
@@ -132,59 +132,59 @@ Utilities:
 
 ```bash
 # Build all tools in dependency order
-./builder build
+./build.sh build
 
 # Build specific tools (with dependencies)
-./builder build iw libpcap
+./build.sh build iw libpcap
 
 # Build for specific architecture
-./builder build --arch arm64           # 64-bit ARM only
-./builder build --arch arm             # 32-bit ARM only
-./builder build --arch both            # Both architectures (default)
+./build.sh build --arch arm64           # 64-bit ARM only
+./build.sh build --arch arm             # 32-bit ARM only
+./build.sh build --arch both            # Both architectures (default)
 
 # Clean all artifacts (removes build dirs, tarballs, .o files)
-./builder clean
+./build.sh clean
 
 # Clean specific tool
-./builder clean iw
+./build.sh clean iw
 
 # Rebuild (clean + build)
-./builder rebuild
+./build.sh rebuild
 
 # List available tools
-./builder list
+./build.sh list
 
 # Show build status
-./builder status
+./build.sh status
 
 # Check for updates
-./builder update
+./build.sh update
 
 # Upgrade to latest version
-./builder upgrade
+./build.sh upgrade
 
 # Push tools to Android device via ADB
-./builder push iw tcpdump
+./build.sh push iw tcpdump
 
 # Show help
-./builder help
+./build.sh help
 ```
 
 ### Verbose Output
 
 ```bash
 # Enable verbose logging
-VERBOSE=1 ./builder build
+VERBOSE=1 ./build.sh build
 
 # Or use flag
-./builder -v build
+./build.sh -v build
 ```
 
 ### Parallel Jobs
 
 ```bash
 # Control number of parallel build jobs
-PARALLEL_JOBS=4 ./builder build
+PARALLEL_JOBS=4 ./build.sh build
 ```
 
 ## Source Management
@@ -209,14 +209,14 @@ After first build, copy sources to `src/` for future use:
 
 ```bash
 # Build once (downloads sources)
-./builder build curl
+./build.sh build curl
 
 # Copy to local source directory
 cp -r scripts/build/curl/src/curl-src src/curl
 
 # Clean and rebuild (now uses local source)
-./builder clean curl
-./builder build curl  # Uses src/curl
+./build.sh clean curl
+./build.sh build curl  # Uses src/curl
 ```
 
 ## Configuration
@@ -367,7 +367,7 @@ Adding a new tool is simple:
    ```
    mytool|1.0|dependency1|--enable-static|mytool.patch|autotools|no
    ```
-4. **Run** `./builder build mytool`
+4. **Run** `./build.sh build mytool`
 
 The main build script automatically discovers and integrates new tools.
 
@@ -377,7 +377,7 @@ The main build script automatically discovers and integrates new tools.
 
 ```bash
 export ANDROID_NDK_HOME=/path/to/android-ndk
-./builder build
+./build.sh build
 ```
 
 ### Build Fails
@@ -391,12 +391,12 @@ tail -f logs/build-{tool}-*.log
 
 Verify dependency order:
 ```bash
-./builder list
+./build.sh list
 ```
 
 Rebuild dependencies:
 ```bash
-./builder rebuild libnl3
+./build.sh rebuild libnl3
 ```
 
 ## Environment Variables
@@ -491,10 +491,10 @@ TOOL_LDFLAGS_mytool="-Wl,-rpath,\$ORIGIN"
 
 ```bash
 # Check for updates
-./builder update
+./build.sh update
 
 # Upgrade to latest version
-./builder upgrade
+./build.sh upgrade
 ```
 
 The system pulls from the git repository and updates the version file.

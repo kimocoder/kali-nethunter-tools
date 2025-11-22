@@ -41,3 +41,8 @@ test-*/
 *.swp
 *.swo
 *~
+
+# Others
+*.rej
+*.orig
+*.kiro
