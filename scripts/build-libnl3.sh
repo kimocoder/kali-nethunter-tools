@@ -96,6 +96,8 @@ log_cmd ./configure \
   --host="$TARGET_TRIPLE" \
   --prefix="$INSTALL_DIR" \
   $TOOL_CONFIGURE_OPTS \
+  --enable-static \
+  --disable-shared \
   CC="$CC" \
   CXX="$CXX" \
   CPPFLAGS="-include netinet/in.h" \

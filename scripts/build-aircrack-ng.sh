@@ -115,7 +115,7 @@ log_cmd ./configure \
   CFLAGS="$CFLAGS" \
   CXXFLAGS="$CXXFLAGS -Dfseeko=fseek -Dftello=ftell" \
   LDFLAGS="$LDFLAGS -static -L$PREFIX/libpcap/lib -L$PREFIX/libnet/lib -L$PREFIX/openssl/lib -L$PREFIX/libnl3/lib -L$PREFIX/zlib/lib" \
-  LIBS="-ldl -lz"
+  LIBS="-lnl-genl-3 -lnl-3 -ldl -lz"
 
 log "Step 4: Building $TOOL_NAME..."
 log_cmd make -j"$PARALLEL_JOBS"
