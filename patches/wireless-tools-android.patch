@@ -1,0 +1,21 @@
+--- a/ifrename.c
++++ b/ifrename.c
+@@ -38,6 +38,7 @@
+ #include <sys/socket.h>
+ #include <sys/ioctl.h>
+ #include <linux/if.h>
++#include <libgen.h>
+ 
+ #include "iwlib.h"
+ 
+--- a/iwevent.c
++++ b/iwevent.c
+@@ -89,7 +89,7 @@ rtnl_open(struct rtnl_handle *rth, unsigned subscriptions)
+   socklen_t addr_len;
+   int sndbuf = 32768;
+ 
+-  memset(rth, 0, sizeof(rth));
++  memset(rth, 0, sizeof(*rth));
+ 
+   rth->fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
+   if (rth->fd < 0) {

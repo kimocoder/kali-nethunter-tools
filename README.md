@@ -474,6 +474,7 @@ tail -f logs/build-libnl3-*.log
 | pixiewps | 1.4.2 | - | autotools | WPS Pixie Dust attack |
 | macchanger | 1.7.0 | - | autotools | MAC address spoofing |
 | iw | 5.16 | libnl3 | make | Wireless configuration utility |
+| wireless-tools | 30.pre9 | - | make | Classic wireless tools (iwconfig, iwlist, iwspy, etc.) |
 | qca-monitor | master | - | make | Qualcomm monitor mode enabler |
 
 ### Network Tools
@@ -493,7 +494,7 @@ tail -f logs/build-libnl3-*.log
 | busybox | 1.38.0 | - | make | Multi-call binary with Unix utilities |
 | nano | 8.7 | - | autotools | Text editor |
 
-**Total: 26 tools/libraries successfully building for Android ARM64 (aarch64), API 21+**
+**Total: 28 tools/libraries successfully building for Android ARM64 (aarch64), API 21+**
 
 ## Development
 
