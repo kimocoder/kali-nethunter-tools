@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  nethunter-build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: kali-nethunter-tools:latest
+    container_name: nethunter-builder
+    volumes:
+      # Mount source directory
+      - ./src:/workspace/src:ro
+      # Mount output directory
+      - ./out:/workspace/out
+      # Mount build directory (for caching)
+      - ./build:/workspace/build
+      # Mount logs directory
+      - ./logs:/workspace/logs
+    environment:
+      - PARALLEL_JOBS=4
+      - VERBOSE=0
+      - KEEP_SOURCES=1
+      - KEEP_BUILD_DIRS=0
+    working_dir: /workspace
+    command: /bin/bash
+    stdin_open: true
+    tty: true

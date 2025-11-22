@@ -1,0 +1,23 @@
+# Build artifacts
+build/
+out/
+logs/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Documentation
+*.md
+!README.md
+
+# Temporary files
+*.tmp
+*.log
