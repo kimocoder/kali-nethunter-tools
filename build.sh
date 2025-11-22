@@ -49,7 +49,7 @@ while [[ $# -gt 0 ]]; do
       ARCH_FILTER="$2"
       shift 2
       ;;
-    build|clean|rebuild|list|status|push|upgrade|update|check|help)
+    build|clean|rebuild|list|status|push|upgrade|update|check|shell|help)
       if [ -z "$COMMAND" ]; then
         COMMAND="$1"
       fi
@@ -778,6 +778,7 @@ show_help() {
   echo -e "  ${GREEN}status${RESET}              Show build status for tools"
   echo -e "  ${GREEN}check${RESET}               Verify tool configurations, sources, and binary TLS alignment"
   echo -e "  ${GREEN}push${RESET} [TOOLS...]     Push built tools to Android device via ADB"
+  echo -e "  ${GREEN}shell${RESET}               Connect to Android device via ADB shell"
   echo -e "  ${GREEN}update${RESET}              Check if a newer version is available"
   echo -e "  ${GREEN}upgrade${RESET}             Upgrade to the latest version from git repository"
   echo -e "  ${GREEN}help${RESET}                Show this help message"
@@ -902,7 +903,7 @@ main() {
   architectures=$(get_architectures)
   
   # If building for multiple architectures, handle recursively
-  if [ "$COMMAND" != "list" ] && [ "$COMMAND" != "help" ] && [ "$COMMAND" != "status" ] && [ "$COMMAND" != "update" ] && [ "$COMMAND" != "upgrade" ] && [ "$COMMAND" != "check" ]; then
+  if [ "$COMMAND" != "list" ] && [ "$COMMAND" != "help" ] && [ "$COMMAND" != "status" ] && [ "$COMMAND" != "update" ] && [ "$COMMAND" != "upgrade" ] && [ "$COMMAND" != "check" ] && [ "$COMMAND" != "shell" ]; then
     local arch_count
     arch_count=$(echo "$architectures" | wc -w)
     
@@ -1190,6 +1191,27 @@ main() {
           break
         fi
       done
+      ;;
+
+    shell)
+      # Check if adb is available
+      if ! command -v adb > /dev/null 2>&1; then
+        log_error "adb command not found. Please install Android SDK platform-tools"
+        exit 1
+      fi
+      
+      # Check if device is connected
+      if ! adb devices | grep -q "device$"; then
+        log_error "No Android device connected. Please connect a device and enable USB debugging"
+        exit 1
+      fi
+      
+      log "Connecting to Android device shell..."
+      log "Tip: Built tools are located in /data/local/tmp/"
+      echo ""
+      
+      # Connect to adb shell
+      adb shell
       ;;
 
     update)

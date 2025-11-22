@@ -122,9 +122,25 @@ cp src/nano "$INSTALL_DIR/bin/"
 "$STRIP" "$INSTALL_DIR/bin/nano"
 
 # ============================================================================
+# Fix TLS Alignment for ARM64
+# ============================================================================
+log "Step 6: Fixing TLS alignment for ARM64..."
+
+# Fix TLS alignment for ARM64 binaries
+if [ "$TARGET_ARCH" = "arm64" ] || [ "$TARGET_ARCH" = "aarch64" ]; then
+  TLS_FIX_SCRIPT="$SCRIPT_DIR/fix-tls-alignment.py"
+  if [ -f "$TLS_FIX_SCRIPT" ] && [ -f "$INSTALL_DIR/bin/nano" ]; then
+    log "Fixing TLS alignment for nano..."
+    python3 "$TLS_FIX_SCRIPT" "$INSTALL_DIR/bin/nano" || log "WARNING: TLS fix failed for nano"
+  else
+    log "WARNING: TLS fix script not found at $TLS_FIX_SCRIPT"
+  fi
+fi
+
+# ============================================================================
 # Verify Installation
 # ============================================================================
-log "Step 6: Verifying installation..."
+log "Step 7: Verifying installation..."
 
 if [ ! -f "$INSTALL_DIR/bin/nano" ]; then
   log "ERROR: nano executable not found in $INSTALL_DIR/bin"
