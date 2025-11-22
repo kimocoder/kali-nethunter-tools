@@ -385,6 +385,8 @@ error: executable's TLS segment is underaligned: alignment is 8, needs to be at 
 The build system automatically fixes this for ARM64 binaries using `scripts/fix-tls-alignment.py`, which patches the ELF headers to set proper alignment. This is applied automatically during the build process for affected tools like:
 - iproute2 (ip, tc, ss, etc.)
 - net-tools (ifconfig, netstat, route, arp, etc.)
+- ethtool
+- wireless-tools (iwconfig, iwlist, iwspy, etc.)
 
 No manual intervention is required - the fix is integrated into the build scripts.
 
@@ -486,6 +488,7 @@ tail -f logs/build-libnl3-*.log
 | curl | 8.0.0 | - | autotools | URL transfer tool |
 | iproute2 | 6.1.0 | libmnl | make | Advanced routing and network configuration (ip, tc, ss, etc.) |
 | net-tools | 2.10 | - | make | Classic network tools (ifconfig, netstat, route, arp, etc.) |
+| ethtool | 6.15 | libmnl | autotools | Ethernet interface configuration and tuning |
 
 ### Utilities
 
@@ -494,7 +497,7 @@ tail -f logs/build-libnl3-*.log
 | busybox | 1.38.0 | - | make | Multi-call binary with Unix utilities |
 | nano | 8.7 | - | autotools | Text editor |
 
-**Total: 28 tools/libraries successfully building for Android ARM64 (aarch64), API 21+**
+**Total: 29 tools/libraries successfully building for Android ARM64 (aarch64), API 21+**
 
 ## Development
 
