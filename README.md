@@ -75,11 +75,12 @@ export ANDROID_NDK_HOME=/path/to/android-ndk
 │   ├── build-aircrack-ng.sh
 │   ├── build-reaver.sh
 │   ├── build-mdk4.sh
+│   ├── verify-artifacts.sh   # Artifact verification
+│   ├── verify-tool-scripts.sh # Tool script validation
+│   ├── fix-tls-alignment.py  # TLS alignment fix for ARM64
 │   └── ... (all tool scripts)
 ├── tools.conf                # Tool manifest
 ├── build.conf                # Build configuration
-├── verify-artifacts.sh       # Artifact verification
-├── verify-tool-scripts.sh    # Tool script validation
 ├── src/                      # Source code
 ├── build/                    # Build artifacts (temporary)
 ├── out/                      # Final output
@@ -103,14 +104,15 @@ export ANDROID_NDK_HOME=/path/to/android-ndk
 
 ```
 Core Libraries (no dependencies):
-  libnl3, libpcap, libcap, libnet, openssl, ifaddrs, radiotap
+  libnl3, libpcap, libcap, libnet, libmnl, openssl, ifaddrs, radiotap
 
 Wireless Tools:
   libnl3 ──────┬─→ iw
-               └─→ mdk4 (also needs libpcap)
+               ├─→ mdk4 (also needs libpcap)
+               └─→ aircrack-ng (also needs libpcap, libnet, openssl)
   
   libpcap ─────┬─→ tcpdump
-               ├─→ aircrack-ng (also needs libnet, openssl)
+               ├─→ aircrack-ng (also needs libnet, openssl, libnl3)
                ├─→ reaver (also needs libnl3)
                ├─→ hcxdumptool (also needs openssl, ifaddrs)
                └─→ hcxtools (also needs openssl)
@@ -120,10 +122,11 @@ Wireless Tools:
                └─→ hcxtools
 
 Network Tools:
-  nmap, curl (no dependencies)
+  libmnl ──────→ iproute2
+  nmap, curl, net-tools (no dependencies)
 
 Utilities:
-  busybox, nano, pixiewps, macchanger (no dependencies)
+  busybox, nano, pixiewps, macchanger, qca-monitor (no dependencies)
 ```
 
 ## Usage
@@ -298,7 +301,7 @@ touch "$PREFIX/$TOOL_NAME/.built"
 
 ```bash
 # Verify built artifacts
-./verify-artifacts.sh libnl3 libpcap iw
+./scripts/verify-artifacts.sh libnl3 libpcap iw
 ```
 
 Checks:
@@ -311,7 +314,7 @@ Checks:
 
 ```bash
 # Verify tool scripts follow conventions
-./verify-tool-scripts.sh
+./scripts/verify-tool-scripts.sh
 ```
 
 Checks:
@@ -371,6 +374,20 @@ Adding a new tool is simple:
 
 The main build script automatically discovers and integrates new tools.
 
+## ARM64 TLS Alignment
+
+Android Bionic on ARM64 requires TLS (Thread-Local Storage) segments to be aligned to 64 bytes. Some tools built with older toolchains may have 8-byte alignment, causing this error:
+
+```
+error: executable's TLS segment is underaligned: alignment is 8, needs to be at least 64
+```
+
+The build system automatically fixes this for ARM64 binaries using `scripts/fix-tls-alignment.py`, which patches the ELF headers to set proper alignment. This is applied automatically during the build process for affected tools like:
+- iproute2 (ip, tc, ss, etc.)
+- net-tools (ifconfig, netstat, route, arp, etc.)
+
+No manual intervention is required - the fix is integrated into the build scripts.
+
 ## Troubleshooting
 
 ### NDK Not Found
@@ -397,6 +414,14 @@ Verify dependency order:
 Rebuild dependencies:
 ```bash
 ./build.sh rebuild libnl3
+```
+
+### TLS Alignment Errors on ARM64
+
+If you see TLS alignment errors, the automatic fix may have failed. Manually apply it:
+
+```bash
+python3 scripts/fix-tls-alignment.py path/to/binary
 ```
 
 ## Environment Variables
@@ -432,6 +457,7 @@ tail -f logs/build-libnl3-*.log
 | libpcap | 1.10.1 | - | autotools |
 | libcap | 2.66 | - | autotools |
 | libnet | 1.2.0 | - | autotools |
+| libmnl | 1.0.5 | - | autotools |
 | openssl | 3.x | - | make |
 | ifaddrs | master | - | make |
 | radiotap | master | - | make |
@@ -448,6 +474,7 @@ tail -f logs/build-libnl3-*.log
 | pixiewps | 1.4.2 | - | autotools | WPS Pixie Dust attack |
 | macchanger | 1.7.0 | - | autotools | MAC address spoofing |
 | iw | 5.16 | libnl3 | make | Wireless configuration utility |
+| qca-monitor | master | - | make | Qualcomm monitor mode enabler |
 
 ### Network Tools
 
@@ -456,6 +483,8 @@ tail -f logs/build-libnl3-*.log
 | nmap | 7.93 | - | autotools | Network scanner + ncat + nping |
 | tcpdump | 4.99.1 | libpcap | autotools | Network packet analyzer |
 | curl | 8.0.0 | - | autotools | URL transfer tool |
+| iproute2 | 6.1.0 | libmnl | make | Advanced routing and network configuration (ip, tc, ss, etc.) |
+| net-tools | 2.10 | - | make | Classic network tools (ifconfig, netstat, route, arp, etc.) |
 
 ### Utilities
 
@@ -464,7 +493,7 @@ tail -f logs/build-libnl3-*.log
 | busybox | 1.38.0 | - | make | Multi-call binary with Unix utilities |
 | nano | 8.7 | - | autotools | Text editor |
 
-**Total: 22 tools/libraries successfully building for Android ARM64 (aarch64), API 21+**
+**Total: 26 tools/libraries successfully building for Android ARM64 (aarch64), API 21+**
 
 ## Development
 
