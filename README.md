@@ -461,8 +461,8 @@ tail -f logs/build-libnl3-*.log
 
 | Tool | Version | Dependencies | Type | Description |
 |------|---------|--------------|------|-------------|
-| busybox | 1.35.0 | - | make | Multi-call binary with Unix utilities |
-| nano | 6.2 | - | autotools | Text editor |
+| busybox | 1.38.0 | - | make | Multi-call binary with Unix utilities |
+| nano | 8.7 | - | autotools | Text editor |
 
 **Total: 22 tools/libraries successfully building for Android ARM64 (aarch64), API 21+**
 
