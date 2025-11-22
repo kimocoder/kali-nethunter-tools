@@ -1,0 +1,22 @@
+--- a/include/netlink-private/netlink.h
++++ b/include/netlink-private/netlink.h
+@@ -1,6 +1,7 @@
+ /* SPDX-License-Identifier: LGPL-2.1-only */
+ /*
+  * Copyright (c) 2003-2013 Thomas Graf <tgraf@suug.ch>
+  */
++#include <netinet/in.h>
+ 
+ #ifndef NETLINK_LOCAL_H_
+ #define NETLINK_LOCAL_H_
+--- a/include/netlink-private/types.h
++++ b/include/netlink-private/types.h
+@@ -1,6 +1,7 @@
+ /* SPDX-License-Identifier: LGPL-2.1-only */
+ /*
+  * Copyright (c) 2003-2013 Thomas Graf <tgraf@suug.ch>
+  */
++#include <netinet/in.h>
+ 
+ #ifndef NETLINK_TYPES_H_
+ #define NETLINK_TYPES_H_

@@ -1,0 +1,7 @@
+Template: macchanger/automatically_run
+Type: boolean
+Default: false
+_Description: Change MAC automatically?
+ Please specify whether macchanger should be set up to run automatically
+ every time a network device is brought up or down. This gives a new MAC
+ address whenever you attach an ethernet cable or reenable wifi.

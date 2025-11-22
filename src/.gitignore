@@ -1,0 +1,12 @@
+# Include all source files but exclude .git directories
+# This allows committing the source code while keeping local .git folders
+# for easy updates without git complaining about embedded repositories
+
+# Ignore all .git directories in subdirectories
+**/.git/
+**/.git
+
+# Also ignore common git-related files
+**/.gitignore
+**/.gitmodules
+**/.gitattributes

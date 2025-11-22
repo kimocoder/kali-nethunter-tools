@@ -1,0 +1,8 @@
+#unconditional
+#From include/uapi/linux/tee.h
+#Prefix TEE_GEN_CAP_
+TEE_GEN_CAP_GP
+TEE_GEN_CAP_PRIVILEGED
+TEE_GEN_CAP_REG_MEM
+TEE_GEN_CAP_MEMREF_NULL
+TEE_GEN_CAP_OBJREF

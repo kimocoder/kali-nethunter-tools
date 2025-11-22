@@ -1,0 +1,7 @@
+#value_indexed
+#From include/uapi/linux/kd.h
+#Prefix KD_
+KD_TEXT		0x0
+KD_GRAPHICS	0x1
+KD_TEXT0	0x2
+KD_TEXT1	0x3

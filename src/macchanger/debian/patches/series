@@ -1,0 +1,6 @@
+02-fix_usage_message.patch
+06-update_OUI_list.patch
+08-fix_random_MAC_choice.patch
+check-random-device-read-errors.patch
+verify-changed-MAC.patch
+# fix-constant-mac-addresses-in-case-they-are-specifie.patch

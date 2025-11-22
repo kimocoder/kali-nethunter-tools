@@ -1,0 +1,13 @@
+#sorted sort -k2,2g
+#From include/uapi/linux/ipc.h
+#From include/uapi/linux/shm.h
+#Prefix IPC_ SHM_
+IPC_RMID 0
+IPC_SET 1
+IPC_STAT 2
+IPC_INFO 3
+SHM_LOCK 11
+SHM_UNLOCK 12
+SHM_STAT 13
+SHM_INFO 14
+SHM_STAT_ANY 15

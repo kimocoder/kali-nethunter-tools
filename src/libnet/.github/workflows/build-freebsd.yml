@@ -1,0 +1,31 @@
+name: FreeBSD
+
+on: [ push, pull_request, workflow_dispatch ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - name: FreeBSD-15
+            cc: gcc
+          - name: FreeBSD-15
+            cc: clang
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ${{ matrix.name }} Build
+        # https://github.com/vmactions/freebsd-vm
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: "15.0"
+          usesh: true
+          prepare: |
+            pkg install -y autotools libtool gcc llvm doxygen tree pkgconf
+          run: |
+            ./autogen.sh
+            CC=${{ matrix.cc }} ./configure --prefix=/usr
+            make V=1
+            make install-strip DESTDIR=/tmp
+            tree /tmp/usr

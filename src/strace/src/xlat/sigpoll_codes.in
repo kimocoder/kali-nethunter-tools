@@ -1,0 +1,9 @@
+#value_indexed
+#From include/uapi/asm-generic/siginfo.h
+#Prefix POLL_
+POLL_IN 1
+POLL_OUT 2
+POLL_MSG 3
+POLL_ERR 4
+POLL_PRI 5
+POLL_HUP 6

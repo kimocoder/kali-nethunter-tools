@@ -1,0 +1,8 @@
+#value_indexed
+#From include/uapi/linux/hw_breakpoint.h
+#Prefix HW_BREAKPOINT_
+HW_BREAKPOINT_EMPTY 0
+HW_BREAKPOINT_R 1
+HW_BREAKPOINT_W 2
+HW_BREAKPOINT_RW 3
+HW_BREAKPOINT_X 4

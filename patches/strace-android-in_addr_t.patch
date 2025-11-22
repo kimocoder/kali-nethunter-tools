@@ -1,0 +1,16 @@
+diff --git a/src/defs.h b/src/defs.h
+index a22f1c99a..ee863ccb5 100644
+--- a/src/defs.h
++++ b/src/defs.h
+@@ -33,6 +33,11 @@
+ # include <time.h>
+ # include <sys/time.h>
+ 
++/* Android Bionic compatibility - define in_addr_t if missing */
++#ifndef in_addr_t
++typedef uint32_t in_addr_t;
++#endif
++
+ # include "arch_defs.h"
+ # include "error_prints.h"
+ # include "gcc_compat.h"

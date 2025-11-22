@@ -1,0 +1,14 @@
+--- src/defs.h
++++ src/defs.h
+@@ -29,6 +29,11 @@
+  */
+ /* #include <ctype.h> */
+ 
++/* Android Bionic compatibility - define in_addr_t if missing */
++#ifndef in_addr_t
++typedef uint32_t in_addr_t;
++#endif
++
+ # include "kernel_types.h"
+ # include "gcc_compat.h"
+ # include "macros.h"

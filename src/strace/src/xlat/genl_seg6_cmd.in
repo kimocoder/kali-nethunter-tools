@@ -1,0 +1,10 @@
+#unconditional
+#value_indexed
+#From include/uapi/linux/seg6_genl.h
+#Prefix SEG6_CMD_
+
+SEG6_CMD_UNSPEC
+SEG6_CMD_SETHMAC
+SEG6_CMD_DUMPHMAC
+SEG6_CMD_SET_TUNSRC
+SEG6_CMD_GET_TUNSRC

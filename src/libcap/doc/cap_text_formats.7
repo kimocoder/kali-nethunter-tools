@@ -1,0 +1,129 @@
+.TH CAP_TEXT_FORMATS 7 "2025-03-19" "" "Linux Programmer's Manual"
+.SH "CAPABILITY TEXT FORMATS"
+The capability library
+.BR libcap (3)
+employs two string formats for representing capabilities: the original
+text format for the standard capability `Set' and supported by the
+.BR getcap (8),
+.BR setcap (8)
+and
+.BR capsh (8)
+command line tools; and the
+IAB-tuple text format, which is usable by the
+.BR pam_cap (8)
+Linux-PAM module,
+.BR captree (8) and
+.BR capsh (8).
+These text formats have extensive support in
+.BR libcap (3),
+and the
+.B 'kernel.org/pub/linux/libs/security/libcap/cap'
+Go package.
+.SH "THE CAPABILITY SET TEXT FORMAT"
+This text format is specified in the defunct POSIX.1e draft [1] that
+introduced capabilities. It is able to represent both process and file
+capabilities.
+.PP
+The textual representation of capability sets consists of one or more
+whitespace-separated
+.IR clauses .
+Each clause specifies some operations on a capability set; the set
+starts out with all capabilities lowered, and the meaning of the
+string is the state of the capability set after all the clauses have
+been applied in order.
+.PP
+Each clause consists of a list of comma-separated capability names
+(or the word
+.RB ` all '),
+followed by an
+.IR action-list .
+An action-list consists of a sequence of
+.I operator flag
+pairs.  Legal operators are:
+.RB ` = "', '" + "', and `" \- "'."
+Legal flags are:
+.RB ` e "', `" i "', and `" p "'."
+These flags are case-sensitive and specify the Effective, Inheritable
+and Permitted sets respectively.
+.PP
+In the capability name lists, all names are case-insensitive.  The
+special name
+.RB ` all '
+specifies all capabilities; it is equivalent to a list naming every
+capability individually.
+.PP
+Unnamed capabilities can also be specified by number. This feature
+ensures that libcap can support capabilities that were not allocated
+at the time libcap was compiled. However, generally upgrading libcap
+will add names for recently allocated capabilities.
+.PP
+The
+.RB ` = '
+operator indicates that the listed capabilities are first reset in
+all three capability sets.  The subsequent flags (which are optional
+when associated with this operator) indicate that the listed
+capabilities for the corresponding set are to be raised.  For example:
+"all=p" means lower every capability in the Effective and Inheritable
+sets but raise all of the Permitted capabilities;
+or, "cap_fowner=ep" means raise the Effective and Permitted
+override-file-ownership capability, while lowering this Inheritable
+capability.
+.PP
+In the case that the leading operator is
+.RB ` = ',
+and no list of capabilities is provided, the action-list is assumed to
+refer to `all' capabilities.  For example, the following three
+clauses are equivalent to each other (and indicate a completely empty
+capability set): "all="; "="; "cap_chown,<every-other-capability>=".
+.PP
+The operators, `+' and `\-' both require an explicit preceding
+capability list and one or more explicit trailing flags.  The `+'
+operator will raise all of the listed capabilities in the flagged
+capability sets.  The `\-' operator will lower all of the listed
+capabilities in the flagged capability sets.  For example:
+"all+p" will raise all of the Permitted capabilities and
+"cap_fowner\-i" will lower the override-file-ownership in the Inheritable set.
+.PP
+The action list can consist of multiple
+.I operator flag
+pairs; the actions are performed in left-to-right order.
+Thus, for example,
+"cap_fowner+p\-i"
+is equivalent to "cap_fowner+p cap_fowner\-i".
+As another example,
+"cap_fowner+pe\-i" and "cap_fowner=+pe" are equivalent.
+.SH "THE IAB TUPLE TEXT FORMAT"
+This format is a pure Linux extension. It started out life as the
+format used by
+.BR pam_cap (8)
+and can be employed by
+.BR capsh (8).
+.PP
+The IAB tuple text format is a comma separated list of capability
+values. Each capability is prefixed by nothing (or %) (Inh); ! (Bound,
+but think Blocked); ^ (Amb). Or, some combination thereof.  Since the
+Amb vector is constrained to be no greater than the Inh vector, ^ is
+equivalent to %^. Further, unless B is non-zero, % can be omitted. The
+following are legal text representations: "!%cap_chown" (Bound but
+Inh), "!cap_chown,^cap_chown" (Bound,
+Inh+Amb). "cap_setuid,!cap_chown" (Inh, Bound). As noted above, this
+text representation is used in the configuration file syntax (see
+.BR capability.conf (5))
+for the
+.BR pam_cap (8)
+Linux-PAM security module.
+.SH "SEE ALSO"
+[1] A copy of the last POSIX.1e draft for security extensions can be
+downloaded from the https://sites.google.com/site/fullycapable/
+website. Please report bugs as directed at that site.
+.PP
+Related manual pages:
+.BR libcap (3),
+.BR capsh (1),
+.BR setcap (8),
+.BR getcap (8),
+.BR captree (8),
+.BR pam_cap (8),
+.BR cap_from_text (3),
+.BR cap_iab (3).
+

@@ -1,0 +1,8 @@
+#unconditional
+#value_indexed
+#From include/uapi/linux/videodev2.h
+#Prefix V4L2_MEMORY_
+V4L2_MEMORY_MMAP
+V4L2_MEMORY_USERPTR
+V4L2_MEMORY_OVERLAY
+V4L2_MEMORY_DMABUF

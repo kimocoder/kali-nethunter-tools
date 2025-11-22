@@ -1,0 +1,12 @@
+#From arch/alpha/include/uapi/asm/termios.h
+#Prefix _V
+_VINTR
+_VQUIT
+_VERASE
+_VKILL
+_VEOF
+_VMIN
+_VEOL
+_VTIME
+_VEOL2
+_VSWTC

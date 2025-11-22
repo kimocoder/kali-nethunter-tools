@@ -1,0 +1,43 @@
+# Build artifacts
+build/
+out/
+logs/
+
+# Downloaded tarballs
+*.tar.gz
+*.tar.xz
+*.tar.bz2
+*.tgz
+*.zip
+
+# Object files and libraries
+*.o
+*.a
+*.so
+*.so.*
+*.d
+*.la
+*.lo
+.libs/
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+# Compiled binaries
+build-binary
+
+# Backup files
+*.backup
+*.backup.*
+
+# Test directories
+test-*/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

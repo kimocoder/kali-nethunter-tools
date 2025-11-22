@@ -1,0 +1,7 @@
+#From arch/alpha/include/uapi/asm/termbits.h
+#From include/uapi/asm-generic/termbits.h
+#Prefix NL
+NL0
+NL1
+NL2
+NL3

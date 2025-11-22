@@ -1,0 +1,53 @@
+#! /usr/bin/env bash
+
+# A wrapper script to do this (essentially):
+# $ gs-netcat -s MySecret -l -e /usr/lib/sftp-server         # Host
+#
+# $ export GSOCKET_ARGS="-s MySecret"                        # Workstation
+# $ sshfs -o ServerAliveInterval=30,reconnect,attr_timeout=60,auto_cache,compression=yes,default_permissions -o ssh_command="gs-netcat --"  -o idmap=user,uid="${UID}",gid="$(id -g)" x@127.1:. ~/gs-fs
+
+
+# Try to use the gs-netcat that's in the same directory as this executable.
+BASEDIR="$(cd "$(dirname "${0}")" || exit; pwd)"
+# shellcheck disable=SC1090 # Can't follow non-constant source. Use a directive to specify location.
+# shellcheck disable=SC1091 # Not following: /etc/gsocket.conf was not specified as input (see shellcheck -x)
+source "${BASEDIR}/gs_funcs" 2>/dev/null || source "${BASEDIR}/../share/gsocket/gs_funcs" 2>/dev/null || { { source /etc/gsocket.conf 2>/dev/null || source "${BASEDIR}/../etc/gsocket.conf" 2>/dev/null || { echo >&2 "gsocket: gsocket.conf not found."; exit 3; } } && { source "${GS_PREFIX}/share/gsocket/gs_funcs" 2>/dev/null; } } || { echo >&2 "gsocket: gs_funcs not found"; exit 3; }
+
+my_usage()
+{
+	echo "${BIN_NAME} [-k file] [-s password] [-l] [mount point]"
+	usage "${BIN_NAME}"
+	exit 0
+}
+
+gs_init 
+do_getopt "$@"
+shift $((OPTIND -1))	# Mount Point
+env_arg_init
+
+if [[ -z ${IS_SERVER} ]]; then
+	# CLIENT
+	SSHFS_OPT="ServerAliveInterval=30,reconnect,attr_timeout=60,auto_cache,compression=yes,default_permissions,idmap=user,uid=${UID},gid=$(id -g)"
+	# echo "Remaining (files): $*"
+	[[ -z "${1}" ]] && { echo >&2 "ERROR: No directory (mount point) specified."; my_usage; }
+	command -v sshfs >/dev/null 2>&1 || { echo >&2 "sshfs not found. Try 'apt-get install sshfs' or check PATH=?"; exit 1; }
+	# FUSE_OPT=",cache=yes,kernel_cache"
+	FUSE_OPT=""
+	if [[ "$OSTYPE" == "darwin"* ]]; then
+        # Setting 'noapplexattr' prevents 'finder' from copying.
+        FUSE_OPT+=",async,local,iosize=65536,noappledouble,volname=THC-"$(basename "${1}")
+	fi
+fi
+
+if [[ -n ${IS_SERVER} ]]; then
+	# SERVER
+	sftp_server_start
+else
+	# CLIENT
+	ARGS=" -q"
+	[[ -n ${ARGS_NEW[*]} ]] && ARGS=" ${ARGS_NEW[*]}"
+
+	GSOCKET_NO_GREETINGS="1" GSOCKET_ARGS="${ENV_ARGS}" sshfs -o "${SSHFS_OPT}${FUSE_OPT}" -o ssh_command="${GS_NETCAT_BIN}${ARGS} --" x@127.1:. "${1}" || exit 1
+	echo "Successfully mounted on ${1}."
+	command -v fusermount >/dev/null 2>&1 && echo "To unmount use: fusermount -zu ${1}"
+fi

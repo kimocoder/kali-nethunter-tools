@@ -1,0 +1,6 @@
+#From include/uapi/asm-generic/termbits-common.h
+#Prefix TCI TCO
+TCOOFF
+TCOON
+TCIOFF
+TCION

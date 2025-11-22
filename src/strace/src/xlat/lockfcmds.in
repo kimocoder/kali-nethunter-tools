@@ -1,0 +1,8 @@
+#unconditional
+#From include/uapi/asm-generic/fcntl.h
+#Prefix F_
+F_RDLCK
+F_WRLCK
+F_UNLCK
+F_EXLCK
+F_SHLCK

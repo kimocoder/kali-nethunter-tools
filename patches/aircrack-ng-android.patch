@@ -1,0 +1,18 @@
+--- a/lib/libac/tui/console.c
++++ b/lib/libac/tui/console.c
+@@ -36,7 +36,14 @@
+ #include <assert.h>
+ #include <stdio.h>
+ #include <locale.h>
++#ifndef __ANDROID__
+ #include <langinfo.h>
++#else
++/* Android doesn't have nl_langinfo, provide a stub */
++#ifndef CODESET
++#define CODESET 0
++#endif
++#define nl_langinfo(x) "UTF-8"
++#endif
+ #include <termios.h>
+ #if !defined(TIOCGWINSZ) && !defined(linux)
+ #include <sys/termios.h>

@@ -1,0 +1,7 @@
+#From include/uapi/asm-generic/socket.h
+#Prefix SO_
+#if defined __hppa__
+SO_GET_FILTER 16410
+#else
+SO_GET_FILTER 26
+#endif

@@ -1,0 +1,35 @@
+# Translation of macchanger debconf templates to German
+# Copyright (C) Helge Kreutzmann <debian@helgefjell.de>, 2014.
+# This file is distributed under the same license as the macchanger package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: macchanger 1.7.0-5\n"
+"Report-Msgid-Bugs-To: macchanger@packages.debian.org\n"
+"POT-Creation-Date: 2014-12-18 13:38+0100\n"
+"PO-Revision-Date: 2014-12-20 14:10+0100\n"
+"Last-Translator: Helge Kreutzmann <debian@helgefjell.de>\n"
+"Language-Team: German <debian-l10n-german@lists.debian.org>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Type: boolean
+#. Description
+#: ../templates:1001
+msgid "Change MAC automatically?"
+msgstr "MAC automatisch ändern?"
+
+#. Type: boolean
+#. Description
+#: ../templates:1001
+msgid ""
+"Please specify whether macchanger should be set up to run automatically "
+"every time a network device is brought up or down. This gives a new MAC "
+"address whenever you attach an ethernet cable or reenable wifi."
+msgstr ""
+"Bitte geben Sie an, ob Macchanger so eingerichtet werden soll, dass es "
+"automatisch ausgeführt wird, wanimmer ein Netzgerät aktiviert oder "
+"deaktiviert wird. Damit wird für eine neue MAC-Adresse gesorgt, wanimmer Sie "
+"sich mit einem Ethernet-Kabel verbinden oder Wifi reaktivieren."

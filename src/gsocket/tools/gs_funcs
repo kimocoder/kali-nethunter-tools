@@ -1,0 +1,389 @@
+#! /usr/bin/env bash
+
+
+[[ $(basename -- "$0") == "gs_funcs" ]] && { echo "Use gsocket, gs-netcat, gs-sftp, gs-mount or blitz instead."; exit 1; }
+
+# Find a sftp-server binary
+find_binary()
+{
+	bin=$1
+	command -v "${bin}" && { echo "${bin}"; return; }
+	shift 1
+	for dir in "$@"; do
+		file="${dir}/${bin}"
+		if [[ -f "$file" ]]; then
+			echo "${file}"
+			return
+		fi
+	done
+	echo ""
+	return
+}
+
+read_password()
+{
+	echo -n >&2 "${GS_PRFX}Enter Secret (or press Enter to generate): "
+	read -r password
+	if [[ -z "${password}" ]]; then
+		password=$(${GS_NETCAT_BIN} -g)
+	fi
+	echo "${password}" | tr -d "[:space:]"
+}
+
+# haystack1 haystack2 needle
+ucheck_fail()
+{
+	[[ "$1" =~ $3 ]] || { echo >&2 "Symbol $3 not found in sftp-server."; exit 255; }
+	[[ "$2" =~ $3 ]] || { echo >&2 "Symbol $3 not found (2)."; exit 255; }
+}
+
+test_sftp()
+{
+	echo "${1}" | ./gs-sftp -k id_sec.txt -wq 2>&1 | grep -c "Permission denied"
+}
+
+first_symbol()
+{
+	for func in "$@"; do
+		if [[ "$sym_sftp" =~ $func ]]; then
+			echo "$func "
+			return
+		fi
+	done
+	echo ">>>$*-NOT-FOUND<<< "
+}
+
+uchroot_check_sym()
+{
+	command -v nm >/dev/null 2>&1 || { echo >&2 "chroot failed (nm not found. apt-get install binutils?). Try -U to disable."; exit 255; }
+
+	# Extract symbols from .so and sftp-server binary
+	if [[ "$OSTYPE" == "darwin"* ]]; then
+		# on OSX remove the starting "_" from symboles
+		sym_sftp="$(nm -pu "${SFTP_SERVER_BIN}" | sed 's/^_//g')"
+		sym_uchr="$(nm -p "${UCHROOT_BIN}" | grep " T " | sed 's/^_//g')"
+	elif [[ "$OSTYPE" == "solaris"* ]]; then
+		sym_sftp="$(nm -Du "${SFTP_SERVER_BIN}")"
+		sym_uchr="$(nm -p "${UCHROOT_BIN}" | grep " T ")"
+	else
+		sym_sftp="$(nm -Du "${SFTP_SERVER_BIN}")"
+		sym_uchr="$(nm -D "${UCHROOT_BIN}" | grep " T ")"
+	fi
+
+	[[ -n "$sym_uchr" ]] || { echo >&2 "chroot self-test failed (nm bad1). Try -U to disable."; exit 255; }
+	[[ -n "$sym_sftp" ]] || { echo >&2 "chroot self-test failed (nm bad2). Try -U to disable."; exit 255; }
+	funclist+=$(first_symbol lstat\$INODE64 __lxstat64 __lxstat lstat64 lstat)
+	funclist+=$(first_symbol stat\$INODE64 __xstat64 __xstat stat64 stat)
+	funclist+=$(first_symbol opendir\$INODE64 opendir64 opendir)
+	funclist+=$(first_symbol open64 open)
+	if [[ ! "$OSTYPE" == "solaris2.10"* ]]; then
+		# On solaris 10 the stock OpenSSH install does not use statvfs64 (older version)
+		funclist+=$(first_symbol statvfs64 statvfs)
+	fi
+	[[ "${funclist}" =~ "NOT-FOUND"* ]] && { echo >&2 "Missing symbol...${funclist}"; exit 255; }
+
+	funclist+="chmod link mkdir rename rmdir symlink unlink"
+	# echo "funclist = $funclist"	# DEBUG
+	for func in ${funclist}; do
+		ucheck_fail "${sym_sftp}" "${sym_uchr}" "${func}"
+	done
+}
+
+failed()
+{
+	echo >&2 "ERROR: Self test failed: $1. Try -U to disable."
+
+	exit 255
+}
+# Verify that all symboles will get hijacked. exit on failure.
+# 			linux      osx		solaris
+# sftp		-Du			-pu		-Du
+# .so		-D|T		-p|T	-p|T
+uchroot_check()
+{
+	local VALID_CMD
+	local FAIL_CMD
+
+	# skip nm-style symbol check on cygwin
+	# (sftp-server does not like nm on cygwin?!)
+	if [[ x"$OSTYPE" != "xcygwin"* ]]; then
+		# NOT cygwin
+		uchroot_check_sym
+	fi
+
+	# Run a self test (sftp -D sftp-server)
+	command -v sftp >/dev/null 2>&1 || { failed "sftp not found"; }
+	mkdir -p "${ROOTDIR}/ok"
+	mkdir -p "${ROOTDIR}/denied"
+	# echo "ROOTDIR=${ROOTDIR}"		# DEBUG
+	echo hello exist-allowed.txt >"${ROOTDIR}/ok/exist-allowed.txt"
+	echo hello exist-denied.txt >"${ROOTDIR}/denied/exist-denied.txt"
+	dd if=/dev/urandom bs=1k count=1 2>/dev/null >"${ROOTDIR}/ok/test1k.dat"
+	echo "\
+#! /bin/bash
+cd \"${ROOTDIR}\"/ok
+${PRELOAD} ${SFTP_SERVER_BIN} ${SFTP_ARGS[*]}" >"${ROOTDIR}/sftp-server.sh"
+	chmod 755 "${ROOTDIR}/sftp-server.sh"
+
+	# Run GOOD commands that should work
+	VALID_CMD="
+mkdir dir1
+cd dir1
+cd ..
+cd dir1
+cd ../
+ls ${ROOTDIR}/ok
+ls ${ROOTDIR}/ok/exist-allowed.txt
+put test1k.dat dir1
+mkdir ./dir2/
+"
+	[[ $(cd "${ROOTDIR}/ok"; echo "$VALID_CMD" | sftp -D "${ROOTDIR}/sftp-server.sh" 2>&1 | grep -c "Permission denied") -eq 0 ]] || { failed "valid cmd 0"; }
+	[[ -d "${ROOTDIR}/ok/dir1" ]] || { failed "valid-cmd 1"; }
+	[[ -d "${ROOTDIR}/ok/dir2" ]] || { failed "valid-cmd 2"; }
+	[[ -f "${ROOTDIR}/ok/dir1/test1k.dat" ]] || { failed "valid-cmd 3"; }
+
+
+	FAIL_CMD="
+rename exist-allowed.txt ../denied/0wned.txt
+mkdir ./dir1/../../denied/0wned
+cd dir1/../../denied
+cd ./../denied
+ls ${ROOTDIR}
+cd ${ROOTDIR}
+cd ${ROOTDIR}/denied
+cd ${ROOTDIR}/ok/../denied
+rm ./../denied/exist-denied.txt
+put test1k.dat ../denied/0wned.dat
+put test1k.dat ../denied/exist-denied.txt
+rename exist-allowed.txt ../denied/0wned.txt
+rename exist-allowed.txt /0wned.txt
+"
+	[[ $(cd "${ROOTDIR}/ok"; echo "$FAIL_CMD" | sftp -D "${ROOTDIR}/sftp-server.sh" 2>&1 | grep -c "Permission denied") -eq 13 ]] || { failed "fail cmd (2)"; }
+
+	FAIL_CMD="
+ls dir1/../../denied
+ls ./../denied/exist-denied.txt"
+	[[ $(cd "${ROOTDIR}/ok"; echo "$FAIL_CMD" | sftp -D "${ROOTDIR}/sftp-server.sh" 2>&1 | grep -c "not found") -eq 2 ]] || { failed "fail cmd (3)"; }
+	rm -rf "${ROOTDIR}/ok" &>/dev/null
+	rm -rf "${ROOTDIR}/denied" &>/dev/null
+	rm -rf "${ROOTDIR}/sftp-server.sh" &>/dev/null
+}
+
+
+gs_find_so_single()
+{
+	[[ -e "${1}/${2}" ]] && { echo "$(cd "${1}" || exit; pwd)""/${2}"; }
+}
+
+arrayContains()
+{
+	local e match="$1"
+	shift
+	for e; do [[ "$e" == "$match" ]] && return 0; done
+	return 1
+}
+
+# Search for the dynamic shared object file.
+# 1. Try $basedir
+# 2. Try ${basedir}/../lib
+# 3. Try /usr/lib
+# 4. Try /usr/local/lib
+# Return absolute path to DSO. 
+gs_find_so()
+{
+	local DL=("${BASEDIR}")
+	# Debian packaging requires libs in /usr/lib/x86_64-linux-gnu  :/
+	if command -v dpkg-architecture &>/dev/null; then
+		DL+=("/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)")
+	fi
+
+	DL+=("${1}/lib") # This is either GS_PREFIX/lib or BASEDIR/../lib
+	arrayContains "/usr/lib" "${DL[@]}" || DL+=("/usr/lib")
+	arrayContains "/usr/local/lib" "${DL[@]}" || DL+=("/usr/local/lib")
+
+	for dir in "${DL[@]}"; do
+		res=$(gs_find_so_single "${dir}" "${2}")
+		[[ -z "$res" ]] || { echo "$res"; return; }
+	done
+}
+
+gs_init()
+{
+	GS_NETCAT_BIN="gs-netcat"
+	BIN="${BASEDIR}/${GS_NETCAT_BIN}"
+	[[ -f "${BIN}" ]] && GS_NETCAT_BIN="${BIN}"
+	# shellcheck disable=SC2034 # appears unused. Verify use (or export if used externally).
+	GS_SFTP_BIN="${BASEDIR}/gs-sftp"
+	EXE=""
+	if [[ "$OSTYPE" == "cygwin"* ]]; then
+		EXE=".exe"
+	fi
+
+	# To find sftp-server and DSO's in PREFIX/lib
+	PREFIX="$GS_PREFIX"
+	[[ -z "$PREFIX" ]] && PREFIX="$(cd "$(dirname "${0}")/../" || exit; pwd)"
+
+	# on OSX the dl-files are called .bundle (not .dylib) but it is generally
+	# accepted to call them .so. OSX keep those is /System/Library/gsocket
+	# but automake insists on ${PREFIX}/lib
+	UCHROOT_BIN=$(gs_find_so "$PREFIX" "gsocket_uchroot_dso.so.0${EXE}")
+	[[ -z "$UCHROOT_BIN" ]] && { echo >&2 "gsocket: gsocket_uchroot_dso.so.0${EXE} not found. Try 'apt install dpkg-dev'."; exit 5; }
+	# shellcheck disable=SC2034 # appears unused. Verify use (or export if used externally).
+	GS_SO_BIN=$(gs_find_so "$PREFIX" "gsocket_dso.so.0${EXE}")
+	[[ -z "$GS_SO_BIN" ]] && { echo >&2 "gsocket: gsocket_dso.so.0${EXE} not found."; exit 5; }
+
+	# shellcheck disable=SC2034 # appears unused. Verify use (or export if used externally).
+	BIN_NAME="$(basename "${0}")"
+
+	command -v "${GS_NETCAT_BIN}" >/dev/null 2>&1 || { echo >&2 "${GS_NETCAT_BIN} not found. Check PATH=?"; exit 1; }
+}
+
+usage()
+{
+	echo "
+   -l           Server Mode.
+   -R           Server in read-only mode.
+   -s <secret>  Secret (e.g. password).
+   -k <file>    Read Secret from file.
+ 
+Example:
+    $ ${1} -s MySecret -l             # Server
+    $ ${1} -s MySecret                # Client
+
+See 'gs-netcat -h' for more options."
+
+}
+
+do_getopt()
+{
+	OPTERR=0
+	FL_NEED_PASSWORD=1
+	IS_UCHROOT=1
+	# Check if -s or -k is already supplied in environment and dont ask again.
+	[[ "$GSOCKET_ARGS" =~ ^'-s' ]] && unset FL_NEED_PASSWORD
+	[[ "$GSOCKET_ARGS" =~ ' -s' ]] && unset FL_NEED_PASSWORD
+	[[ "$GSOCKET_ARGS" =~ ^'-k' ]] && unset FL_NEED_PASSWORD
+	[[ "$GSOCKET_ARGS" =~ ' -k' ]] && unset FL_NEED_PASSWORD
+	# shellcheck disable=SC2220 # Invalid flags are not handled. Add a *) case.
+	while getopts ":qhURgls:k:L:" opt; do
+		case ${opt} in
+			s )
+				GSNC_ENV_ARGS[${#GSNC_ENV_ARGS[@]}]="-s"	# Add to end of array
+				GSNC_ENV_ARGS[${#GSNC_ENV_ARGS[@]}]="$OPTARG"	# Add to end of array
+				unset FL_NEED_PASSWORD
+				;;
+			k )
+				GSNC_ENV_ARGS[${#GSNC_ENV_ARGS[@]}]="-k"	# Add to end of array
+				KFILE=$(cd "$(dirname "$OPTARG")" && pwd)/$(basename "$OPTARG")
+				[[ -f "${KFILE}" ]] || { echo >&2 "File not found: ${KFILE}"; exit 255; }
+				GSNC_ENV_ARGS[${#GSNC_ENV_ARGS[@]}]="${KFILE}"	# Add to end of array
+				# KFILE=$(eval echo "$OPTARG")	# Add to end of array
+				# GSNC_ENV_ARGS[${#GSNC_ENV_ARGS[@]}]=$(eval echo "$OPTARG")	# Add to end of array
+				unset FL_NEED_PASSWORD
+				;;
+			g )
+				"${GS_NETCAT_BIN}" -g
+				exit
+				;;
+			h )
+				my_usage
+				;;
+			q )
+				IS_QUIET=1
+				ARGS_NEW[${#ARGS_NEW[@]}]="-q"
+				;;
+			l )
+				# shellcheck disable=SC2034 # appears unused. Verify use (or export if used externally).
+				IS_SERVER=1
+				ARGS_NEW[${#ARGS_NEW[@]}]="-l"	# Add to end of array			
+				;;
+			R )
+				# shellcheck disable=SC2034 # appears unused. Verify use (or export if used externally).
+				IS_READONLY=1
+				SFTP_ARGS[${#SFTP_ARGS[@]}]="-R"
+				;;
+			U )
+				unset IS_UCHROOT
+				;;
+			\? )
+				# UNKNOWN option. Handle before '*' (e.g. -l)
+				ARGS_NEW[${#ARGS_NEW[@]}]="-${OPTARG}"	# Add to end of array			
+				;;
+			* )
+				# Other (known opts from opstring) w parameters (e.g. -L <file>)
+				ARGS_NEW[${#ARGS_NEW[@]}]="-${opt}"		# Add to end of array			
+				ARGS_NEW[${#ARGS_NEW[@]}]="${OPTARG}"	# Add to end of array			
+				;;
+		esac
+	done
+	# Solaris 10 problems:
+	# - stock sftp-server does not allow -p <whitelist> -> Acceptable risk
+	# - LD_PRELOAD does not seem to work. Does anyone still use solaris10?
+	if [[ "$OSTYPE" == "solaris2.10"* ]]; then
+		echo -e >&2 "\033[1;31mWARNING\033[0m: uchroot not (yet) supported on solaris 10."
+		unset IS_UCHROOT
+	fi
+}
+
+env_arg_init()
+{
+	# Prepare existing GSOCKET_ARGS to take more arguments if there are any
+	[[ -n "$GSOCKET_ARGS" ]] && GSOCKET_ARGS+=" "
+	if [[ -n "$FL_NEED_PASSWORD" ]]; then
+		password=$(read_password)
+		# shellcheck disable=SC2034 # GSOCKET_SECRET appears unused => It's used in 'gs'
+		GSOCKET_SECRET="${password}"
+		echo "${GS_PRFX}=Secret         : ${password}"
+		GSNC_ENV_ARGS[${#GSNC_ENV_ARGS[@]}]="-s"		# Add to end of array			
+		GSNC_ENV_ARGS[${#GSNC_ENV_ARGS[@]}]="$password"	# Add to end of array			
+	fi
+	# Have to output it here because gs-netcat might be started from withing
+	# sshfs or sftpd where stderr is no longer available to gs-netcat
+	[[ -n "$IS_QUIET" ]] || echo >&2 "${GS_PRFX}=Encryption     : SRP-AES-256-CBC-SHA-End2End (Prime: 4096 bits)"
+	ENV_ARGS="${GSOCKET_ARGS}${GSNC_ENV_ARGS[*]}"
+}
+
+sftp_server_start()
+{
+	# SERVER
+	if [[ "$OSTYPE" == "darwin"* ]]; then
+		# OSX does not allow LD_PRELOAD of binaries in /usr/. Copy to tmp...
+		ROOTDIR=$(mktemp -d -t thc-gs-sftp)
+		# FIXME: temp file only cleaned on reboot. Hmm...
+		cp /usr/libexec/sftp-server "${ROOTDIR}/sftp-server" &>/dev/null
+		SFTP_SERVER_BIN="${ROOTDIR}/sftp-server"
+		PRELOAD="DYLD_INSERT_LIBRARIES=${UCHROOT_BIN} DYLD_FORCE_FLAT_NAMESPACE=1"
+	else
+		if [[ -n "${IS_UCHROOT}" ]]; then
+			ROOTDIR=$(mktemp -d -t thc-gs-sftp-XXXXXXXXXXXXXXX) 
+		fi
+		SFTP_SERVER_BIN=$(find_binary "sftp-server${EXE}" "${PREFIX}/lib" /opt/csw/libexec /usr/lib /usr/local/lib /usr/libexec /usr/libexec/openssh /usr/lib/ssh /usr/sbin)
+		PRELOAD="LD_PRELOAD=${UCHROOT_BIN}"
+	fi
+	[[ -z "${SFTP_SERVER_BIN}" ]] && { echo >&2 "sftp-server binary not found."; exit 1; }
+
+	# SFTP_ARGS[${#SFTP_ARGS[@]}]="-l"
+	# SFTP_ARGS[${#SFTP_ARGS[@]}]="DEBUG3"	# tail /var/log/auth.log | grep 'Refusing non-whitelisted'
+
+	# Whitelist of commands sftp-server should allow (most are not needed
+	# by sftp but for sshfs)
+	# *** WARNING ***: If you add a string here you also must make sure that
+	# gsocket_uchroot_dso checks the command for uchroot-escape.
+	SFTP_ARGS[${#SFTP_ARGS[@]}]="-p"
+	SFTP_ARGS[${#SFTP_ARGS[@]}]="open,opendir,mkdir,remove,rmdir,symlink,hardlink,stat,posix-rename,statvfs,setstat,fsetstat,fstat,lstat,readdir,realpath,write,read,close"
+
+	ENV_ARGS="${GSOCKET_ARGS}${GSNC_ENV_ARGS[*]}"
+
+	if [[ -n "${IS_UCHROOT}" ]]; then
+		[[ -z "${ROOTDIR}" ]] && { failed "(mktemp)"; }
+		uchroot_check
+		# Try to delete temporary directory. OSX still has sftp-server bin in there and must be deleted
+		rmdir "${ROOTDIR}" &>/dev/null
+	else
+		echo -e >&2 "\033[1;31mWARNING\033[0m: uchroot disabled. Allowing access to *ALL* files on this host."
+		unset PRELOAD
+	fi
+	GSOCKET_NO_GREETINGS="1" GSOCKET_ARGS="${ENV_ARGS}" exec "${GS_NETCAT_BIN}" "${ARGS_NEW[@]}" -e "${PRELOAD} ${SFTP_SERVER_BIN} ${SFTP_ARGS[*]} 2>/dev/null"
+}
+
+

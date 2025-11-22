@@ -1,0 +1,39 @@
+# Dutch translation of macchanger debconf templates..
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the macchanger package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Frans Spiesschaert <Frans.Spiesschaert@yucom.be>, 2015.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: macchanger\n"
+"Report-Msgid-Bugs-To: macchanger@packages.debian.org\n"
+"POT-Creation-Date: 2014-12-18 13:38+0100\n"
+"PO-Revision-Date: 2015-01-16 22:38+0100\n"
+"Last-Translator: Frans Spiesschaert <Frans.Spiesschaert@yucom.be>\n"
+"Language-Team: Debian Dutch l10n Team <debian-l10n-dutch@lists.debian.org>\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Gtranslator 2.91.6\n"
+
+#. Type: boolean
+#. Description
+#: ../templates:1001
+msgid "Change MAC automatically?"
+msgstr "Het MAC-adres automatisch wijzigen?"
+
+#. Type: boolean
+#. Description
+#: ../templates:1001
+msgid ""
+"Please specify whether macchanger should be set up to run automatically "
+"every time a network device is brought up or down. This gives a new MAC "
+"address whenever you attach an ethernet cable or reenable wifi."
+msgstr ""
+"Gelieve aan te geven of macchanger ingesteld moet worden om automatisch "
+"uitgevoerd te worden telkens er een netwerkapparaat geactiveerd of "
+"gedeactiveerd wordt. Dit zorgt voor een nieuw MAC-adres telkens u een "
+"ethernetkabel aansluit of wifi opnieuw start."

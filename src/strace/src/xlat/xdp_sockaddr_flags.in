@@ -1,0 +1,7 @@
+#From include/uapi/linux/if_xdp.h
+#Prefix XDP_
+XDP_SHARED_UMEM		(1 << 0)
+XDP_COPY		(1 << 1)
+XDP_ZEROCOPY		(1 << 2)
+XDP_USE_NEED_WAKEUP	(1 << 3)
+XDP_USE_SG		(1 << 4)

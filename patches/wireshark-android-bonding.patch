@@ -1,0 +1,29 @@
+diff --git a/capture/capture-pcap-util.c b/capture/capture-pcap-util.c
+index a52849e2c8..7e58b19adf 100644
+--- a/capture/capture-pcap-util.c
++++ b/capture/capture-pcap-util.c
+@@ -1245,9 +1245,15 @@ have_high_resolution_timestamp(pcap_t *pcap_h)
+ }
+ 
+ #ifdef HAVE_BONDING
++
++/* Android/Bionic does not support bonding ioctls or struct ifbond */
+ static bool
+-is_linux_bonding_device(const char *ifname)
++is_linux_bonding_device(const char *ifname _U_)
+ {
++#ifdef __ANDROID__
++	/* Android does not support bonding interfaces */
++	return false;
++#else
+ 	int fd;
+ 	struct ifreq ifr;
+ 	ifbond ifb;
+@@ -1274,6 +1280,7 @@ is_linux_bonding_device(const char *ifname)
+ 
+ 	close(fd);
+ 	return false;
++#endif /* __ANDROID__ */
+ }
+ #else
+ static bool

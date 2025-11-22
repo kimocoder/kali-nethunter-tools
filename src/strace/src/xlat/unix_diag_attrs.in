@@ -1,0 +1,12 @@
+#unconditional
+#value_indexed
+#From include/uapi/linux/unix_diag.h
+#Prefix UNIX_DIAG_
+UNIX_DIAG_NAME
+UNIX_DIAG_VFS
+UNIX_DIAG_PEER
+UNIX_DIAG_ICONS
+UNIX_DIAG_RQLEN
+UNIX_DIAG_MEMINFO
+UNIX_DIAG_SHUTDOWN
+UNIX_DIAG_UID

@@ -1,0 +1,117 @@
+#!/bin/bash
+# Script to convert build.sh into a standalone binary
+# This creates a self-contained executable that can run without bash being explicitly invoked
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SOURCE_SCRIPT="${SCRIPT_DIR}/build.sh"
+OUTPUT_BINARY="${SCRIPT_DIR}/builder"
+
+echo "Creating binary from build.sh..."
+
+# Check if build.sh exists
+if [ ! -f "$SOURCE_SCRIPT" ]; then
+    echo "Error: build.sh not found in $SCRIPT_DIR"
+    exit 1
+fi
+
+# Create backup of build.sh
+BACKUP_FILE="${SOURCE_SCRIPT}.backup.$(date +%Y%m%d_%H%M%S)"
+echo "Creating backup: $BACKUP_FILE"
+cp "$SOURCE_SCRIPT" "$BACKUP_FILE"
+echo "Backup created successfully"
+echo ""
+
+# Method 1: Using shc (Shell Script Compiler) if available
+if command -v shc &> /dev/null; then
+    echo "Using shc to compile build.sh..."
+    shc -f "$SOURCE_SCRIPT" -o "$OUTPUT_BINARY"
+    echo "Binary created: $OUTPUT_BINARY"
+    echo "Cleaning up intermediate files..."
+    rm -f "${SOURCE_SCRIPT}.x.c"
+    exit 0
+fi
+
+# Method 2: Create a self-extracting binary using makeself
+if command -v makeself &> /dev/null; then
+    echo "Using makeself to create self-extracting binary..."
+    TEMP_DIR=$(mktemp -d)
+    cp "$SOURCE_SCRIPT" "$TEMP_DIR/"
+    cp -r src tools.conf build*.conf "$TEMP_DIR/" 2>/dev/null || true
+    makeself "$TEMP_DIR" "$OUTPUT_BINARY" "Android Cross-Compiler Build System" ./build.sh "$@"
+    rm -rf "$TEMP_DIR"
+    echo "Self-extracting binary created: $OUTPUT_BINARY"
+    exit 0
+fi
+
+# Method 3: Fallback - create a simple wrapper binary using gcc
+echo "Neither shc nor makeself found. Creating wrapper binary..."
+
+# Create a C wrapper that embeds and executes the script
+cat > /tmp/build_wrapper.c << 'EOF'
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
+
+int main(int argc, char *argv[]) {
+    char tmpfile[] = "/tmp/build_script_XXXXXX";
+    int fd = mkstemp(tmpfile);
+    if (fd == -1) {
+        perror("Failed to create temporary file");
+        return 1;
+    }
+
+    FILE *fp = fdopen(fd, "w");
+    if (!fp) {
+        perror("Failed to open temporary file");
+        return 1;
+    }
+
+    // The actual script content will be embedded here
+    fprintf(fp, "%s", SCRIPT_CONTENT);
+    fclose(fp);
+
+    chmod(tmpfile, 0755);
+
+    // Build command with arguments
+    char cmd[4096];
+    snprintf(cmd, sizeof(cmd), "%s", tmpfile);
+
+    // Execute the script
+    int ret = system(cmd);
+
+    // Cleanup
+    unlink(tmpfile);
+
+    return WEXITSTATUS(ret);
+}
+EOF
+
+# Read the script content and escape it for C string
+SCRIPT_CONTENT=$(sed 's/\\/\\\\/g; s/"/\\"/g; s/$/\\n\\/g' "$SOURCE_SCRIPT")
+
+# Replace placeholder with actual content
+sed -i "s|SCRIPT_CONTENT|\"$SCRIPT_CONTENT\"|g" /tmp/build_wrapper.c
+
+# Compile the wrapper
+if command -v gcc &> /dev/null; then
+    gcc -o "$OUTPUT_BINARY" /tmp/build_wrapper.c
+    rm /tmp/build_wrapper.c
+    echo "Wrapper binary created: $OUTPUT_BINARY"
+    chmod +x "$OUTPUT_BINARY"
+else
+    echo "Error: No suitable method found to create binary."
+    echo "Please install one of the following:"
+    echo "  - shc (Shell Script Compiler): apt-get install shc"
+    echo "  - makeself: apt-get install makeself"
+    echo "  - gcc: apt-get install gcc"
+    rm /tmp/build_wrapper.c
+    exit 1
+fi
+
+echo ""
+echo "Binary creation complete!"
+echo "You can now run: ./builder"

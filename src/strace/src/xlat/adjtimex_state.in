@@ -1,0 +1,9 @@
+#value_indexed
+#From include/uapi/linux/timex.h
+#Prefix TIME_
+TIME_OK		0
+TIME_INS	1
+TIME_DEL	2
+TIME_OOP	3
+TIME_WAIT	4
+TIME_ERROR	5

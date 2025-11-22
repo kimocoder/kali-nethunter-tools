@@ -1,0 +1,7 @@
+#unconditional
+#From include/uapi/linux/mount.h
+#Prefix MS_
+MS_UNBINDABLE
+MS_PRIVATE
+MS_SLAVE
+MS_SHARED

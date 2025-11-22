@@ -1,0 +1,2135 @@
+17.08.2025
+==========
+release v7.0.1
+hcxpcapngtool: fixed MxMxE3 MESSAGEPAIR handling on option --all
+
+
+02.08.2025
+==========
+release v7.0.0
+hcxpcapngtool: added support for relayed EAPOL messages
+
+
+08.02.2025
+==========
+hcxpcapngtool: added new options to read NMEA 0183 files from external sources
+--nmea-in=<file>                   : input NME 0183 file
+                                     to convert gpx to NMEA 0183, use GPSBabel:
+                                     gpsbabel -w -t -i gpx -f in_file.gpx -o nmea -F out_file.nmea
+--nmea-offset=<file>               : time offset between NMEA 0183 file and dump file in seconds
+
+The aim is to retrieve GPS information in NMEA 0183 standard format either from
+USB GPS devices or external a GPS tracker (e.g. Garmin eTrex 30) and to feed this
+data to hcxpcapngtool.
+In a next step, I'll add the evaluation of AP data and GPS location.
+
+
+31.01.2025
+==========
+hcxpcapngtool: option nmea changed to nmea-out
+
+
+11.11.2024
+==========
+release v6.3.5
+hcxhashtool: added new option to filter ESSID 
+--essid-regex=<regex>        : filter ESSID by regular expression
+
+several fixes and improvements
+
+
+04.03.2024
+==========
+README.md: removed entire instructions how to compile hcxtools on different distributions
+           check the distribution's page how to update the ditribution, how to install missing dependencies and missing header files
+
+
+25.02.2024
+==========
+release v6.3.4
+
+
+26.01.2024
+==========
+hcxpcapngtool: added option to store a BSSID file to syn with external GPS data
+--lts=<file>                 : output BSSID list to sync with external GPS data
+                               format: LINUX timestamp <tab> MAC_AP <tab> ESSID
+
+
+14.12.2023
+==========
+hcxhashtool: added new option to import ancient hccap file
+--hccap-in=<file>            : inputput ancient hccap file
+
+
+13.12.2023
+==========
+hcxhashtool: changed options hccapx and hccap
+--hccapx-out=<file>          : output to deprecated hccapx file
+--hccap-out=<file>           : output to ancient hccap file
+
+hcxhashtool: added new option to import deprecated hccapx file
+--hccapx-in=<file>           : inputput deprecated hccapx file
+
+
+01.11.2023
+==========
+release v6.3.2
+
+
+26.09.2023
+==========
+hcxpsktool: added simple pattern generator based on analysis of wpa-sec
+--simple            : include simple pattern
+
+
+04.07.2023
+==========
+added -Wpedantic to compiler flags and fixed all warnings
+
+
+30.06.2023
+==========
+release v6.3.1
+
+
+13.05.2023
+==========
+hcxhashtool: allow to print ESSID list to stdout
+-E <file>   : output ESSID list (autohex enabled)
+-E stdout   : output ESSID list to stdout (autohex enabled)
+
+
+10.05.2023
+==========
+hcxpcapngtool: added new option store PMKIDs coming from a CLIENT to a separate hash file.
+--pmkid-client=<file>              : output WPA-(MESH/REPEATER)-PMKID hash file (hashcat -m 22000)
+to sucessfully recover the PSK from this PMKIDs, it is mandatory to store all PMKIDs coming from a CLIENT to this file
+
+added information about source to the end of WPA*01 hash line:
+PMKID from ACCESS POINT: WPA*01*PMKID*MAC_AP*MAC_CLIENT*ESSID***01
+PMKID from CLIENT      : WPA*01*PMKID*MAC_AP*MAC_CLIENT*ESSID***10
+
+
+05.05.2023
+==========
+release v6.3.0
+hcxhashtool/whoismac: do not overwrite oui.txt in case of download ERROR
+
+
+10.03.2023
+==========
+release v6.2.9
+hcxpcapngtool moved default timestamp from usec to nsec (timeval to timespec)
+
+
+10.03.2023
+==========
+release v6.2.8
+moved to EVP API 3.0 (from now on OpenSSL >= 3.0 is mandatory)
+hcxpcapngtool: handle nsec timestamps 
+
+
+24.12.2022
+==========
+hcxpcapngtool: added detection of entire RADIUS detection
+RADIUS AUTHENTICATION (REQUEST)..........: 2
+RADIUS AUTHENTICATION (CHALLENGE)........: 1
+RADIUS AUTHENTICATION (ACCEPT)...........: 1
+
+
+23.12.2022
+==========
+wlancap2wpasec: moved to curl_mime_xxx
+from now on curl >= 7.56 is mandatory
+
+
+14.12.2022
+==========
+hcxhashtool: added new option -L to write unfiltered and unsorted ESSID list (usefull for hashcat -a9 option)
+
+
+25.11.2022
+==========
+hcxhashtool: added new option --essid-partx to filter case insensitive
+more information here:
+https://hashcat.net/forum/thread-6661-post-56782.html#pid56782
+
+
+17.11.2022
+==========
+hcxpcapngtool: added detection of TACAS plus v2 and v3
+
+
+13.11.2022
+==========
+removed deprecated tools:
+
+| deprecated     | obsolete and - no longer under maintenance - will be removed, when OpenSSL switching to version 3.0.0                  |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| hcxmactool     | Various MAC based filter operations on HCCAPX and PMKID files - convert hccapx and/or PMKID to new hashline format     |
+| hcxpmkidtool   | CPU based tools to verify a PMKID                                                                                      |
+| hcxessidtool   | Various ESSID based filter operations on HCCAPX and PMKID files                                                        |
+| hcxhashcattool | Convert old hashcat (<= 5.1.0) separate potfile (2500 and/or 16800) to new potfile format                              |
+
+improved hcxpmktool (tool to verify a single hc22000 hash):
+$ hcxpmktool --help
+hcxpmktool 6.2.7-51-g60b1801  (C) 2022 ZeroBeat
+usage  : hcxpmktool <options>
+
+short options:
+-l <hash line> : input hashcat hash line (-m 22000)
+-e <ESSID>     : input Network Name (ESSID)
+-p <PSK>       : input Pre Shared Key (PSK) or Plain Master Key (PMK)
+-p -           : read Pre Shared Key (PSK) from stdin
+               : small lists only
+
+long options:
+--help         : show this help
+--version      : show version
+
+exit codes:
+0 = PSK/PMK confirmed
+1 = ERROR occurred
+2 = PSK/PMK unconfirmed
+
+examples:
+get 22000 hashes from here:
+https://hashcat.net/wiki/doku.php?id=example_hashes
+
+verify PMKID hash (WPA*01) by PSK
+$ hcxpmktool -l WPA*01*4d4fe7aac3a2cecab195321ceb99a7d0*fc690c158264*f4747f87f9f4*686173686361742d6573736964*** -p hashcat!
+
+HASH FORMAT.: PMKID (WPA*01)
+ESSID.......: hashcat-essid
+MAC_AP......: fc690c158264
+MAC_CLIENT..: f4747f87f9f4
+PSK.........: hashcat!
+PMK.........: 88f43854ae7b1624fc2ab7724859e795130f4843c7535729e819cf92f39535dc (calculated)
+PMKID.......: 4d4fe7aac3a2cecab195321ceb99a7d0 (confirmed)
+
+
+verify PMKID hash (WPA*01) by PMK
+$ hcxpmktool -l WPA*01*4d4fe7aac3a2cecab195321ceb99a7d0*fc690c158264*f4747f87f9f4*686173686361742d6573736964*** -p 88f43854ae7b1624fc2ab7724859e795130f4843c7535729e819cf92f39535dc
+
+HASH FORMAT.: PMKID (WPA*01)
+ESSID.......: hashcat-essid
+MAC_AP......: fc690c158264
+MAC_CLIENT..: f4747f87f9f4
+PMK.........: 88f43854ae7b1624fc2ab7724859e795130f4843c7535729e819cf92f39535dc
+PMKID.......: 4d4fe7aac3a2cecab195321ceb99a7d0 (confirmed)
+
+
+verify EAPOL hash (WPA*02) by PSK
+$ hcxpmktool -l WPA*02*024022795224bffca545276c3762686f*6466b38ec3fc*225edc49b7aa*54502d4c494e4b5f484153484341545f54455354*10e3be3b005a629e89de088d6a2fdc489db83ad4764f2d186b9cde15446e972e*0103007502010a0000000000000000000148ce2ccba9c1fda130ff2fbbfb4fd3b063d1a93920b0f7df54a5cbf787b16171000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001630140100000fac040100000fac040100000fac028000*a2 -p hashcat!
+
+HASH FORMAT.: EAPOL (WPA*02)
+ESSID.......: TP-LINK_HASHCAT_TEST
+MAC_AP......: 6466b38ec3fc
+MAC_CLIENT..: 225edc49b7aa
+PSK.........: hashcat!
+PMK.........: 0857172bd4d3ebb34cf00f3619726008d27558926d963a547332fab033023b82 (calculated)
+KEY VERSION.: WPA2
+NONCE AP....: 10e3be3b005a629e89de088d6a2fdc489db83ad4764f2d186b9cde15446e972e
+NONCE CLIENT: 48ce2ccba9c1fda130ff2fbbfb4fd3b063d1a93920b0f7df54a5cbf787b16171
+KCK.........: 57d0f2ff5faef56f9b94390aebf4474d (calculated)
+KEK.........: 9913af266f6e00225edc49b7aa6466b3 (calculated)
+TK..........: 8ec3fc10e3be3b005a629e89de088d6a (calculated)
+TKIP TX MIC.: 2fdc489db83ad476 (calculated)
+TKIP RX MIC.: 4f2d186b9cde1544 (calculated)
+MIC.........: 024022795224bffca545276c3762686f (confirmed)
+
+
+verify EAPOL hash (WPA*02) by PMK
+$ hcxpmktool -l WPA*02*024022795224bffca545276c3762686f*6466b38ec3fc*225edc49b7aa*54502d4c494e4b5f484153484341545f54455354*10e3be3b005a629e89de088d6a2fdc489db83ad4764f2d186b9cde15446e972e*0103007502010a0000000000000000000148ce2ccba9c1fda130ff2fbbfb4fd3b063d1a93920b0f7df54a5cbf787b16171000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001630140100000fac040100000fac040100000fac028000*a2 -p 0857172bd4d3ebb34cf00f3619726008d27558926d963a547332fab033023b82
+
+HASH FORMAT.: EAPOL (WPA*02)
+ESSID.......: TP-LINK_HASHCAT_TEST
+MAC_AP......: 6466b38ec3fc
+MAC_CLIENT..: 225edc49b7aa
+PMK.........: 0857172bd4d3ebb34cf00f3619726008d27558926d963a547332fab033023b82
+KEY VERSION.: WPA2
+NONCE AP....: 10e3be3b005a629e89de088d6a2fdc489db83ad4764f2d186b9cde15446e972e
+NONCE CLIENT: 48ce2ccba9c1fda130ff2fbbfb4fd3b063d1a93920b0f7df54a5cbf787b16171
+KCK.........: 57d0f2ff5faef56f9b94390aebf4474d (calculated)
+KEK.........: 9913af266f6e00225edc49b7aa6466b3 (calculated)
+TK..........: 8ec3fc10e3be3b005a629e89de088d6a (calculated)
+TKIP TX MIC.: 2fdc489db83ad476 (calculated)
+TKIP RX MIC.: 4f2d186b9cde1544 (calculated)
+MIC.........: 024022795224bffca545276c3762686f (confirmed)
+
+
+if either PMKID or MIC is confirmed, exit code is 2
+$ echo $?
+2
+
+
+12.11.2022
+==========
+start moving to OpenSSL 3.0 EVP API
+this is a huge step forward an will break backward compatibility
+https://wiki.openssl.org/index.php/OpenSSL_3.0
+
+
+10.07.2022
+==========
+hcxpcapngtool: added option to add a timestamp to the converted 22000 hash line
+--add-timestamp   : add date/time to hash line
+                    this must be filtered out before feeding hashcat with the hash, e.g. by awk:
+                    cat hash.hc22000 | awk '{print $1}' > hashremovedtimestamp.hc22000
+
+Warning: hashcat doesn't accept this hash line - the time stamp must be removed before running hashcat on it
+
+
+01.06.2022
+==========
+hcxpsktool: added new option
+--asus              : include weak ASUS RT-AC58U candidates (ASUS_XX)
+
+
+26.04.2022
+==========
+hcxpsktool: fixed stdout bug
+release v6.2.7
+
+
+22.04.2022
+==========
+release v6.2.6
+still supporting OpenSSL 1.1
+
+
+09.04.2022
+==========
+hcxpsktool: added new option
+--alticeoptimum     : include weak Altice/Optimum candidates (MyAltice)
+
+
+01.12.2021
+==========
+release v6.2.5
+still supporting OpenSSL 1.1
+
+
+23.10.2021
+==========
+added generic hcxtools.1 man page 
+
+
+22.10.2021
+==========
+removed manpages, because they are only a duplicate of the help menu
+moved installation path from /usr/local/bin to /usr/bin
+
+
+14.10.2021
+==========
+hcxpsktool: renamed option --askeyarris to --spectrum
+
+
+25.09.2021
+==========
+hcxhashtool: added new option to filter by replay count not checked (nonce-error-corrections mandatory)
+--rc-not                     : filter EAPOL pairs by replaycount status not checked
+
+
+17.09.2021
+==========
+hcxhashtool: renamed option --notauthorized to --challenge
+             added additional information about filtered MESSAGE PAIRS for this options
+
+
+14.09.2021
+==========
+release v6.2.4
+This is the last version, supporting OpenSSL 1.1
+Next version 6.3.0 will need OpenSSL 3.0.0
+
+
+01.09.2021
+==========
+hcxpcapngtool: added new option to retrieve information about the ACCESS POINT
+               As initial start, if transmitted, MAC_AP, MANUFACTURER, MODELNAME, SERIALNUMBER and DEVICENAME are stored (delimited by tab).
+-D <file> : output device information list
+            format MAC <tab> MANUFACTURER <tab> MODELNAME <tab> SERIALNUMBER <tab> DEVICENAME <tab> UUID E
+
+
+28.08.2021
+==========
+wlancap2wpasec: added upload progress information
+whoismac: added download progress information
+hcxhashtool: added download progress information
+hcxhashtool: added more info options (https://github.com/ZerBea/hcxtools/issues/195)
+--info=<file>                : output detailed information about content of hash file
+                               not in combination with --vendor, --vendor-ap or --vendor-client
+--info=stdout                : stdout output detailed information about content of hash file
+                               not in combination with --vendor, --vendor-ap or --vendor-client
+--info-vendor=<file>         : output detailed information about ACCESS POINT and CLIENT VENDORs
+                               not in combination with --vendor, --vendor-ap or --vendor-client
+--info-vendor-ap=<file>      : output detailed information about ACCESS POINT VENDORs
+                               not in combination with --vendor, --vendor-ap or --vendor-client
+--info-vendor-client=<file>  : output detailed information about ACCESS POINT VENDORs
+                               not in combination with --vendor, --vendor-ap or --vendor-client
+--info-vendor=stdout         : stdout output detailed information about ACCESS POINT and CLIENT VENDORs
+                               not in combination with --vendor, --vendor-ap or --vendor-client
+--info-vendor-ap=stdout      : stdout output detailed information about ACCESS POINT VENDORs
+                               not in combination with --vendor, --vendor-ap or --vendor-client
+--info-vendor-client=stdout  : stdout output detailed information about ACCESS POINT VENDORs
+                               not in combination with --vendor, --vendor-ap or --vendor-client
+
+
+27.08.2021
+==========
+hcxhashtool: VENDOR search is not longer case sensitive (https://github.com/ZerBea/hcxtools/issues/195)
+hcxhashtool: improved filtering by VENDOR
+--vendor=<VENDOR>            : filter AP or CLIENT by (part of) VENDOR name
+--vendor-ap=<VENDOR>         : filter AP by (part of) VENDOR name
+--vendor-client=<VENDOR>     : filter CLIENT by (part of) VENDOR name
+
+
+25.08.2021
+==========
+hcxpcapngtool: advanced handling of BEACON and PROBERESPOSNE frames
+               distinguish between SSID set, SSID unset and SSID zeroed
+
+
+20.06.2021
+==========
+Makefile: added compiler flag to disable zlib support
+
+
+04.06.2021
+==========
+hcxpcapngtool: improved CSV output:
+--csv=<file>                       : output ACCESS POINT information in CSV format
+                                     delimiter: tabulator (0x08)
+                                     columns:
+                                     YYYY-MM-DD HH:MM:SS MAC_AP ESSID ENC_TYPE CIPHER AKM COUNTRY_INFO CHANNEL RSSI GPS(DM.m) GPS(D.d) GPSFIX
+                                     to convert it to other formats, use bash tools or scripting languages
+                                     GPS FIX:
+                                     0 = fix not available or invalid
+                                     1 = fix valid (GPS SPS mode)
+                                     2 = fix valid (differential GPS SPS Mode)
+                                     3 = not supported
+                                     4 = not supported
+                                     5 = not supported
+                                     6 = fix valid (Dead Reckoning Mode)
+
+
+28.05.2021
+==========
+hcxpsktool: added new option to use an exclude ESSID combinations
+--noessidcombination: exclude ESSID combinations
+
+
+17.05.2021
+==========
+release v 6.2.0
+get ready for gcc 11.1.0
+fixed CVE-2021-32286
+
+
+12.05.2021
+==========
+hcxpsktool: added new option to print only candidates based on ACCESS POINT MAC
+--maconly     : print only candidates based on ACCESS POINT MAC
+
+
+17.03.2021
+==========
+hcxhashtool: added new option to use an exclude MAC filter list
+--mac-skiplist=<file>        : exclude MAC from file
+                               format: 001122334455, 00:11:22:33:44:55, 00-11-22-33-44-55 (hex)
+
+
+09.03.2021
+==========
+release v 6.1.5
+get ready for OpenSSL 3.0
+
+
+28.02.2021
+==========
+added new tool to calculate a PMK and verify a 22000 hashline
+
+hcxpmktool 6.1.5-72-g585fe37  (C) 2021 ZeroBeat
+usage  : hcxpmktool <options>
+
+short options:
+-i <hash line> : input hashcat hash line (-m 22000)
+-e <ESSID>     : input ESSID
+                 default: use ESSID from hash line
+-p <PSK>       : input Pre Shared Key
+-m <PMK>       : input Plain Master KEY
+
+long options:
+--help         : show this help
+--version      : show version
+
+
+09.02.2021
+==========
+started to prepare to use openssl 3.0
+Many structures have been made opaque in OpenSSL 3.0 since OpenSSL 1.0.2
+https://wiki.openssl.org/index.php/OpenSSL_3.0
+it is recommended to upgrade to at least OpenSSL 1.1 
+
+
+04.02.2021
+==========
+hcxpcapngtool: fixed handling of BE pcapng files on BE systems
+
+
+14.01.2021
+==========
+release v 6.1.5
+
+
+02.01.2021
+==========
+hcxhashtool: added new option --mac-list
+--mac-list=<file>            : filter by MAC file
+                             : format: 001122334455, 00:11:22:33:44:55, 00-11-22-33-44-55 (hex)
+
+
+31.12.2020
+==========
+hcxpcapngtool: added new option --csv
+--csv=<file>                       : output ACCESS POINT information in CSV format
+                                     delimiter: tabulator (0x08)
+                                     columns:
+                                     YYYY-MM-DD HH:MM:SS MAC_AP ESSID ENC_TYPE CIPHER AKM COUNTRY_INFO CHANNEL RSSI LATITUDE QUADRANT LONGITUDE QUADRANT
+
+
+10.12.2020
+==========
+Makefile: make use of pkg-config
+
+
+02.12.2020
+==========
+release v 6.1.4
+
+
+21.11.2020
+==========
+hcxhashtool: added new option to filter by ESSID list
+--essid-list=<file>          : filter by ESSID file
+
+hcxpcapngtool: show openSSL version in status
+
+
+27.10.2020
+==========
+hcxeiutool: new tool to prepare -E -I -U output of hcxpcapngtool for use by hashcat + rule
+
+$ hcxeiutool -h
+hcxeiutool 6.1.3-37-gbdc5a67 (C) 2020 ZeroBeat
+usage:
+hcxeiutool <options>
+
+options:
+-i <file> : input wordlist
+-d <file> : output digit wordlist
+-x <file> : output xdigit wordlist
+-c <file> : output character wordlist (A-Za-z - other characters removed)
+-s <file> : output character wordlist (A-Za-z - other characters replaced by 0x0d)
+-h        : show this help
+-v        : show version
+
+--help           : show this help
+--version        : show version
+
+example:
+$ hcxdumptool -i <interface> -o dump.pcapng --enable_status=31
+$ hcxpcapngtool -o test.22000 -E elist dump.pcapng
+$ hcxeiutool -i elist -d digitlist -x xdigitlist -c charlist -s sclist
+$ cat elist digitlist xdigitlist charlist sclist > wordlisttmp
+$ hashcat --stdout -r <rule> charlist >> wordlisttmp
+$ hashcat --stdout -r <rule> sclist >> wordlisttmp
+$ cat wordlisttmp | sort | uniq > wordlist
+$ hashcat -m 22000 dump.pcapng wordlist
+
+
+15.10.2020
+==========
+hcxpcapngtool: added handling of BSD loopback header (DLT_NULL)
+
+
+13.10.2020
+==========
+hcxpcapngtool: added new option --tacacs-plus
+--tacacs-plus=<file>               : output TACACS+ (hashcat -m 16100, john tacacs-plus)
+
+hcxpcapngtool: merged options --eapleap and --eapmschapv2 to --eapleap due to same hash format
+--eapleap=<file>                   : output EAP LEAP and MSCHAPV2 CHALLENGE (hashcat -m 5500, john netntlm)
+--prefix=<file>                    : convert everything to lists using this prefix (overrides single options):
+                                      -o <file.22000>      : output PMKID/EAPOL hash file
+                                      -E <file.essid>      : output wordlist (autohex enabled on non ASCII characters) to use as input wordlist for cracker
+                                      -I <file.identitiy>  : output unsorted identity list to use as input wordlist for cracker
+                                      -U <file.username>   : output unsorted username list to use as input wordlist for cracker
+                                     --eapmd5=<file.4800>  : output EAP MD5 CHALLENGE (hashcat -m 4800)
+                                     --eapleap=<file.5500> : output EAP LEAP and MSCHAPV2 CHALLENGE (hashcat -m 5500, john netntlm)
+                                     --nmea=<file.nmea>    : output GPS data in NMEA format
+
+
+12.10.2020
+==========
+hcxpcapngtool: added new option --eapmschapv2
+--eapmschapv2=<file>               : output EAP MSCHAPV2 CHALLENGE (hashcat -m 5500, john netntlm)
+
+
+11.10.2020
+==========
+hcxpsktool: added new option --ee
+--ee          : include weak EE BrightBox candidates
+
+
+09.10.2020
+==========
+release v 6.1.3
+
+
+05.10.2020
+==========
+refactored weak candidate list based on wpa-sec analysis
+
+
+28.09.2020
+==========
+removed deprecated wlanpmk2hcx
+
+
+18.09.2020
+==========
+hcxpcapngtool: added new option -R
+-R <file> : output wordlist (autohex enabled on non ASCII characters) to use as input wordlist for cracker
+            retrieved from PROBEREQUEST frames only
+
+
+17.09.2020
+==========
+release v 6.1.2
+
+
+10.09.2020
+==========
+removed deprecated wlanhcx2ssid, wlanhcxinfo aand wlanhcxcat
+
+
+07.09.2020
+==========
+removed deprecated wlanhcx2john, wlanjohn2hcx and wlanwkp2hcx
+
+
+04.09.2020
+==========
+removed deprecated hcxpcaptool - use hcxpcapngtool instead
+
+
+19.08.2020
+==========
+hcxpsktool: added new option:
+--egn         : include Bulgarian EGN
+
+
+06.08.2020
+==========
+release v 6.1.1
+improved warnings
+fixed handling of short options
+added several new weak candidates
+
+
+29.06.2020
+==========
+release v 6.1.0
+
+
+27.07.2020
+==========
+hcxhashtool: added new options to get full benefit aof reuse of PBKDF2
+--hcx-min=<digit>            : disregard hashes with occurrence lower than hcx-min/ESSID
+--hcx-max=<digit>            : disregard hashes with occurrence higher than hcx-min/ESSID
+
+
+19.06.2020
+==========
+hcxpsktool: splitted NETGEAR and ASKEY/ARRIS weak candidate list
+--netgear     : include weak NETGEAR / ORBI candidates
+--askeyarris  : include weak MySpectrumWiFI / SpectrumSetup / MyCharterWiFI candidates
+
+
+15.06.2020
+==========
+release v 6.0.3
+
+
+27.05.2020
+==========
+hcxpcapngtool: added counter for AKM defined EAPOL messages
+ASSOCIATIONREQUEST (SAE SHA256)..........: 1
+...
+EAPOL M1 messages........................: 44361
+EAPOL M1 messages (AKM defined)..........: 2
+EAPOL M2 messages........................: 1631
+EAPOL M2 messages (AKM defined)..........: 3
+
+
+20.05.2020
+==========
+hcxpcapngtool: print warning if out of sequence time stamps detected
+               hcxdumptool < 6.0.5 was affected, too and hcxpcapngtool will show you this warning
+               hcxdumptool 6.0.6 is fixed
+               improved conversion speed
+
+18.05.2020
+==========
+hcxpcapngtool: handle wrong time stamps in pwnagotchi cap files on --nonce-error-corrections > 0
+In that case we can't rely on EAPOL TIME OUT 
+
+
+01.05.2020
+==========
+hcxpcapngtool: handle vendor defined action frames (eg: AWDL)
+
+
+06.04.2020
+==========
+release v 6.0.2
+hcxpcapngtool: improved NC speed and more bug fixes
+
+
+03.04.2020
+==========
+release v 6.0.1
+hcxpcapngtool: improved NC speed and some bug fixes
+removed deprecated wlanhc2hcx
+removed deprecated wlancow2hcxpmk
+
+
+02.04.2020
+==========
+release v 6.0.0
+
+
+30.03.2020
+==========
+hcxhash2cap: added new option to convert PMKID&EAPOL (hashcat -m 22000) to cap file
+--pmkid-eapol=<file> : input PMKID EAPOL combi hash file
+
+
+14.03.2020
+==========
+moved to v 6.0.0
+complete rewrite from scratch
+full support of new hashline PMKID+EAPOL (hashcat -m 22000 and JtR)
+https://github.com/hashcat/hashcat/issues/1816
+https://github.com/magnumripper/JohnTheRipper/issues/4183
+
+support EAP-LEAP
+support EAP-MD5
+several bug fixes
+improved summary
+improved detection of cipher and AKM suites
+improved detection of malformed frames (caused by device, driver or monitor mode)
+read more about monitor mode caused bit errors here:
+http://www.ict-optimix.eu/images/a/ad/WiFiBitError.pdf
+In monitor mode the adapter does not check to see if the cyclic redundancy check (CRC)
+values are correct for packets captured, so some captured packets may be corrupted.
+hcxpsktool: added new weak candidates
+
+
+hcxpcapngtool: new tool
+$ hcxpcapngtool -h
+hcxpcapngtool 6.0.0 (C) 2020 ZeroBeat
+usage:
+hcxpcapngtool <options>
+hcxpcapngtool <options> input.pcapng
+hcxpcapngtool <options> *.pcapng
+hcxpcapngtool <options> *.pcap
+hcxpcapngtool <options> *.cap
+hcxpcapngtool <options> *.*
+
+short options:
+-o <file> : output PMKID/EAPOL hash file
+            hashcat -m 22000/22001 and JtR wpapsk-opencl/wpapsk-pmk-opencl
+-E <file> : output wordlist (autohex enabled on non ASCII characters) to use as input wordlist for cracker
+-I <file> : output unsorted identity list to use as input wordlist for cracker
+-U <file> : output unsorted username list to use as input wordlist for cracker
+-h        : show this help
+-v        : show version
+
+long options:
+--all                              : convert all possible hashes instead of only the best one
+                                     that can lead to much overhead hashes
+                                     use hcxhashtool to filter hashes
+                                     need hashcat --nonce-error-corrections >= 8
+--eapoltimeout=<digit>             : set EAPOL TIMEOUT (milliseconds)
+                                   : default: 5000 ms
+--nonce-error-corrections=<digit>  : set nonce error correction
+                                     warning: values > 0 can lead to uncrackable handshakes
+                                   : default: 0
+--ignore-ie                        : do not use CIPHER and AKM information
+                                     this will convert all frames regadless of
+                                     CIPHER and/OR AKM information,
+                                     and can lead to uncrackable hashes
+--max-essids=<digit>               : maximum allowed ESSIDs
+                                     default: 1 ESSID
+                                     disregard ESSID changes and take ESSID with highest ranking
+--eapmd5=<file>                    : output EAP MD5 CHALLENGE (hashcat -m 4800)
+--eapmd5-john=<file>               : output EAP MD5 CHALLENGE (john chap)
+--eapleap=<file>                   : output EAP LEAP CHALLENGE (hashcat -m 5500, john netntlm)
+--nmea=<file>                      : output GPS data in NMEA format
+                                     format: NMEA 0183 $GPGGA, $GPRMC, $GPWPL
+                                     to convert it to gpx, use GPSBabel:
+                                     gpsbabel -i nmea -f hcxdumptool.nmea -o gpx -F file.gpx
+                                     to display the track, open file.gpx with viking
+--log=<file>                       : output logfile
+--raw-out=<file>                   : output frames in HEX ASCII
+                                   : format: TIMESTAMP*LINKTYPE*FRAME*CHECKSUM
+--raw-in=<file>                    : input frames in HEX ASCII
+                                   : format: TIMESTAMP*LINKTYPE*FRAME*CHECKSUM
+--pmkid=<file>                     : output deprecated PMKID file (delimter *)
+--hccapx=<file>                    : output deprecated hccapx v4 file
+--hccap=<file>                     : output deprecated hccap file
+--john=<file>                      : output deprecated PMKID/EAPOL (JtR wpapsk-opencl/wpapsk-pmk-opencl)
+--prefix=<file>                    : convert everything to lists using this prefix (overrides single options):
+                                      -o <file.22000>      : output PMKID/EAPOL hash file
+                                      -E <file.essid>      : output wordlist (autohex enabled on non ASCII characters) to use as input wordlist for cracker
+                                      -I <file.identitiy>  : output unsorted identity list to use as input wordlist for cracker
+                                      -U <file.username>   : output unsorted username list to use as input wordlist for cracker
+                                     --eapmd5=<file.4800>  : output EAP MD5 CHALLENGE (hashcat -m 4800)
+                                     --eapleap=<file.5500> : output EAP LEAP CHALLENGE (hashcat -m 5500, john netntlm)
+                                     --nmea=<file.nmea>    : output GPS data in NMEA format
+--help                             : show this help
+--version                          : show version
+
+bitmask for message pair field:
+0: MP info (https://hashcat.net/wiki/doku.php?id=hccapx)
+1: MP info (https://hashcat.net/wiki/doku.php?id=hccapx)
+2: MP info (https://hashcat.net/wiki/doku.php?id=hccapx)
+3: x (unused)
+4: ap-less attack (set to 1) - no nonce-error-corrections necessary
+5: LE router detected (set to 1) - nonce-error-corrections only for LE necessary
+6: BE router detected (set to 1) - nonce-error-corrections only for BE necessary
+7: not replaycount checked (set to 1) - replaycount not checked, nonce-error-corrections definitely necessary
+
+Do not edit, merge or convert pcapng files! This will remove optional comment fields!
+Detection of bit errors does not work on cleaned dump files!
+Do not use hcxpcapngtool in combination with third party cap/pcap/pcapng cleaning tools (except: tshark and/or Wireshark)!
+It is much better to run gzip to compress the files. Wireshark, tshark and hcxpcapngtool will understand this.
+
+
+hcxhashtool: new tool
+$ hcxhashtool -h
+hcxhashtool 6.0.0 (C) 2020 ZeroBeat
+usage:
+hcxhashtool <options>
+
+options:
+-i <file>   : input PMKID/EAPOL hash file
+-o <file>   : output PMKID/EAPOL hash file
+-E <file>   : output ESSID list (autohex enabled)
+-d          : download http://standards-oui.ieee.org/oui.txt
+            : and save to ~/.hcxtools/oui.txt
+            : internet connection required
+-h          : show this help
+-v          : show version
+
+--essid-group                : convert to ESSID groups in working directory
+                               full advantage of reuse of PBKDF2
+                               not on old hash formats
+--oui-group                  : convert to OUI groups in working directory
+                               not on old hash formats
+--mac-group-ap               : convert APs to MAC groups in working directory
+                               not on old hash formats
+--mac-group-client           : convert CLIENTs to MAC groups in working directory
+                               not on old hash formats
+--type                       : filter by hash type
+                             : default PMKID (1) and EAPOL (2)
+--essid-len                  : filter by ESSID length
+                             : default ESSID length: 0...32
+--essid-min                  : filter by ESSID minimum length
+                             : default ESSID minimum length: 0
+--essid-max                  : filter by ESSID maximum length
+                             : default ESSID maximum length: 32
+--essid=<ESSID>              : filter by ESSID
+--essid-part=<part of ESSID> : filter by part of ESSID
+--mac-ap=<MAC>               : filter AP by MAC
+                             : format: 001122334455, 00:11:22:33:44:55, 00-11-22-33-44-55 (hex)
+--mac-client=<MAC>           : filter CLIENT by MAC
+                             : format: 001122334455, 00:11:22:33:44:55, 00-11-22-33-44-55 (hex)
+--oui-ap=<OUI>               : filter AP by OUI
+                             : format: 001122, 00:11:22, 00-11-22 (hex)
+--oui-client=<OUI>           : filter CLIENT by OUI
+                             : format: 001122, 00:11:22, 00-11-22 (hex)
+--vendor=<VENDOR>            : filter by (part of) VENDOR name
+--authorized                 : filter EAPOL pairs by status authorized
+--notauthorized              : filter EAPOL pairs by status not authorized
+--rc                         : filter EAPOL pairs by replaycount status checked
+--apless                     : filter EAPOL pairs by status M2 requested from client
+--info=<file>                : output detailed information about content of hash file
+--info=stdout                : stdout output detailed information about content of hash file
+--vendorlist                 : stdout output VENDOR list sorted by OUI
+--psk=<PSK>                  : pre-shared key to test
+                             : due to PBKDF2 calculation this is a very slow process
+                             : no nonce error corrections
+--pmk=<PMK>                  : plain master key to test
+                             : no nonce error corrections
+--hccapx=<file>              : output to deprecated hccapx file
+--hccap=<file>               : output to ancient hccap file
+--hccap-single               : output to ancient hccap single files (MAC + count)
+--john=<file>                : output to deprecated john file
+--help                       : show this help
+--version                    : show version
+
+
+| deprecated     | obsolete when hashcat and JtR moved to new PMKID/EAPOL hash line - no longer under maintenance                       |
+| -------------- | -------------------------------------------------------------------------------------------------------------------- |
+| whoismac       | Show vendor information and/or download oui reference list                                                           |
+| hcxmactool     | Various MAC based filter operations on HCCAPX and PMKID files - convert hccapx and/or PMKID to new hashline format   |
+| hcxpcaptool    | Shows info of pcap/pcapng file and convert it to other hashformats accepted by hashcat and John the Ripper           |
+| hcxpmkidtool   | CPU based tools to verfiy a PMKID                                                                                    |
+| hcxessidtool   | Various ESSID based filter operations on HCCAPX and PMKID files                                                      |
+| hcxhashcattool | Convert old hashcat (<= 5.1.0) separate potfile (2500 and/or 16800) to new potfile format                            |
+| wlanhc2hcx     | Converts hccap to hccapx                                                                                             |
+| wlanwkp2hcx    | Converts wpk (ELMCOMSOFT EWSA projectfile) to hccapx                                                                 |
+| wlanhcx2ssid   | Strips BSSID, ESSID, OUI                                                                                             |
+| wlanhcxinfo    | Shows detailed info from contents of hccapxfile                                                                      |
+| wlanhcxcat     | Simple password recovery tool for WPA/WPA2/WPA2 SHA256 AES-128-CMAC (hash-modes 2500, 2501)                          |
+| wlanpmk2hcx    | Converts plainmasterkey and ESSID for use with hashcat hash-mode 12000 or john PBKDF2-HMAC-SHA1                      |
+| wlanjohn2hcx   | Converts john wpapsk hashfiles for use with hashcat hash-modes 2500, 2501                                            |
+| wlancow2hcxpmk | Converts pre-computed cowpatty hashfiles for use with hashcat hash-mode 2501                                         |
+| wlanhcx2john   | Converts hccapx to format expected by John the Ripper                                                                |
+
+
+05.01.2020
+==========
+hcxhashtool: added new options
+-d          : download http://standards-oui.ieee.org/oui.txt
+            : and save to ~/.hcxtools/oui.txt
+            : internet connection required
+
+--info=<file>          : output detailed information about content of hash file
+--info=stdout          : stdout output detailed information about content of hash file
+
+
+03.01.2020
+==========
+started to remove deprecated tools
+wlanhcxmnc: removed
+
+
+19.12.2019
+==========
+hacxhashtool: added new tool initial 
+this tool will work on new PMKID EAPOL hash line and replace all older hcxtools
+when all functions implemented.
+
+
+19.12.2019
+==========
+hcxpcapngtool: move -j to --john because format is deprecated and JtR will move to new format, too
+https://github.com/hashcat/hashcat/issues/1816#issuecomment-567423392
+
+
+17.12.2019
+==========
+hcxpsktool: added support for hashcat 22000 (crossover PMKID - EAPOL hashline)
+-c <file>   : input PMKID/EAPOL hash file (hashcat -m 22000)
+
+
+16.12.2019
+==========
+prepare new tool hcxpcapngtool for hashcat hashmode 22000 (crossover PMKID - EAPOL hashline)
+highly experemental
+not all features build in
+format of hashmode 22000 may change on hashcat and hcxpcapngtool until final release
+hcxpcaptool will replaced by hcxpcapngtool if everything is working like expected
+only testing purpose to verify hashcat's new hash mode 22000
+
+
+09.12.2019
+==========
+hcxpsktool : added new weak candidates
+--phome : include PEGATRON HOME candidates
+
+
+08.12.2019
+==========
+move to v5.3.0
+
+
+29.09.2019
+==========
+hcxpmkidtool: added new tool to verify a PMKID (CPU based)
+options:
+-p <pmkid>  : input PMKID
+              PMKID:MAC_AP:MAC_STA:ESSID(XDIGIT)
+              PMKID*MAC_AP*MAC_STA*ESSID(XDIGIT)
+-w <file>   : input wordlist (8...63 characters)
+              output: PMK:ESSID (XDIGIT):password
+-W <word>   : input single word (8...63 characters)
+              output: PMK:ESSID (XDIGIT):password
+-K <pmk>    : input single PMK
+              output: PMK:ESSID (XDIGIT)
+              format:
+-h          : show this help
+-v          : show version
+
+--help      : show this help
+--version   : show version
+
+hcxpmkidtool is designed to verify an existing PSK or and existing PMK.
+It is not designed to run big wordlists!
+
+
+25.09.2019
+==========
+wlanhashhcx:  removed
+hcxmactool:   added new tool (MAC based counterpart to ESSID based hcxessidtool)
+options:
+-o <oui>    : filter access point by OUI
+-n <nic>    : filter access point by NIC
+-m <mac>    : filter access point by MAC
+-a <vendor> : filter access point by VENDOR name
+-O <oui>    : filter client by OUI
+-N <nic>    : filter client point by NIC
+-M <mac>    : filter client point by MAC
+-A <vendor> : filter client by VENDOR name
+-h          : show this help
+-v          : show version
+
+--pmkidin=<file>       : input PMKID file 1
+--pmkidout=<file>      : output PMKID file 1
+--hccapxin=<file>      : input HCCAPX file
+--hccapxout=<file>     : output HCCAPX file
+--help                 : show this help
+--version              : show version
+
+
+24.09.2019
+==========
+hcxessidtool: added new options and improved help
+--pmkidgroupout=<file> : output ESSID groups from ESSIDs present in PMKID1
+--hccapxgroupout=<file>: output ESSID groups from ESSIDs present in HCCAPX1
+
+
+15.09.2019
+==========
+hcxpcaptool: added new option and improved help
+--ignore-mac     : do not check MAC addresses
+                   this will allow to use ESSIDs from frames with damaged broadcast MAC address
+
+
+14.09.2019
+==========
+hcxpcaptool  : improved detection of damaged ESSIDs
+
+
+13.09.2019
+==========
+hcxessidtool: added new options
+--essidout=<file>      : output ESSID list
+--essidmacapout=<file> : output MAC_AP:ESSID list
+
+
+12.09.2019
+==========
+removed     : wlanhcx2essid (deprecated)
+added       : hcxessidtool
+options:
+-e <essid>  : filter by ESSID
+-E <essid>  : filter by part of ESSID
+-l <essid>  : filter by ESSID length
+-h          : show this help
+-v          : show version
+
+--pmkid1=<file>        : input PMKID file 1
+--pmkid2=<file>        : input PMKID file 2
+--pmkidout12=<file>    : output only lines present in both PMKID file 1 and PMKID file 2
+--pmkidout1=<file>     : output only lines present in PMKID file 1
+--pmkidout2=<file>     : output only lines present in PMKID file 2
+--pmkidout=<file>      : output only ESSID filtered lines present in PMKID file 1
+--hccapx1=<file>       : input HCCAPX file 1
+--hccapx2=<file>       : input HCCAPX file 2
+--hccapxout12=<file>   : output only lines present in both HCCAPX file 1 and HCCAPX file 2
+--hccapxout1=<file>    : output only lines present in HCCAPX file1
+--hccapxout2=<file>    : output only lines present in HCCAPX file 2
+--hccapxout=<file>     : output only ESSID filtered lines present in HCCAPX file 1
+--help                 : show this help
+--version              : show version
+
+Main purpose is to get full adcantage or reuse of PBKDF2
+while merging (only) the same ESSIDs from different hash files
+examples:
+hcxessidtool --pmkid1=file1.16800 --pmkid2=file2.16800 --pmkidout12=joint.16800
+hcxessidtool --pmkid1=file1.16800 -l 10 --pmkidout=filtered.16800
+
+
+03.09.2019
+==========
+move to v5.2.2
+fixed bug in damaged ESSID handling
+
+
+01.09.2019
+==========
+hcxpcaptool: show capture device vendor
+
+
+28.08.2019
+==========
+moved to v5.2.1
+hcxpsktool : added new weak candidates
+hcxdumptool: added additional warnings about handling of pcapng files ( im
+             imrpoved status out: count zeroed PMKIDs
+
+
+19.08.2019
+==========
+move to v5.2.0
+
+
+11.08.2019
+==========
+hcxpcaptool: print time of first packet and time of last packet
+             this will not work on cap files with zeroed time stamps 
+
+
+10.08.2019
+==========
+hcxpcaptool: removed option --replaycountcheck
+             added option --ignore-replaycount to allow conversion of not replaycount checked handshakes
+             if we have no replaycount matching handshake - in that case nc must be used!
+
+Remarks:
+total best handshakes and total best PMKIDs can be different to realy written ones:
+
+best handshakes (total)..........: 190 (ap-less: 122)
+best PMKIDs (total)..............: 30
+
+summary output file(s):
+-----------------------
+175 handshake(s) written to /tmp/test.hccapx
+message pair M12E2...............: 157
+message pair M32E2...............: 16
+message pair M34E4...............: 2
+29 PMKID(s) written to /tmp/test.16800
+
+That depend on this additional options and the quality of the cap file:
+--ignore-fake-frames              : do not convert fake frames
+--ignore-zeroed-pmks              : do not convert frames which use a zeroed plainmasterkey (PMK)
+--ignore-replaycount              : allow not replaycount checked best handshakes
+--time-error-corrections=<digit>  : maximum time gap between EAPOL frames - EAPOL TIMEOUT (default: 600s)
+--nonce-error-corrections=<digit> : maximum replycount/nonce gap to be converted (default: 8)
+                                    example: --nonce-error-corrections=60 
+                                    convert handshakes up to a possible packetloss of 59 packets
+                                    hashcat nonce-error-corrections should be twice as much as hcxpcaptool value
+--max-essid-changes=<digit>       : allow maximum ESSID changes (default: 1 - no ESSID change is allowed)
+
+
+
+09.08.2019
+==========
+hcxpcaptool: added summary (replaycount check) and print warning if result is not replaycount checked
+             (in this case nc is necessary)
+
+             added warning if an ESSID change is detected.
+             this can be handled by increase the value of option --max-essid-changes
+ 
+             added new option --replaycountcheck
+--replaycountcheck                : convert only replaycount checked frames
+
+
+26.06.2019
+==========
+hcxpcaptool: added new option --max-essid-changes
+--max-essid-changes=<digit>       : allow maximum ESSID changes (default: 8) 
+
+useful on merged cap files with many ESSID changes for a single mac_ap
+or on damaged ESSIDs
+
+
+23.06.2019
+==========
+hcxpcaptool: fixed several big endian issues
+             show information about handshakes and PMKIDs calculated by a zeroed PMK
+             added new options --ignore-zeroed-pmks and --prefix-out=<file>
+--ignore-zeroed-pmks              : do not convert frames which use a zeroed plainmasterkey (PMK)
+
+This option is useful to reduce the commandline length if all lists are requested:
+--prefix-out=<file>               : convert everything to lists using this prefix (overrides single options):
+                                    hccapx (-o) file.hccapx
+                                    PMKID (-k) file.16800
+                                    netntlm (--netntlm-out) file.5500
+                                    md5 (--md5-out) file.4800
+                                    tacacsplus (--tacacsplus) file.16100
+                                    wordlist (-E) file.essidlist
+                                    identitylist (-I) file.identitylist 
+                                    usernamelist (-U) file.userlist
+                                    imsilist (-M) file.imsilist
+                                    networklist (-network-out) file.networklist
+                                    trafficlist (-T) file.networklist
+                                    clientlist (-X) file.clientlist
+                                    deviceinfolist (-D) file.deviceinfolist
+
+
+20.06.2019
+==========
+hcxpcaptool: complete refactoring of pcapng engine 
+
+
+19.06.2019
+==========
+hcxpcaptool: added new option -D
+-D <file> : output unsorted device information list
+            format = MAC:DEVICEINFO string
+
+
+16.06.2019
+==========
+hcxpcaptool: refactored complete tag walk engine due to several stack smashing issues (fsanitize=address)
+             added new option to detect known fake frames
+--ignore-fake-frames              : do not convert fake frames
+
+
+14.06.2019
+==========
+hcxpcaptool: complete rewrite of RSN-IE PMKID detection within association frames and reassociation frames
+
+
+07.06.2019
+==========
+hcxpcaptool: added new option to filter output by a single MAC address
+             all packets which doesn't contain this MAC in address 1, address 2 or address 3 are ignored.
+--filtermac=<mac>                 : filter output by MAC address
+                                    format: 112233445566
+
+
+07.06.2019
+==========
+hcxpcaptool: detect and convert PMKIDs from clients
+read more here:
+https://hashcat.net/forum/thread-6661-post-44869.html#pid44869
+
+
+30.05.2019
+==========
+hcxtools moved to v5.1.6 due to a bug in v5.1.5
+
+hcxpcaptool: added 2 new options to convert raw PMKIDs
+-K <file> : output raw PMKID file (hashcat hashmode -m 16801 new format)
+-Z <file> : output raw PMKID file (hashcat hashmode -m 16801 old format and john)
+
+use this options if you would like to verify a PMKID and yo don't have an ESSID
+read more here:
+https://github.com/ZerBea/hcxtools/issues/92#issuecomment-497128717
+
+
+19.05.2019
+==========
+added new useful script: hcxgrep.py
+
+Works like grep, but for hccapx/pmkid hashfiles - those are detected
+automagically. It also can read from stdin and writes on stdout.
+
+It tries to be as close to grep commandline options, this is -h:
+
+usage: hcxgrep.py [-h] [-f FILE] [-v] [-t {essid,mac_ap,mac_sta}]
+                  [PATTERNS] [infile]
+
+Extract records from hccapx/pmkid file based on regexp
+
+positional arguments:
+  PATTERNS              RegExp pattern
+  infile                hccapx/pmkid file to process
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -f FILE, --file FILE  Obtain patterns from FILE, one per line.
+  -v, --invert-match    Invert the sense of matching, to select non-matching
+                        nets
+  -t {essid,mac_ap,mac_sta}, --type {essid,mac_ap,mac_sta}
+                        Field to apply matching, default essid
+
+By default it greps by essid, but you can choose with -t also to grep
+over mac_ap or mac_sta, passed as lowercase hex strings. It also can
+read multiple patterns from external file, like those attached. It's
+composed from routerkeygen and matches essids with _ or - in them. Of
+course this have many false positives and the default PSK can be
+changed, but one can easy get those nets he needs to try custom
+wordlists or etc.
+
+
+
+16.04.2019
+==========
+finally removed wlanhcx2psk in favor of hcxpsktool
+
+
+08.04.2019
+==========
+hcxpcaptool: from now on only PBKDF2 based hashes (EAPOL and PMKID) are converted running options -k -z and -o
+             raw option -O will convert all EAPOL handshakes.
+
+
+02.04.2019
+==========
+Due to hashcat changes:
+"WPA/WPA2 cracking: In the potfile, replace password with PMK in order
+to detect already cracked networks across all WPA modes"
+https://github.com/hashcat/hashcat/commit/b8d609ba1604f4fed62198ae5000e205dcc87f70
+ 
+hcxpcaptool: added new option -k to convert dumpfile to new hashcat PMKID format
+
+-k <file> : output PMKID file (hashcat hashmode -m 16800 new format)
+-z <file> : output PMKID file (hashcat hashmode -m 16800 old format and john)
+
+use hcxhashcattool to convert old 2500 and old 16800 potfile to new hashcat potfile Format:
+-p <file> : input old hashcat potfile
+            accepted potfiles: 2500 or 16800
+-P <file> : output new potfile file (PMK:ESSID:PSK)
+
+hcxhashcattool -p oldhashcat.2500.pot -P newhashcat.potfile 
+hcxhashcattool -p oldhashcat.16800.pot -P newhashcat.potfile
+
+
+30.03.2019
+==========
+hcxpcaptool: retrieve IMSI from UMTS Authentication and Key Agreement (EAP-AKA)
+             and EAP-SIM (GSM Subscriber Modules) Authentication
+
+
+19.03.2019
+==========
+wlanhcx2ssid: use systemwide oui.txt (/usr/share/ieee-data/oui.txt), if exist
+whoismac: use systemwide oui.txt (/usr/share/ieee-data/oui.txt), if exist
+
+
+18.03.2019
+==========
+wlancap2wpasec: added man 1 page
+hcxpcaptool: added new option -M to collect IMSI numbers
+-M <file> : output unsorted IMSI number list
+
+
+17.03.2019
+==========
+hcxpcaptool: added man 1 page
+hcxpsktool: added man 1 page
+hcxhash2cap: added man 1 page
+
+
+09.03.2019
+==========
+hcxtools moved to version 5.1.3 due to change of pcapng comment field
+
+
+07.03.2019
+==========
+hcxpcaptool added GPX comment field for GPS time from GPS device 
+
+<?xml version="1.0"?>
+<gpx version="1.0" creator="hcxpcaptool"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns="http://www.topografix.com/GPX/1/0"
+xsi:schemaLocation="http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd">
+<name>test3.gpx</name>
+<trk>
+  <name>dntest.pcapng</name>
+  <trkseg>
+  <trkpt lat="49.126353" lon="4.626187">
+    <ele>129.500000</ele>
+    <time>2019-03-06T22:27:45Z</time>
+    <name>1af87c9124a3</name>
+    <cmt>GPS-TIME:2019-03-06T22:28:00Z</cmt>
+  </trkpt>
+
+
+26.02.2019
+==========
+hcxtools moved to version 5.1.3 due to several bug fixes
+
+
+18.02.2019
+==========
+hcxtools moved to version 5.1.2 due to implementation of serveral new options
+
+
+14.02.2019
+==========
+wlancap2wpasec: added new option -e
+-e <email address> : set email address, if requiered
+
+
+13.02.2019
+==========
+hcxpsktool added full support (option -j) for john
+-i <file> : input EAPOL hash file (hashcat)
+-j <file> : input EAPOL hash file (john)
+-z <file> : input PMKID hash file (hashcat and john)
+
+
+12.02.2019
+==========
+hcxpcaptool: added new option -X
+-X <file> : output client probelist
+          : format: mac_sta:probed ESSID (autohex enabled)
+
+
+added new tool: hcxwltool
+while hcxpsktool is designed to run on hcxpcaptool -o and -z output,
+hcxwltool is designed to run on hcapcaptool -E, -I and -U output
+
+$ hcxwltool -h
+hcxwltool 5.1.1 (C) 2019 ZeroBeat
+usage:
+hcxwltool <options>
+
+options:
+-i        : input worlist
+-o <file> : output wordlist to file
+-h        : show this help
+-v        : show version
+
+--straight       : output format untouched
+--digit          : output format only digits
+--xdigit         : output format only xdigits
+--lower          : output format only lower
+--upper          : output format only upper
+--capital        : output format only capital
+--length=<digit> : password lenght (8...32)
+--help           : show this help
+--version        : show version
+
+examples:
+hcxwltool -i wordlist --straight | sort | uniq |  | sort | uniq | hashcat -m 2500 hashfile.hccapx
+hcxwltool -i wordlist --gigit --length=10 | sort | uniq |  | sort | uniq | hashcat -m 2500 hashfile.hccapx
+hcxwltool -i wordlist --digit | sort | uniq | hashcat -m 16800 hashfile.16800
+hcxwltool -i wordlist --xdigit | sort | uniq | john --stdin --format=wpapsk-opencl hashfile.16800
+
+
+11.02.2019
+==========
+whoismac: added two new options to convert ESSID HEX to ASCII or ESSID ASCII to HEX 
+-e <ESSID>    : input ESSID
+-x <xdigit>   : input ESSID in hex
+
+example:
+$ whoismac -e default
+64656661756c74
+
+now search for this essid, running simple bash commands:
+cat hashfile.16800 | grep 64656661756c74
+
+
+02.02.2019
+==========
+release hcxtools v 5.1.1
+removed....: wlanhcx2psk
+replaced by: hcxpsktool
+
+removed....: wlanhcx2cap
+replaced by: hcxhash2cap
+no more libcap dependency!
+
+
+01.02.2019
+==========
+hcxhash2cap: added new option to canvert john WPAPSK has file to cap
+hcxhash2cap will replace wlanhcx2cap, soon
+$ hcxhash2cap -h
+hcxhash2cap 5.1.0 (C) 2019 ZeroBeat
+usage:
+hcxhash2cap <options>
+
+options:
+-c <file> : output cap file
+            if no cap file is selected, output will be written to single cap files
+            format: mac_sta.cap (mac_sta.cap_x)
+
+--pmkid=<file>  : input PMKID hash file
+--hccapx=<file> : input hashcat hccapx file
+--hccap=<file>  : input hashcat hccap file
+--john=<file>   : input John the Ripper WPAPSK hash file
+--help          : show this help
+--version       : show version
+
+
+31.01.2019
+==========
+hcxhash2cap: added new options to convert hccapx to cap and hccap to cap
+
+
+29.01.2019
+==========
+aded new tool: hcxhash2cap
+
+
+22.01.2019
+==========
+hcxpcaptool: in preparation of hccapx successor, hcxpcaptool now count oversized (>0xff) EAPOLframes
+             EAPOL packets (oversized)....: xx
+read more here:
+https://github.com/hashcat/hashcat/issues/1816
+
+
+13.12.2018
+==========
+hcxpcaptool: removed options -x and -X (old hccap format)
+hcxpcaptool: added options --hccap-out and --hccap-raw-out (old hccap format)
+--hccap-out=<file>                : output old hccap file (hashcat -m 2500)
+--hccap-raw-out=<file>            : output raw old hccap file (hashcat -m 2500)
+
+
+09.12.2018
+==========
+hcxpcaptool: detect EAPOL GROUP KEYs
+hcxpcaptool: move option -H to --hexdump-out
+hcxpcaptool: added new options (--eapol-out, --network-out)
+--eapol-out=<file>                : output EAPOL packets in hex
+                                    format = mac_ap:mac_sta:eapol
+--network-out=<file>              : output network information
+                                    format = mac_ap:ESSID
+--hexdump-out=<file>              : output dump raw packets in hex
+
+
+05.12.2018
+==========
+moved to v 5.1.0 (according to hashcat)
+hcxpcaptool:  detect EAPOL RC4 KEYs
+
+
+04.12.2018
+==========
+hcxpcaptool: fixed bug in FCS on BE systems
+hcxpcaptool: detect MESH-IDs
+
+
+26.11.2018
+==========
+several big endian fixes
+switched to version 5.0.1
+
+
+19.11.2018
+==========
+hcxpcaptool: improved detection of ESSID changes in merged capfiles
+
+
+30.10.2018
+==========
+hcxtools moved to version 5.0.0
+
+hcxpsktool: added NETGEARxx list
+--netgear : include NETGEAR candidates
+
+
+03.10.2018
+==========
+hcxpcaptool: use GMT time
+
+
+30.09.2018
+==========
+hcxhashcattool: accept 16800 potfiles
+
+
+29.09.2018
+==========
+hcxpcaptool: removed option -Z
+Allow hashfile for -m 16800 to be used with -m 16801
+https://github.com/hashcat/hashcat/commit/1b980cf01000c81dfd0ca085593f8c1d66d43188
+
+added new option -g
+-g <file> : output GPS file\n"
+            format = GPX (accepted for example by Viking and GPSBabel)\n"
+
+
+24.09.2018
+==========
+whoismac new option to get VENDOR information from a hashcat 2500 potfile line
+-P <hashline> : input EAPOL hashline from potfile
+
+
+20.09.2018
+==========
+prepare new tool (experimental): hcxpsktool (supports hccapx and 16800 hashfile)
+hcxpsktool will replace wlanhcx2psk, when all wlanhcx2psk functions are added
+
+
+15.09.2018
+==========
+hcxpcaptool: added detection of Cisco Systems, Inc VENDOR information in authentication
+
+
+06.09.2018
+==========
+hcxpcaptool: added detection of Netgear VENDOR information in authentication
+
+
+04.09.2018
+==========
+hcxpcaptool: try to detect and remove damaged ESSIDs
+
+
+26.08.2018
+==========
+whoismac added new option -p to get information about VENDOR and print ESSID in ASCII
+"-p <hashline> : input PMKID hashline\n"
+
+
+17.08.2018
+==========
+hcxpcaptool skip unknown option (thanks to magnumripper)
+hcxpcaptool detect Wilibox Delibrant Group LLC authentication
+hcxpcaptool detect NETWORK EAP authentication system
+
+
+07.08.2018
+==========
+added communication between hcxdumtool and hcxpcaptool via pcapng option fields:
+62108 for REPLAYCOUNT uint64_t
+62109 for ANONCE uint8_t[32]
+
+
+03.08.2018
+==========
+hcxtools release 4.2.0
+
+Todo:
+hcxdumptool 4.2.0 will randomize ap-less attacks.
+hcxpcaptool will convert this handshakes correctly, but will not detect them as ap-less attack
+This feature will be added in hcxtools 4.2.1
+
+
+01.08.2018
+==========
+moved raspberry pi stuff and dumper stuff to hcxdumptool repository
+from now on hcxtools only includes conversion tools
+
+
+25.07.2018
+==========
+hcxtools moved to 4.2.0 rc1
+hcxpcaptool:
+added hashmodes -m 16800 and -m 16801
+and new options:
+-z <file> : output PMKID file (hashcat hashmode -m 16800 - WPA*-PMKID-PBKDF2)
+-Z <file> : output PMKID file (hashcat hashmode -m 16801 - WPA*-PMKID-PMK)
+use hcxpcaptool as dumper/attacker, convert with hcxpcaptool, retrieve PSK using hashcat
+
+removed wlandump-ng (old scool, deprecated)
+removed wlancap2hcx (old scool, deprecated)
+
+
+17.07.2018
+==========
+hcxpcaptool:
+show detailed file stats on pcapng files - go in sync with (upcomming) hcxdumptool 4.2.0
+
+
+17.07.2018
+==========
+hcxpcaptool:
+added detection of all EAP types:
+EAP_PACKET
+EAPOL_START
+EAPOL_LOGOFF
+EAPOL_KEY
+EAPOL_ASF
+EAPOL_MKA
+
+
+15.07.2018
+==========
+wlanhcx2psk:
+added more weak candidates based on OSINT from wpa-sec
+
+
+07.07.2018
+==========
+hcxpcaptool:
+added detection of BROADCOM specific authentication
+
+
+01.07.2018
+==========
+hcxpcaptool:
+added detection of FILS authentication algorithm
+
+
+27.06.2018
+==========
+hcxpcaptool:
+added detection of authentication algorithms
+
+
+23.06.2018
+==========
+hcxpcaptool:
+added full support for AVS header (DLT_IEEE802_11_RADIO_AVS)
+
+
+22.06.2018
+==========
+hcxpcaptool:
+added full support for TaZmen Sniffer Protocol (TZSP)
+
+
+21.06.2018
+==========
+hcxpcaptool:
+added detection of TaZmen Sniffer Protocol (TZSP)
+
+
+20.06.2018
+==========
+hcxpcaptool:
+added conversion of WDS packets
+
+
+19.06.2018
+==========
+hcxpcaptool:
+added detection of RADIUS authentication with Ethernet II header
+
+
+05.05.2018
+==========
+hcxpcaptool:
+improved detection of broken ESSIDs
+improved detection of broken EAPOL frames
+
+wlanhcx2ssid (option -F):
+improved detection of broken ESSIDs
+omproved detection of broken EAPOL frames
+
+
+12.03.2018
+==========
+moved to v 4.1.5
+added new options wlancap2wpasec
+$ wlancap2wpasec -h
+wlancap2wpasec 4.1.5 (C) 2018 ZeroBeat
+usage: wlancap2wpasec <options> [input.cap] [input.cap] ...
+       wlancap2wpasec <options> *.cap
+       wlancap2wpasec <options> *.*
+
+options:
+-k <key>     : wpa-sec user key
+-u <url>     : set user defined URL
+               default = https://wpa-sec.stanev.org
+-t <seconds> : set connection timeout
+               default = 30 seconds
+-R           : remove cap if upload was successful
+-h           : this help
+
+
+25.02.2018
+==========
+split repository!
+moved hcxdumptool to https://github.com/ZerBea/hcxdumptool
+move pioff to https://github.com/ZerBea/hcxdumptool/hcxpioff
+from now on, hcxtools will be the mostly "portable part"
+
+
+17.02.2018
+==========
+hcxpcaptool
+added nonce fuzzing logic for john and old hashcat (hccap) according to bitmask:
+0: MP info
+1: MP info
+2: MP inf
+3: x (unused)
+4: ap-less attack (set to 1) - no nonce-error-corrections neccessary
+5: LE router detected (set to 1) - nonce-error-corrections only for LE neccessary
+6: BE router detected (set to 1) - nonce-error-corrections only for BE neccessary
+7: not replaycount checked (set to 1) - replaycount not checked, nonce-error-corrections definitely neccessary
+
+
+15.02.2018
+==========
+hcxpcaptool
+added detection of router endianess and ap-less attacks:
+bitmask for message_pair file:
+0: MP info
+1: MP info
+2: MP inf
+3: x (unused)
+4: ap-less attack (set to 1) - no nonce-error-corrections neccessary
+5: LE router detected (set to 1) - nonce-error-corrections only for LE neccessary
+6: BE router detected (set to 1) - nonce-error-corrections only for BE neccessary
+7: not replaycount checked (set to 1) - replaycount not checked, nonce-error-corrections definitely neccessary
+
+using bit 4 to 7, hcxtools are able to interact with hascat - that will increase speed for hashcat.
+
+
+09.02.2018
+==========
+hcxpcaptool
+added full implementation of PPP-CHAP authentication
+added detection of RADIUS (UDP destination 1812)
+new dependency: libopenssl
+
+
+07.02.2018
+==========
+hcxpcaptool
+added full implementation of TACACS+
+--tacacsplus-out=<file>           : output TACACS+ authentication file (hashcat -m 16100, john tacacs-plus)
+
+
+05.02.2018
+==========
+hcxpcaptool
+improved help menu
+ignore empty usernames
+added new option
+--md5-john-out=<file>             : output MD5 challenge file (john chap)
+
+
+04.02.2018
+==========
+hcxpcaptool
+continued implementation of EAP (RADIUS): netNTLMv1, MD5 challenge
+added new options
+-U <file> : output username list (unsorted)
+--netntlm-out=<file>              : output netNTLMv1 file	(hashcat -m 5500, john netntlm)
+--md5-out=<file>                  : output MD5 challenge file	(hashcat -m 4800, john chap)
+
+
+03.02.2018
+==========
+added hcxphashcattool (calculate PMKs from hashcat -m 2500 potfile)
+$ hcxhashcattool -h
+hcxhashcattool 4.1.0 (C) 2018 ZeroBeat
+usage:
+hcxhashcattool <options>
+
+options:
+-p <file> : input hashcat -m 2500 potfile
+-P <file> : output PMK file (PMK:ESSID:PSK)
+-h        : show this help
+-v        : show version
+
+
+01.02.2018
+==========
+hcxpcaptool
+added detection of TCP and UDP network protocol
+neccessary for IP based authentications
+
+
+31.01.2018
+==========
+hcxtools moved to v 4.1.0
+and starts into the 3. generation with
+- hcxdumptool (will replace wlandump-ng) and
+- hcxpcaptool (will replace wlancap2hcx)
+
+
+29.01.2018
+==========
+hcxpcaptool
+improved detection of handshakes
+removed options -A -S ( will improve them and add them later again)
+
+
+17.01.2018
+==========
+hcxpcaptool
+added new options
+-O <file> : output raw hccapx file
+-x <file> : output hccap file
+-X <file> : output raw hccap file
+-j <file> : output john WPAPSK-PMK file
+-J <file> : output raw john WPAPSK-PMK file
+--time-error-corrections  : maximum allowed time gap (default: 10000ms)
+--nonce-error-corrections : maximum allowed nonce gap (default: 8)
+                          : should be the same value as in hashcat
+option -O is designed for third party tools which like to strip handshakes by themselves
+options -x and -X are designed for use on older systems and old hashcat version
+
+
+16.01.2018
+==========
+hcxpcaptool
+added new option -o
+-o <file> : output hccapx file
+convert cap/pcap/pcapng to hccapx
+
+
+15.01.2018
+==========
+hcxpcaptool
+added new option -V
+-V        : verbose (but slow) status output
+Running hcxpcaptool without options on cap/pcap/pcapng files
+shows only limited stauts output
+If you need detailed informations, use -V
+
+
+14.01.2018
+==========
+hcxpcaptool
+added suport for gzip compressed cap/pcap/pcapng files
+new dependency: zlib
+
+
+14.01.2018
+==========
+hcxpcaptool
+added new options -P -I
+-I <file> : output identities list
+-P <file> : output possible WPA/WPA2 plainmasterkey list
+
+
+13.01.2018
+==========
+hcxpcaptool
+added new option
+-S <file> : output station EAPOL information list
+date::timestamp:mac_sta:mac_ap:epol_len:eapol
+moved internal to tv_usec timestamp
+
+
+12.01.2018
+==========
+hcxdumptool
+added new option
+-C <digit>     : comma separated scanlist (1,3,5,7...)
+support for scanlist
+
+hcxpcaptool
+added new option
+-A <file> : output access point anonce information list (forensics purpose)
+date:mac_sta:mac_ap:keyver(1=M1, 2=M3, 3=M1+M3):replaycount(in hex):anonce
+
+
+11.01.2018
+==========
+hcxpcaptool
+added new options
+-E <file> : output wordlist (autohex enabled) to use as wordlist
+-T <file> : output traffic information list
+
+
+10.01.2018
+==========
+hcxpcaptool
+added option -H
+-H        : dump raw packets in hex
+
+
+09.01.2018
+==========
+- move hcxtools to v 4.0.2
+- renamed wlandump-rs to hcxdumptool
+- removed wlancapinfo -> replaced by hcxpcaptool
+  +get rid of libpcap dependency)
+  +added full pcapng support
+
+$ hcxpcaptool -h
+hcxpcaptool 4.0.2 (C) 2017 ZeroBeat
+usage:
+hcxpcaptool <options>
+hcxpcaptool <options> [input.pcap] [input.pcap] ...
+hcxpcaptool <options> *.cap
+hcxpcaptool <options> *.*
+
+options:
+-h        : show this help
+-v        : show version
+
+
+07.01.2018
+==========
+wlandump-rs
+added option -l
+-l             : enable capture of IPv4/IPv6 packets
+
+
+06.01.2018
+==========
+wlandump-ng
+added option -l
+-l             : enable capture of IPv4/IPv6 packets
+
+
+21.12.2017
+==========
+wlancap2hcx
+removed option -x
+now wlancap2hcx looks first for association/re-associationrequests
+or for directed proberequests or for proberesponseses
+and at last (if no other frames found in the cap) for a beacon
+
+
+21.12.2017
+==========
+wlancap2hcx
+added new option to remove handshakes that that belong to the same authentication sequence
+-D        : remove handshakes that belong to the same authentication sequence
+          : you must use nonce-error-corrections on that file!
+
+wlanhcx2ssid
+added new option to remove handshakes that that belong to the same authentication sequence
+-D <file> : remove handshakes that belong to the same authentication sequence
+          : you must use nonce-error-corrections on that file!
+
+
+17.12.2017
+==========
+moved to version 4.0.1
+
+added wlandump-rs
+- use raw sockets instead of libpcap
+- faster and more aggressive than wlandump-ng
+- able to capture more handchakes than wlandump-ng
+- automatic use channel 14 and 5GHz channels if driver supports this
+- improvements on scan engine
+- improvements on authentication engine
+- use ap blacklist instead of BPF
+
+$ wlandump-rs -h
+wlandump-rs 4.0.1 (C) 2017 ZeroBeat
+usage: wlandump-rs <options>
+
+options:
+-i <interface> : interface
+-o <dump file> : output file in pcapformat including radiotap header (LINKTYPE_IEEE802_11_RADIOTAP)
+-c <digit>     : set channel (default = channel 1)
+-t <seconds>   : stay time on channel before hopping to the next channel
+               : default = 5 seconds
+-B <file>      : blacklist (do not deauthenticate clients from this hosts - format: xxxxxxxxxxxx)
+-I             : show suitable wlan interfaces and quit
+-T <maxerrors> : terminate after <xx> maximal errors
+               : default: 1000000
+-D             : enable to transmit deauthentication- and disassociation-frames
+-P             : enable poweroff
+-s             : enable status messages
+-h             : show this help
+-v             : show version
+
+
+16.12.2017
+==========
+wlancap2wpasec
+-----------
+added option to remove cap file if upload was successful
+-R           : remove cap if upload was successful
+
+
+05.12.2017
+==========
+wlanhcx2ssid
+-----------
+added option to strip damaged records from hccapx file
+-F <file>     : strip bad records and write only flawless records to hccapx file
+Detected errors (more follows later):
+- bad keytype in EAPOL frame
+
+
+21.11.2017
+==========
+wlancap2hcx
+-----------
+added detection and conversation of TACACS+ Authentication
+-t <file> : output TACACS+ file (hashcat -m 16100, john tacacs-plus)
+
+
+21.11.2017
+==========
+wlandump-ng
+-----------
+added new option -P for use with hard coded GPIO switch
+-P : terminate program and poweroff raspberry pi by GPIO switch
+   : default: terminate program and do not power off
+
+
+20.11.2017
+==========
+wlandump-ng
+-----------
+do not terminate wlandum-ng if channel set failed
+instead reset channel back to 1
+
+
+31.10.2017
+==========
+wlandump-ng
+-----------
+improved status: added beacons, proberequests, proberesponses, associationrequests and reassociationrequests
+warning in help mennu that driver must support 5GHz
+
+
+29.10.2017
+==========
+wlanrcascan
+-----------
+added option -l (loopcount)
+
+wlandump-ng
+-----------
+added detection of fast BSS transition (fast roaming)
+
+wlancap2hcx
+-----------
+added detection of fast BSS transition (fast roaming)
+
+
+28.10.2017
+==========
+- added changelog
+- merged wlanresponse and wlandump-ng
+
+bash_profile
+------------
+adapted to new wlandump-ng
+
+wlanresponse
+------------
+- removed
+
+wlandump-ng
+-----------
+- waterfall status
+- improved deauthentication
+  stop when retrieved one complete handshake (M1-M4) from ap <-> client
+- improved disassociation
+  stop when retrieved one complete handshake (M1-M4) from ap <-> client
+- send one undirected proberequest to broadcast after channel change
+- improved expanded EAPOL handling
+- improved authentication
+- improved beaconing on proberequests
+- now wlandump-ng is passive by default (only receive) - transmit must be enabled
+- changed / new options:
+  -R         : enable to respond to all requests
+  -D         : enable deauthentications
+  -d         : enable disassociations
+  -E <digit> : stop deauthentications and disassociations if xx complete handshakes received
+             : default = 1 complete handshake (M1-M4)
+  -U         : send one undirected proberequest to broadcast after channel change
+  -B         : enable beaconing on last proberequest
+  "-s        : enable status messages\n"
+
+localtime, channel, mac_ap, mac_sta, information
+11:02:52  11 xxxxxxxxxxxx <-> xxxxxxxxxxxx M1M2 handshake (forced)          
+11:01:45  11 xxxxxxxxxxxx <-> xxxxxxxxxxxx M1M2 handshake (forced-retransmission)          
+11:03:57  11 xxxxxxxxxxxx <-> xxxxxxxxxxxx M1M2 handshake (not verified)          
+11:03:57  11 xxxxxxxxxxxx <-> xxxxxxxxxxxx M2M3 handshake (verified)          
+11:03:57  11 xxxxxxxxxxxx <-> xxxxxxxxxxxx M3M4 handshake (established) 
+16:36:13   1 xxxxxxxxxxxx --> xxxxxxxxxxxx identity request: hello          
+16:36:13   1 xxxxxxxxxxxx <-- xxxxxxxxxxxx identity response: WFA-SimpleConfig-Registrar-1-0          
+16:36:14   1 xxxxxxxxxxxx --> xxxxxxxxxxxx WPS-M1 message          
+16:36:14   1 xxxxxxxxxxxx <-- xxxxxxxxxxxx WPS-M2 message          
+16:36:16   1 xxxxxxxxxxxx --> xxxxxxxxxxxx WPS-M3 message          
+16:36:16   1 xxxxxxxxxxxx <-- xxxxxxxxxxxx WPS-M4 message          
+16:36:16   1 xxxxxxxxxxxx --> xxxxxxxxxxxx WPS-M5 message          
+16:36:16   1 xxxxxxxxxxxx <-- xxxxxxxxxxxx WPS-M6 message          
+16:36:16   1 xxxxxxxxxxxx --> xxxxxxxxxxxx WPS-M7 message          
+16:36:16   1 xxxxxxxxxxxx <-- xxxxxxxxxxxx WPS-M8 message          
+

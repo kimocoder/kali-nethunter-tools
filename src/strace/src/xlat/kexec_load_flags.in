@@ -1,0 +1,7 @@
+#unconditional
+#From include/uapi/linux/kexec.h
+#Prefix KEXEC_
+KEXEC_ON_CRASH
+KEXEC_PRESERVE_CONTEXT
+KEXEC_UPDATE_ELFCOREHDR
+KEXEC_CRASH_HOTPLUG_SUPPORT

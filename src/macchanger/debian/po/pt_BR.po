@@ -1,0 +1,37 @@
+# Debconf translations for macchanger.
+# Copyright (C) 2014 THE macchanger'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the macchanger package.
+# Adriano Rafael Gomes <adrianorg@arg.eti.br>, 2014-2015.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: macchanger\n"
+"Report-Msgid-Bugs-To: macchanger@packages.debian.org\n"
+"POT-Creation-Date: 2014-12-18 13:38+0100\n"
+"PO-Revision-Date: 2015-05-16 14:24-0300\n"
+"Last-Translator: Adriano Rafael Gomes <adrianorg@arg.eti.br>\n"
+"Language-Team: Brazilian Portuguese <debian-l10n-portuguese@lists.debian."
+"org>\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Type: boolean
+#. Description
+#: ../templates:1001
+msgid "Change MAC automatically?"
+msgstr "Trocar MAC automaticamente?"
+
+#. Type: boolean
+#. Description
+#: ../templates:1001
+msgid ""
+"Please specify whether macchanger should be set up to run automatically "
+"every time a network device is brought up or down. This gives a new MAC "
+"address whenever you attach an ethernet cable or reenable wifi."
+msgstr ""
+"Por favor, especifique se o macchanger deve ser configurado para executar "
+"automaticamente a cada vez que um dispositivo de rede for ativado ou "
+"desativado. Isso atribui um novo endereço MAC sempre que você conectar um "
+"cabo de rede ethernet ou reativar a rede wifi."

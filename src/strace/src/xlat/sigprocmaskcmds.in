@@ -1,0 +1,6 @@
+#From include/uapi/asm-generic/signal-defs.h
+#Prefix SIG_
+SIG_BLOCK
+SIG_UNBLOCK
+SIG_SETMASK
+SIG_SETMASK32

@@ -1,0 +1,8 @@
+#unconditional
+#From include/uapi/linux/memfd.h
+#Prefix MFD_
+MFD_CLOEXEC
+MFD_ALLOW_SEALING
+MFD_HUGETLB
+MFD_NOEXEC_SEAL
+MFD_EXEC

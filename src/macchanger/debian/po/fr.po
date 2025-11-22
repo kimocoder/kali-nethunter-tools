@@ -1,0 +1,37 @@
+# Translation of macchanger debconf templates to French.
+# Copyright (C) 2014 Debian l10n team <debian-l10n-french@lists.debian.org>
+# This file is distributed under the same license as the macchanger package.
+# Julien Patriarca <leatherface@debian.org>, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: macchanger\n"
+"Report-Msgid-Bugs-To: macchanger@packages.debian.org\n"
+"POT-Creation-Date: 2014-12-18 13:38+0100\n"
+"PO-Revision-Date: 2014-12-19 10:00+0100\n"
+"Last-Translator: Julien Patriarca <leatherface@debian.org>\n"
+"Language-Team: FRENCH <debian-l10n-french@lists.debian.org>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.6.10\n"
+
+#. Type: boolean
+#. Description
+#: ../templates:1001
+msgid "Change MAC automatically?"
+msgstr "Faut-il changer l'adresse MAC automatiquement ?"
+
+#. Type: boolean
+#. Description
+#: ../templates:1001
+msgid ""
+"Please specify whether macchanger should be set up to run automatically "
+"every time a network device is brought up or down. This gives a new MAC "
+"address whenever you attach an ethernet cable or reenable wifi."
+msgstr ""
+"Veuillez choisir si macchanger doit être paramétré pour être lancé "
+"automatiquement chaque fois qu'un périphérique réseau est mis en ligne ou "
+"hors ligne. Cela a pour effet d'attribuer une nouvelle adresse MAC dès que "
+"vous branchez un câble Ethernet ou que vous réactivez le réseau sans fil."

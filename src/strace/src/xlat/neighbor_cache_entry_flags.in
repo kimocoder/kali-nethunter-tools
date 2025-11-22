@@ -1,0 +1,11 @@
+#unconditional
+#From include/uapi/linux/neighbour.h
+#Prefix NTF_
+NTF_USE
+NTF_SELF
+NTF_MASTER
+NTF_PROXY
+NTF_EXT_LEARNED
+NTF_OFFLOADED
+NTF_STICKY
+NTF_ROUTER

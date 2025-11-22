@@ -1,0 +1,8 @@
+#unconditional
+#value_indexed
+#From include/uapi/linux/tcp_metrics.h
+#Prefix TCP_METRICS_CMD_
+
+TCP_METRICS_CMD_UNSPEC
+TCP_METRICS_CMD_GET
+TCP_METRICS_CMD_DEL

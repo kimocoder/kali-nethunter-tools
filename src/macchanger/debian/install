@@ -1,0 +1,2 @@
+debian/ifupdown.sh etc/macchanger/
+debian/logrotate.d/macchanger etc/logrotate.d/

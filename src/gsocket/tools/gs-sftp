@@ -1,0 +1,38 @@
+#! /usr/bin/env bash
+
+# A wrapper script to do this (essentially):
+# $ gs-netcat -s MySecret -l -e /usr/lib/sftp-server         # Host
+#
+# $ export GSOCKET_ARGS="-s MySecret"                        # Workstation
+# $ sftp -D gs-netcat                                        # Workstation
+
+# Try to use the gs-netcat that's in the same directory as this executable.
+BASEDIR="$(cd "$(dirname "${0}")" || exit; pwd)"
+# shellcheck disable=SC1090 # Can't follow non-constant source. Use a directive to specify location.
+# shellcheck disable=SC1091 # Not following: /etc/gsocket.conf was not specified as input (see shellcheck -x)
+source "${BASEDIR}/gs_funcs" 2>/dev/null || source "${BASEDIR}/../share/gsocket/gs_funcs" 2>/dev/null || { { source /etc/gsocket.conf 2>/dev/null || source "${BASEDIR}/../etc/gsocket.conf" 2>/dev/null || { echo >&2 "gsocket: gsocket.conf not found."; exit 3; } } && { source "${GS_PREFIX}/share/gsocket/gs_funcs" 2>/dev/null; } } || { echo >&2 "gsocket: gs_funcs not found"; exit 3; }
+
+
+my_usage()
+{
+	echo "${BIN_NAME} [-k file] [-s password] [-l]"
+	usage "${BIN_NAME}"
+	exit 0
+}
+
+command -v sftp >/dev/null 2>&1 || { echo >&2 "sftp not found. Try 'apt-get install openssh' or check PATH=?"; exit 1; }
+gs_init
+do_getopt "$@"
+shift $((OPTIND -1))	# Mount Point
+env_arg_init
+
+if [[ -n ${IS_SERVER} ]]; then
+	# SERVER
+	sftp_server_start
+else
+	# CLIENT
+	ARGS=" -q"
+	[[ -n ${ARGS_NEW[*]} ]] && ARGS=" ${ARGS_NEW[*]}"
+	# shellcheck disable=SC2086 # Double quote to prevent globbing and word splitting. ${RSYNC_ARGS} -> We want word splitting for multiple arugments.
+	GSOCKET_NO_GREETINGS="1" GSOCKET_ARGS="${ENV_ARGS}${ARGS}" exec sftp -D "${GS_NETCAT_BIN}"
+fi

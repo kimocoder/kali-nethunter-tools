@@ -1,0 +1,11 @@
+#From include/uapi/asm-generic/termbits-common.h
+#From include/uapi/asm-generic/termbits.h
+CSTOPB
+CREAD
+PARENB
+PARODD
+HUPCL
+CLOCAL
+CTVB      /* VisioBraille Terminal flow control */
+CMSPAR    /* mark or space (stick) parity */
+CRTSCTS   /* flow control */

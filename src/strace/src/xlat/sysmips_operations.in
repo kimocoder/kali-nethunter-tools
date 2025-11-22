@@ -1,0 +1,7 @@
+#From arch/mips/include/uapi/asm/sysmips.h
+#Prefix MIPS_
+SETNAME
+FLUSH_CACHE
+MIPS_FIXADE
+MIPS_RDNVRAM
+MIPS_ATOMIC_SET

@@ -1,0 +1,8 @@
+#unconditional
+#From include/uapi/linux/fcntl.h
+#Prefix AT_
+AT_HANDLE_MNT_ID_UNIQUE
+AT_HANDLE_CONNECTABLE
+AT_HANDLE_FID
+AT_SYMLINK_FOLLOW
+AT_EMPTY_PATH

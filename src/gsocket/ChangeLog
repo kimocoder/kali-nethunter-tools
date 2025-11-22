@@ -1,0 +1,29 @@
+1.4.42 - 2024-05-22
+    * gcc _LARGEFILE_SOURCE fix
+
+1.4.41 - 2023-09-22
+    * OpenBSD support
+    * Transparent proxy detection
+    * muslcc localtime() bug work around
+
+1.4.40 - 2023-09-00
+    * Windows cmd.exe support
+    * SSL error printing
+
+.4.39 - 2022-09-01
+    * -t flag to check if peer is listening
+    * Software emulation of PTY if /dev/ptmx is unavailable
+    * Keepalive improved for Port 443 connections
+
+1.4.31-dev - 2021-06-08
+    * Protocol 1.3 - BREAKS BACKWARD COMPATIBILITY
+    * New Key Deriviation Method and fixed gs secret length
+    * -v, -vv and -vvv for verbosity
+    * Auto-Reconnect for -l (server) when DNS fails and keep re-trying
+      until success.
+    * Downgraded automake requirements to 2.69
+    * deploy.sh support for Raspberry PI 4b+ (armv7l)
+    * Debian HURD support (https://www.debian.org/ports/hurd/)
+    * unique exit() codes (thanks acpizer!)
+    * =Secret without quotes for easy cut & paste on windows (thanks CuCai!)
+    * CHANGELOG (thanks xaitax!)

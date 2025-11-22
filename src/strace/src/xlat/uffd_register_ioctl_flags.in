@@ -1,0 +1,11 @@
+#unconditional
+#val_type uint64_t
+#From include/uapi/linux/userfaultfd.h
+#Prefix _UFFDIO_
+1<<_UFFDIO_WAKE
+1<<_UFFDIO_COPY
+1<<_UFFDIO_ZEROPAGE
+1<<_UFFDIO_MOVE
+1<<_UFFDIO_WRITEPROTECT
+1<<_UFFDIO_CONTINUE
+1<<_UFFDIO_POISON

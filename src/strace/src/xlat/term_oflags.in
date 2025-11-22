@@ -1,0 +1,18 @@
+#ifdef ALPHA
+#From arch/mips/include/uapi/asm/termbits.h
+#From include/uapi/asm-generic/termbits-common.h
+#From include/uapi/asm-generic/termbits.h
+XTABS   /* required by POSIX to == TAB3; but not on Alpha! */
+#endif
+
+OPOST   /* Perform output processing.  */
+OLCUC   /* Map lower case to upper case on output.  */
+ONLCR   /* Map NL to CR-NL on output.  */
+OCRNL
+ONOCR
+ONLRET
+OFILL
+OFDEL
+
+PAGEOUT /* SUNOS specific */
+WRAP    /* SUNOS specific */

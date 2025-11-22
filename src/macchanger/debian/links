@@ -1,0 +1,2 @@
+etc/macchanger/ifupdown.sh  etc/network/if-pre-up.d/macchanger
+etc/macchanger/ifupdown.sh  etc/network/if-post-down.d/macchanger

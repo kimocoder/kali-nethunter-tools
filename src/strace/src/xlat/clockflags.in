@@ -1,0 +1,3 @@
+#From include/uapi/linux/time.h
+#Prefix TIMER_
+TIMER_ABSTIME

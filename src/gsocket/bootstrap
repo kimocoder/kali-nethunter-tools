@@ -1,0 +1,38 @@
+#! /bin/sh
+
+DIE=0
+
+command -v autoconf >/dev/null || {
+    echo "You must have autoconf installed."
+	DIE=1
+}
+
+# libtool --version check not done...
+
+command -v automake >/dev/null || {
+    echo "You must have automake installed."
+    DIE=1
+}
+
+if test "$DIE" -eq 1; then
+    exit 1
+fi
+
+echo Removing old files...
+rm -f configure Makefile Makefile.in tools/Makefile tools/Makesfile.in src/Makefile src/Makefile.in config.h config.status aclocal.m4 config.cache config.log
+[ -d "config" ] &&  rm -rf config
+mkdir config
+
+echo "aclocal -I ."
+aclocal -I . || exit
+
+# glibtoolize -c
+
+echo "autoheader"
+autoheader || exit
+echo "automake --foreign --add-missing -Wno-syntax"
+automake --foreign --copy --add-missing -Wno-syntax || exit
+echo "autoconf"
+autoconf || exit
+echo "BOOTSTRAP complete"
+

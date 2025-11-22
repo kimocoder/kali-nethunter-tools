@@ -1,0 +1,191 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "Ethtool module-info JSON Output",
+	"description": "Units documentation for various fields in the output.",
+	"type": "array",
+	"items": {
+		"type": "object",
+		"properties": {
+			"br_nominal": {
+				"type": "integer",
+				"description": "Unit: Mbps"
+			},
+			"length_(smf)": {
+				"type": "integer",
+				"description": "Unit: km"
+			},
+			"length_(om5)": {
+				"type": "integer",
+				"description": "Unit: m"
+			},
+			"length_(om4)": {
+				"type": "integer",
+				"description": "Unit: m"
+			},
+			"length_(om3)": {
+				"type": "integer",
+				"description": "Unit: m"
+			},
+			"length_(om2)": {
+				"type": "integer",
+				"description": "Unit: m"
+			},
+			"length_(om1)": {
+				"type": "integer",
+				"description": "Unit: m"
+			},
+			"length_(copper_or_active_cable)":
+			{
+				"type": "integer",
+				"description": "Unit: m"
+			},
+			"laser_wavelength": {
+				"type": "integer",
+				"description": "Unit: nm"
+			},
+			"laser_wavelength_tolerance": {
+				"type": "integer",
+				"description": "Unit: nm"
+			},
+			"module_temperature_measurement": {
+				"type": "number",
+				"description": "Unit: degrees C"
+			},
+			"module_voltage_measurement": {
+				"type": "number",
+				"description": "Unit: V"
+			},
+			"laser_tx_bias_current": {
+				"type": "array",
+				"items": {
+					"type": "number"
+				},
+				"description": "Unit: mA"
+			},
+			"transmit_avg_optical_power": {
+				"type": "array",
+				"items": {
+					"type": "number"
+				},
+				"description": "Unit: mW"
+			},
+			"rx_power": {
+				"type": "object",
+				"properties": {
+					"values": {
+						"type": "array",
+						"items": {
+							"type": "number"
+						},
+						"description": "Unit: mW"
+					}
+				}
+			},
+			"laser_bias_current": {
+				"type": "object",
+				"properties": {
+					"high_alarm_threshold": {
+						"type": "number",
+						"description": "Unit: mA"
+					},
+					"low_alarm_threshold": {
+						"type": "number",
+						"description": "Unit: mA"
+					},
+					"high_warning_threshold": {
+						"type": "number",
+						"description": "Unit: mA"
+					},
+					"low_warning_threshold": {
+						"type": "number",
+						"description": "Unit: mA"
+					}
+				}
+			},
+			"laser_output_power": {
+				"type": "object",
+				"properties": {
+					"high_alarm_threshold": {
+						"type": "number",
+						"description": "Unit: mW"
+					},
+					"low_alarm_threshold": {
+						"type": "number",
+						"description": "Unit: mW"
+					},
+					"high_warning_threshold": {
+						"type": "number",
+						"description": "Unit: mW"
+					},
+					"low_warning_threshold": {
+						"type": "number",
+						"description": "Unit: mW"
+					}
+				}
+			},
+			"module_temperature": {
+				"type": "object",
+				"properties": {
+					"high_alarm_threshold": {
+						"type": "number",
+						"description": "Unit: degrees C"
+					},
+					"low_alarm_threshold": {
+						"type": "number",
+						"description": "Unit: degrees C"
+					},
+					"high_warning_threshold": {
+						"type": "number",
+						"description": "Unit: degrees C"
+					},
+					"low_warning_threshold": {
+						"type": "number",
+						"description": "Unit: degrees C"
+					}
+				}
+			},
+			"module_voltage": {
+				"type": "object",
+				"properties": {
+					"high_alarm_threshold": {
+						"type": "number",
+						"description": "Unit: V"
+					},
+					"low_alarm_threshold": {
+						"type": "number",
+						"description": "Unit: V"
+					},
+					"high_warning_threshold": {
+						"type": "number",
+						"description": "Unit: V"
+					},
+					"low_warning_threshold": {
+						"type": "number",
+						"description": "Unit: V"
+					}
+				}
+			},
+			"laser_rx_power": {
+				"type": "object",
+				"properties": {
+					"high_alarm_threshold": {
+						"type": "number",
+						"description": "Unit: mW"
+					},
+					"low_alarm_threshold": {
+						"type": "number",
+						"description": "Unit: mW"
+					},
+					"high_warning_threshold": {
+						"type": "number",
+						"description": "Unit: mW"
+					},
+					"low_warning_threshold": {
+						"type": "number",
+						"description": "Unit: mW"
+					}
+				}
+			}
+		}
+	}
+}

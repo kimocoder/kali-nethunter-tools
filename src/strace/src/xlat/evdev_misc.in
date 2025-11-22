@@ -1,0 +1,10 @@
+#unconditional
+#value_indexed
+#From include/uapi/linux/input-event-codes.h
+#Prefix MSC_
+MSC_SERIAL
+MSC_PULSELED
+MSC_GESTURE
+MSC_RAW
+MSC_SCAN
+MSC_TIMESTAMP

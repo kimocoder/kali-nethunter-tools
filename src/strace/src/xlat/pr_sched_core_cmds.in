@@ -1,0 +1,7 @@
+#unconditional
+#From include/uapi/linux/prctl.h
+#Prefix PR_SCHED_CORE_
+PR_SCHED_CORE_GET
+PR_SCHED_CORE_CREATE
+PR_SCHED_CORE_SHARE_TO
+PR_SCHED_CORE_SHARE_FROM

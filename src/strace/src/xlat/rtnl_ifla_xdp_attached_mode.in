@@ -1,0 +1,9 @@
+#unconditional
+#value_indexed
+#From include/uapi/linux/if_link.h
+#Prefix XDP_ATTACHED_
+XDP_ATTACHED_NONE
+XDP_ATTACHED_DRV
+XDP_ATTACHED_SKB
+XDP_ATTACHED_HW
+XDP_ATTACHED_MULTI

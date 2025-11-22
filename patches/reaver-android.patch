@@ -1,0 +1,17 @@
+--- a/src/wpsmon.c
++++ b/src/wpsmon.c
+@@ -1,5 +1,13 @@
+ #include "wpsmon.h"
+ 
++/* Android doesn't have ualarm, use alarm instead */
++#ifdef __ANDROID__
++#define ualarm(usecs, interval) alarm((usecs) / 1000000)
++#endif
++
++/* Fallback for systems without ualarm */
++#ifndef ualarm
++#define ualarm(usecs, interval) alarm((usecs) / 1000000)
++#endif
+ 
+ /* Listens for beacon packets and extracts the BSSID, channel, ESSID, and RSSI data */
+ void monitor()

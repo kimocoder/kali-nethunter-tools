@@ -1,0 +1,274 @@
+macchanger (1.7.0-6) unstable; urgency=medium
+
+  * Team upload of Debian team
+
+  [ Hans-Christoph Steiner ]
+  * Priority: optional
+  * use HTTPS for debian/copyright spec URL
+  * point Vcs tags to salsa.debian.org
+
+  [ Remus-Gabriel Chelu ]
+  * Romanian debconf templates translation
+    Closes: #1032681
+
+  [ Andreas Tille ]
+  * Fix watch file
+  * Do not ignore $ENABLE_INTERFACES in /etc/default/macchanger
+    Note: The patch provided by Maximilian Stein <m@steiny.biz> was
+    converted from bash to POSIX shell
+    Closes: #780165
+  * Do not depend on old dpkg or install-info
+    Closes: #1013844
+  * Standards-Version: 4.7.0 (routine-update)
+  * debhelper-compat 13 (routine-update)
+  * Rules-Requires-Root: no (routine-update)
+  * Enable hardening options
+
+ -- Andreas Tille <tille@debian.org>  Wed, 11 Sep 2024 08:47:06 +0200
+
+macchanger (1.7.0-5.4) unstable; urgency=medium
+
+  * Non-maintainer upload with maintainer consent.
+  * Add debconf template translations
+    - Swedish (Martin Bagge) (Closes: #781686)
+    - Italian (Beatrice Torracca) (Closes: #778381)
+    - Brazilian Portuguese (Adriano Rafael Gomes) (Closes: #785469)
+    - Dutch (Frans Spiesschaert) (Closes: #776754)
+    - Spanish (Jonathan Bustillos) (Closes: #783563)
+  * Uncomment VCS-* variables, alioth is gone and this package is not (yet?)
+    on salsa.
+
+ -- Helge Kreutzmann <debian@helgefjell.de>  Sun, 17 Jun 2018 11:28:32 +0200
+
+macchanger (1.7.0-5.3) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix "fails to detect silent driver failure to change MAC":
+    Add patch verify-changed-MAC.patch from Joey Hess:
+    actively check the new MAC after trying to change it.
+    (Closes: #774898)
+
+ -- gregor herrmann <gregoa@debian.org>  Sat, 07 Feb 2015 17:40:59 +0100
+
+macchanger (1.7.0-5.2) unstable; urgency=medium
+
+  * Non-maintainer upload
+  * Add debconf template translations for the question added for #768189:
+    - Czech (Michal Simunek) (Closes: #773524)
+    - German (Helge Kreutzmann) (Closes: #773738)
+    - Portugese (Américo Monteiro) (Closes: #773769)
+    - Russian (Yuri Kozlov) (Closes: #773819)
+    - French (Julien Patriarca) (Closes: #773949)
+    - Danish (Joe Dalton) (Closes: #775046)
+
+ -- Ben Hutchings <ben@decadent.org.uk>  Sat, 17 Jan 2015 11:46:17 +0000
+
+macchanger (1.7.0-5.1) unstable; urgency=medium
+
+  * Non-maintainer upload
+  * Check for random device read errors (Closes: #775005)
+
+ -- Ben Hutchings <ben@decadent.org.uk>  Fri, 16 Jan 2015 23:22:13 +0000
+
+macchanger (1.7.0-5) unstable; urgency=low
+
+  * fix maintainer-script-without-set-e config
+  * improved language for debconf question from Justin B Rye
+
+ -- Hans-Christoph Steiner <hans@eds.org>  Thu, 18 Dec 2014 12:50:47 +0100
+
+macchanger (1.7.0-4) unstable; urgency=low
+
+  * add debconf option to prompt whether to automatically run (Closes: #768189)
+
+ -- Hans-Christoph Steiner <hans@eds.org>  Mon, 15 Dec 2014 12:07:44 +0100
+
+macchanger (1.7.0-3.2) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Reintroduce the changelog entry for 1.7.0-3 as it was uploaded:
+    the previous NMU replaced it with the one that was tagged in Git.
+
+ -- intrigeri <intrigeri@debian.org>  Sat, 29 Nov 2014 13:49:01 +0100
+
+macchanger (1.7.0-3.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Change the non-vendor bytes, and only them, on automatic run.
+    (Closes: #768325)
+
+ -- Jean-Michel Nirgal Vourgère <jmv_deb@nirgal.com>  Thu, 27 Nov 2014 10:52:16 +0100
+
+macchanger (1.7.0-3) unstable; urgency=low
+
+  * update debian/watch to point to new github repository
+  * include code from 1.7.0-1.1 NMU (Closes: #738460, #740947)
+
+ -- Hans-Christoph Steiner <hans@eds.org>  Fri, 07 Nov 2014 12:56:56 +0100
+
+macchanger (1.7.0-2) unstable; urgency=low
+
+  * automatically run macchanger, with option to disable
+  * automatically rotate the macchanger log
+  * add myself as Maintainer
+  * remove hard-coded LDFLAGS, let dh set them (Closes: #754391)
+
+ -- Hans-Christoph Steiner <hans@eds.org>  Tue, 21 Oct 2014 16:01:55 -0400
+
+macchanger (1.7.0-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix a grave security bug -- the macchanger program was fundamentally
+    not working correctly due to a bug in the debian local patch
+    08-fix_random_MAC_choice.patch.   In fact, it was **breaking** the
+    random MAC choice!?! (Closes: #738460, #740947)
+
+ -- Theodore Y. Ts'o <tytso@mit.edu>  Sun, 06 Jul 2014 20:32:38 -0400
+
+macchanger (1.7.0-1) unstable; urgency=medium
+
+  * New upstream release (Closes: #718849)
+  * Updated debian/copyright to GPL-3+, according to:
+      https://github.com/alobbs/macchanger/issues/3#issuecomment-31526964
+  * Updated Homepage pointing to Github repository (Closes: #718848)
+  * Standards-Version bump to 3.9.5, no changes needed
+  * Debhelper compatibility level bumped to 9
+  * Updated OUI list (Closes: #732085)
+  * debian/patches:
+    - 01-fix_manpage.patch, 03-fix_random_seed.patch,
+      04-fix_exit_code.patch, 05-fix_spelling_error.patch,
+      07-implement_reset_to_permanent_MAC.patch,
+      09-change_default_behaviour.patch merged upstream, removed
+    - 02-fix_usage_message.patch, 08-fix_random_MAC_choice.patch
+      updated to apply to new upstream code
+  * Make lintian happy, use canonical Vcs-* urls
+
+ -- David Paleino <dapal@debian.org>  Sat, 01 Feb 2014 18:20:39 +0100
+
+macchanger (1.5.0-9) unstable; urgency=low
+
+  * Fix spelling error: endding → ending (05-fix_spelling_error.patch)
+    (Closes: #621698)
+  * Change default behaviour to be "show" (09-change_default_behaviour.patch)
+    (Closes: #621494)
+  * Standards-Version bump to 3.9.2, no changes needed
+  * Fix removal of info-dir file in debian/rules
+
+ -- David Paleino <dapal@debian.org>  Fri, 08 Apr 2011 10:45:38 +0200
+
+macchanger (1.5.0-8) unstable; urgency=low
+
+  * Apply patches from Anders Sundman, posted by private mail:
+    - updated OUI list (06-update_OUI_list.patch)
+    - reset to permanent MAC option (07-implement_reset_to_permanent_MAC.patch)
+    - fix random MAC choice (08-fix_random_MAC_choice.patch)
+  * Use 'linux-any' as Architecture
+  * Add texinfo Build-Depends to rebuild the info file
+  * Clean generated files
+
+ -- David Paleino <dapal@debian.org>  Tue, 01 Mar 2011 09:33:08 +0100
+
+macchanger (1.5.0-7) unstable; urgency=low
+
+  * debian/control:
+    - updated my email address
+    - DMUA removed
+    - bump Standards-Version to 3.9.1, no changes needed
+    - drop Build-Depends on quilt
+    - bump debhelper requirement to >= 7.0.50~
+  * debian/README.source removed
+  * debian/rules rewritten with minimal-dh7-style
+  * debian/copyright updated to DEP-5
+  * debian/patches/* refreshed with DEP-3
+  * Use "3.0 (quilt)" format
+  * Fix spelling error in source code (05-fix_spelling_error.patch)
+
+ -- David Paleino <dapal@debian.org>  Fri, 11 Feb 2011 10:53:22 +0100
+
+macchanger (1.5.0-6) unstable; urgency=low
+
+  * The "if I only received those mails five minutes earlier" release
+  * debian/patches/:
+    - 03-fix_random_seed.patch added, thanks to Carlo Contavalli for
+      the hint (Closes: #547595)
+    - 04-fix_exit_code.patch added (Closes: #547596)
+
+ -- David Paleino <d.paleino@gmail.com>  Mon, 21 Sep 2009 11:54:29 +0200
+
+macchanger (1.5.0-5) unstable; urgency=low
+
+  * The "fast, fast, you forgot it!" release
+  * debian/rules: add "build-stamp" to install-stamp dependencies
+  * debian/control: change priority to extra, match FTP-Master override
+
+ -- David Paleino <d.paleino@gmail.com>  Mon, 21 Sep 2009 00:59:02 +0200
+
+macchanger (1.5.0-4) unstable; urgency=low
+
+  * Maintenance upload
+  * debian/manpages added
+  * debian/examples added
+  * debian/info added
+  * debian/rules rewritten, using dh7-style
+  * debian/compat bumped to 7
+  * debian/control:
+    - Build-Depends, debhelper bumped to >= 7, quilt versioned
+      to >= 0.46-7~
+    - Depends, ${misc:Depends} added
+    - Standards-Version bumped to 3.8.3:
+      + handle install-info changes properly, add Depends on
+        dpkg (>= 1.15.4) | install-info to permit smooth upgrades.
+    - Vcs-* fields updated, packaging moved to Git
+  * debian/README.source added
+
+ -- David Paleino <d.paleino@gmail.com>  Mon, 21 Sep 2009 00:34:29 +0200
+
+macchanger (1.5.0-3) unstable; urgency=low
+
+  * debian/patches/:
+    - 01-fix_manpage.patch updated, added -s|--show option.
+      Thanks to Geoff Simmons (Closes: #506922)
+  * debian/control:
+    - DM-Upload-Allowed set.
+  * debian/watch added
+
+ -- David Paleino <d.paleino@gmail.com>  Wed, 31 Dec 2008 11:30:48 +0100
+
+macchanger (1.5.0-2) unstable; urgency=low
+
+  * Package adopted (Closes: #481102)
+  * debian/control:
+    - Maintainer set to myself
+    - Standards-Version bumped to 3.8.0:
+      * added support for parallel builds to debian/rules
+    - moved old Homepage pseudo-field to a proper field
+    - added Vcs-Svn and Vcs-Browser fields
+    - bumped debhelper B-D to >= 6
+  * debian/compat bumped to 6
+  * debian/copyright updated to machine-readable format
+  * debian/rules updated
+  * debian/patches/:
+    - 01-fix_manpage.patch added, fixes hyphen-used-as-minus-sign lintian
+      warning
+    - 02-fix_usage_message.patch added, fixes usage message (Closes: #391400)
+
+ -- David Paleino <d.paleino@gmail.com>  Fri, 06 Jun 2008 17:08:41 +0200
+
+macchanger (1.5.0-1) unstable; urgency=low
+
+  * New upstream version:
+    - does not randomly generate broadcast MAC addresses (closes: #247721).
+
+ -- Domenico Andreoli <cavok@debian.org>  Wed, 12 May 2004 11:14:24 +0200
+
+macchanger (1.4.0-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Domenico Andreoli <cavok@debian.org>  Wed,  8 Oct 2003 12:01:59 +0200
+
+macchanger (1.3.0-1) unstable; urgency=low
+
+  * Initial release (closes: #206556).
+
+ -- Domenico Andreoli <cavok@debian.org>  Sun, 24 Aug 2003 17:19:04 +0200

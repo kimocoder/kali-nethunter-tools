@@ -1,0 +1,8 @@
+#unconditional
+#value_indexed
+#From include/uapi/linux/netlink.h
+#Prefix NLMSG_
+NLMSG_NOOP
+NLMSG_ERROR
+NLMSG_DONE
+NLMSG_OVERRUN

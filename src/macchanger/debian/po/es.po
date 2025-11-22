@@ -1,0 +1,58 @@
+# macchanger po-debconf translation to Spanish.
+# Copyright (C) 2015 Software in the Public Interest
+# This file is distributed under the same license as the macchanger package.
+#
+# Changes:
+# - Initial translation
+# Jonathan Bustillos <jathanblackred@openmailbox.com>, 2015.
+#
+# Traductores, si no conocen el formato PO, merece la pena leer la
+# documentación de gettext, especialmente las secciones dedicadas a este
+# formato, por ejemplo ejecutando:
+# info -n '(gettext)PO Files'
+# info -n '(gettext)Header Entry'
+#
+# Equipo de traducción al español, por favor lean antes de traducir
+# los siguientes documentos:
+#
+# - El proyecto de traducción de Debian al español
+# http://www.debian.org/intl/spanish/
+# especialmente las notas y normas de traducción en
+# http://www.debian.org/intl/spanish/notas
+#
+# - La guía de traducción de po's de debconf:
+# /usr/share/doc/po-debconf/README-trans
+# o http://www.debian.org/intl/l10n/po-debconf/README-trans
+msgid ""
+msgstr ""
+"Project-Id-Version: macchanger\n"
+"Report-Msgid-Bugs-To: macchanger@packages.debian.org\n"
+"POT-Creation-Date: 2014-12-18 13:38+0100\n"
+"PO-Revision-Date: 2015-04-09 12:16-0500\n"
+"Last-Translator: Jonathan Bustillos <jathanblackred@openmailbox.com>\n"
+"Language-Team: Debian Spanish <debian-l10n-spanish@lists.debian.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Gtranslator 2.91.6\n"
+
+#. Type: boolean
+#. Description
+#: ../templates:1001
+msgid "Change MAC automatically?"
+msgstr "¿Desea cambiar la dirección MAC automáticamente?"
+
+#. Type: boolean
+#. Description
+#: ../templates:1001
+msgid ""
+"Please specify whether macchanger should be set up to run automatically "
+"every time a network device is brought up or down. This gives a new MAC "
+"address whenever you attach an ethernet cable or reenable wifi."
+msgstr ""
+"Indique si se debe configurar macchanger para que se ejecute automáticamente "
+"cada vez que se active o desactive un dispositivo de red. Esto proporciona "
+"una nueva dirección MAC cada vez que se conecte un cable ethernet o se "
+"reactive la red inalámbrica."

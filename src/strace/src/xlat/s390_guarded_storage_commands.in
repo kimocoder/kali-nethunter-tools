@@ -1,0 +1,8 @@
+#value_indexed
+#From arch/s390/include/uapi/asm/guarded_storage.h
+#Prefix GS_
+GS_ENABLE	0
+GS_DISABLE	1
+GS_SET_BC_CB	2
+GS_CLEAR_BC_CB	3
+GS_BROADCAST	4
