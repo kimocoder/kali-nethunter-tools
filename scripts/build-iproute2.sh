@@ -107,8 +107,9 @@ log_cmd ./configure \
   --prefix="$INSTALL_DIR" \
   --libbpf_force=off
 
-# Android compatibility flags
-ANDROID_CFLAGS="-D__ANDROID__ -Din_addr_t=uint32_t -D_GNU_SOURCE -DCONF_COLOR=COLOR_OPT_NEVER"
+# Android compatibility flags (include -fno-emulated-tls for ARM64 TLS alignment fix)
+# Also use initial-exec TLS model which has better alignment
+ANDROID_CFLAGS="-D__ANDROID__ -Din_addr_t=uint32_t -D_GNU_SOURCE -DCONF_COLOR=COLOR_OPT_NEVER -fno-emulated-tls -ftls-model=initial-exec"
 
 # Manually disable features not available on Android
 sed -i 's/HAVE_ELF:=y/HAVE_ELF:=n/' config.mk
@@ -136,11 +137,18 @@ log "Step 4: Building $TOOL_NAME..."
 # Set up pkg-config path for libmnl
 export PKG_CONFIG_PATH="$PREFIX/libmnl/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
 
+# Override page size to 64KB for ARM64 TLS alignment fix
+if [ "$TARGET_ARCH" = "arm64" ]; then
+  IPROUTE2_LDFLAGS="${LDFLAGS/-Wl,-z,max-page-size=16384/-Wl,-z,max-page-size=65536,-z,common-page-size=65536} -static -L$PREFIX/libmnl/lib -ldl"
+else
+  IPROUTE2_LDFLAGS="$LDFLAGS -static -L$PREFIX/libmnl/lib -ldl"
+fi
+
 log_cmd make \
   CC="$CC" \
   AR="$AR" \
   EXTRA_CFLAGS="$ANDROID_CFLAGS -I$PREFIX/libmnl/include" \
-  LDFLAGS="$LDFLAGS -static -L$PREFIX/libmnl/lib -ldl" \
+  LDFLAGS="$IPROUTE2_LDFLAGS" \
   SHARED_LIBS=n \
   SUBDIRS="lib ip tc bridge" \
   -j"$PARALLEL_JOBS"
@@ -159,6 +167,16 @@ log_cmd make install \
 # Strip binaries
 log "Stripping binaries..."
 find "$INSTALL_DIR/bin" -type f -executable -exec "$STRIP" {} \; 2>/dev/null || true
+
+# Fix TLS alignment for ARM64 (Android Bionic requires 64-byte alignment)
+if [ "$TARGET_ARCH" = "arm64" ]; then
+  log "Fixing TLS alignment for ARM64..."
+  for binary in "$INSTALL_DIR/bin"/*; do
+    if [ -f "$binary" ] && [ -x "$binary" ]; then
+      python3 "$SCRIPT_DIR/fix-tls-alignment.py" "$binary" 2>&1 | tee -a "$LOG_FILE" || log "Warning: TLS fix failed for $(basename $binary)"
+    fi
+  done
+fi
 
 # ============================================================================
 # Verify Installation
