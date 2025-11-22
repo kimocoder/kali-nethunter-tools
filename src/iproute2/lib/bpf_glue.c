@@ -14,6 +14,7 @@
 #include <bpf/bpf.h>
 #endif
 
+/* Always define our own bpf() syscall wrapper for iproute2 */
 int bpf(int cmd, union bpf_attr *attr, unsigned int size)
 {
 #ifdef __NR_bpf

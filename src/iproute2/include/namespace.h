@@ -38,6 +38,7 @@
 #define MS_SHARED	(1 << 20)
 #endif
 
+#if !defined(__ANDROID__) || __ANDROID_API__ < 21
 #ifndef HAVE_SETNS
 static inline int setns(int fd, int nstype)
 {
@@ -49,6 +50,7 @@ static inline int setns(int fd, int nstype)
 #endif
 }
 #endif /* HAVE_SETNS */
+#endif
 
 int netns_switch(char *netns);
 int netns_get_fd(const char *netns);

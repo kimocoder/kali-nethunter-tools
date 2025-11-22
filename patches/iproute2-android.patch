@@ -1,0 +1,118 @@
+diff --git a/include/utils.h b/include/utils.h
+index 1234567..abcdefg 100644
+--- a/include/utils.h
++++ b/include/utils.h
+@@ -1,6 +1,31 @@
+ #ifndef __UTILS_H__
+ #define __UTILS_H__ 1
+ 
++/* Android compatibility fixes */
++#ifdef __ANDROID__
++
++#ifndef in_addr_t
++typedef uint32_t in_addr_t;
++#endif
++
++/* strdupa implementation for Android */
++#define strdupa(s) \
++    (__extension__ ({ \
++        const char *__old = (s); \
++        size_t __len = strlen(__old) + 1; \
++        char *__new = (char *)alloca(__len); \
++        (char *)memcpy(__new, __old, __len); \
++    }))
++
++/* strchrnul stub for Android */
++static inline char *strchrnul(const char *s, int c) {
++    char *p = strchr(s, c);
++    return p ? p : (char *)s + strlen(s);
++}
++
++#endif /* __ANDROID__ */
++
+ #include <sys/types.h>
+ #include <asm/types.h>
+ #include <resolv.h>
+diff --git a/lib/utils.c b/lib/utils.c
+index 1234567..abcdefg 100644
+--- a/lib/utils.c
++++ b/lib/utils.c
+@@ -30,6 +30,13 @@
+ #include "utils.h"
+ #include "namespace.h"
+ 
++/* Android compatibility - sethostent stub */
++#ifdef __ANDROID__
++static inline void sethostent(int stayopen) {
++    /* No-op on Android */
++}
++#endif
++
+ int get_integer(int *val, const char *arg, int base)
+ {
+ 	long res;
+@@ -532,7 +539,11 @@ static void set_address_type(inet_prefix *addr)
+ 		return;
+ 
+ 	if (addr->family == AF_INET6) {
++#ifdef __ANDROID__
++		if (memcmp(addr->data, &in6addr_any, sizeof(struct in6_addr)) == 0)
++#else
+ 		if (IN6_IS_ADDR_UNSPECIFIED(addr->data))
++#endif
+ 			return;
+ 
+ 		if (IN6_IS_ADDR_LOOPBACK(addr->data)) {
+diff --git a/lib/bpf_glue.c b/lib/bpf_glue.c
+index 1234567..abcdefg 100644
+--- a/lib/bpf_glue.c
++++ b/lib/bpf_glue.c
+@@ -15,8 +15,7 @@
+ #include <bpf/bpf.h>
+ #endif
+ 
+-/* On Android, use the libc bpf() syscall wrapper directly */
+-#ifndef __ANDROID__
++/* Always define our own bpf() syscall wrapper */
+ int bpf(int cmd, union bpf_attr *attr, unsigned int size)
+ {
+ #ifdef __NR_bpf
+@@ -26,7 +25,6 @@ int bpf(int cmd, union bpf_attr *attr, unsigned int size)
+ 	errno = ENOSYS;
+ 	return -1;
+ #endif
+ }
+-#endif
+diff --git a/include/namespace.h b/include/namespace.h
+index 1234567..abcdefg 100644
+--- a/include/namespace.h
++++ b/include/namespace.h
+@@ -4,6 +4,11 @@
+ 
+ #include <sched.h>
+ 
++/* Android compatibility - add missing CLONE flag */
++#ifndef CLONE_NEWCGROUP
++#define CLONE_NEWCGROUP 0x02000000
++#endif
++
+ #define NETNS_RUN_DIR "/var/run/netns"
+ #define NETNS_ETC_DIR "/etc/netns"
+ 
+diff --git a/lib/fs.c b/lib/fs.c
+index 1234567..abcdefg 100644
+--- a/lib/fs.c
++++ b/lib/fs.c
+@@ -28,6 +28,13 @@
+ #include "utils.h"
+ #include "namespace.h"
+ 
++/* Rename setns() to avoid conflict with Android libc */
++#ifdef __ANDROID__
++#define setns setns_wrapper
++extern int setns_wrapper(int fd, int nstype);
++#endif
++
+ #ifndef HAVE_SETNS
+ #include <sys/syscall.h>
+ static int setns(int fd, int nstype)

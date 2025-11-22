@@ -532,12 +532,19 @@ static void set_address_type(inet_prefix *addr)
 			addr->flags |= ADDRTYPE_INET;
 		break;
 	case AF_INET6:
-		if (IN6_IS_ADDR_UNSPECIFIED(addr->data))
-			addr->flags |= ADDRTYPE_INET_UNSPEC;
-		else if (IN6_IS_ADDR_MULTICAST(addr->data))
-			addr->flags |= ADDRTYPE_INET_MULTI;
-		else
-			addr->flags |= ADDRTYPE_INET;
+		/* Android NDK/Bionic: addr->data is not a struct in6_addr.
+		 * Cast to struct in6_addr for the IN6_* macros which expect
+		 * a pointer to struct in6_addr.
+		 */
+		{
+			struct in6_addr *in6 = (struct in6_addr *)&addr->data;
+			if (IN6_IS_ADDR_UNSPECIFIED(in6))
+				addr->flags |= ADDRTYPE_INET_UNSPEC;
+			else if (IN6_IS_ADDR_MULTICAST(in6))
+				addr->flags |= ADDRTYPE_INET_MULTI;
+			else
+				addr->flags |= ADDRTYPE_INET;
+		}
 		break;
 	}
 }

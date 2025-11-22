@@ -14,6 +14,41 @@
 #include <bsd/string.h>
 #endif
 
+/* Android/Bionic compatibility fixes */
+#ifdef __ANDROID__
+#include <alloca.h>
+#include <string.h>
+#include <stdio.h>
+#define strdupa(s) strcpy(alloca(strlen(s) + 1), s)
+/* strchrnul is not available on Android */
+static inline char *strchrnul(const char *s, int c) {
+    char *p = strchr(s, c);
+    return p ? p : (char *)s + strlen(s);
+}
+/* getpass is deprecated and not available on Android */
+static inline char *getpass(const char *prompt) {
+    static char buf[128];
+    fprintf(stderr, "%s", prompt);
+    if (fgets(buf, sizeof(buf), stdin) == NULL)
+        return NULL;
+    size_t len = strlen(buf);
+    if (len > 0 && buf[len-1] == '\n')
+        buf[len-1] = '\0';
+    return buf;
+}
+/* sethostent is deprecated and not available on Android */
+static inline void sethostent(int stayopen) {
+    (void)stayopen;
+}
+/* rindex is deprecated - use strrchr instead */
+#define rindex(s, c) strrchr(s, c)
+/* index is deprecated - use strchr instead */
+#define index(s, c) strchr(s, c)
+/* basename needs libgen.h */
+#include <libgen.h>
+#endif
+/* End Android compatibility fixes */
+
 #include "libnetlink.h"
 #include "ll_map.h"
 #include "rtm_map.h"

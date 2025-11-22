@@ -21,7 +21,25 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <errno.h>
+#if !defined(__ANDROID__) || __ANDROID_API__ >= 28
 #include <glob.h>
+#else
+/* glob not available on Android API < 28 */
+typedef struct {
+	size_t gl_pathc;
+	char **gl_pathv;
+} glob_t;
+#define GLOB_NOSORT 0
+static inline int glob(const char *pattern, int flags,
+		      int (*errfunc)(const char *, int), glob_t *pglob) {
+	pglob->gl_pathc = 0;
+	pglob->gl_pathv = NULL;
+	return -1;
+}
+static inline void globfree(glob_t *pglob) {
+	(void)pglob;
+}
+#endif
 
 #include "rt_names.h"
 #include "utils.h"

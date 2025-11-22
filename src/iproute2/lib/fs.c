@@ -20,6 +20,10 @@
 
 #include "utils.h"
 
+#ifdef __ANDROID__
+#define CLONE_NEWCGROUP 0x02000000
+#endif
+
 #ifndef HAVE_HANDLE_AT
 # include <sys/syscall.h>
 #endif
