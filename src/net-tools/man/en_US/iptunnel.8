@@ -1,0 +1,43 @@
+.TH IPTUNNEL 8 "2025-09-10" "net\-tools" "Linux System Administrator's Manual"
+
+.SH NAME
+iptunnel \- creates, changes, deletes, and displays configured tunnels
+
+.SH SYNOPSIS
+.B iptunnel
+.RI [< operation >]
+.RI [< args >]
+
+.SH NOTE
+This program is obsolete. Please use \fBip tunnel\fR instead, and see
+.BR ip-tunnel (8)
+for more information.
+
+.SH DESCRIPTION
+The \fBiptunnel\fR command creates configured tunnels for sending and receiving
+IPv6 or IPv4 packets that are encapsulated as the payload of an IPv4 datagram.
+
+The
+.B iptunnel
+command can perform one of the following operations:
+
+.B create
+\- create a tunnel interface, which you must subsequently configure.
+
+.B change
+\- change an existing tunnel interface.
+
+.B delete
+\- delete a tunnel interface. You must disable the tunnel before you can delete it.
+
+.B show
+\- show the tunnel attributes (name, tunnel end points, next hop for tunneled packets).
+
+.SH SEE ALSO
+Homepage of the \fInet\-tools\fP project:
+.UR https://net-tools.sourceforge.io
+.UE
+
+.P
+.BR ip-tunnel (8),
+.BR ip (8)
