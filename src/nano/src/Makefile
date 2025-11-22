@@ -296,7 +296,7 @@ ALLOCA_H = alloca.h
 AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 1
 APPLE_UNIVERSAL_BUILD = 0
-AR = /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
+AR = /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
 ARFLAGS = cr
 ASSERT_H = assert.h
 AUTOCONF = ${SHELL} '/home/kimocoder/kali-nethunter-tools/src/nano/missing' autoconf
@@ -309,12 +309,12 @@ BITSIZEOF_SIZE_T =
 BITSIZEOF_WCHAR_T = 32
 BITSIZEOF_WINT_T = 
 CAN_PRINT_STACK_TRACE = 0
-CC = /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang
+CC = /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang
 CCDEPMODE = depmode=gcc3
-CFLAGS = --sysroot=/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -O2 -D_GNU_SOURCE -fno-emulated-tls -I/home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/ncurses/include -I/home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/ncurses/include/ncursesw -Wall
+CFLAGS = --sysroot=/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -O2 -D_GNU_SOURCE -fno-emulated-tls -I/home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/ncurses/include -I/home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/ncurses/include/ncursesw -Wall
 CFLAG_VISIBILITY = -fvisibility=hidden
 CLOCK_TIME_LIB = 
-CPP = /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang -E
+CPP = /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang -E
 CPPFLAGS = -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600  
 CSCOPE = cscope
 CTAGS = ctags
@@ -1575,7 +1575,7 @@ INT32_MAX_LT_INTMAX_MAX = 1
 INT64_MAX_EQ_LONG_MAX = defined _LP64
 INTLLIBS = 
 INTL_MACOSX_LIBS = 
-LDFLAGS = --sysroot=/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot -Wl,-z,max-page-size=16384 -static -L/home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/ncurses/lib
+LDFLAGS = --sysroot=/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot -Wl,-z,max-page-size=16384 -static -L/home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/ncurses/lib
 LIBGNU_LIBDEPS = 
 LIBGNU_LTLIBDEPS = 
 LIBICONV = -liconv
@@ -1722,7 +1722,7 @@ PRIPTR_PREFIX = __PRIPTR_PREFIX
 PTHREAD_H_DEFINES_STRUCT_TIMESPEC = 0
 PTHREAD_ONCE_LIB = 
 PTRDIFF_T_SUFFIX = 
-RANLIB = /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ranlib
+RANLIB = /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ranlib
 REPLACE_ABORT = 0
 REPLACE_ACCESS = 0
 REPLACE_ACOSF = 0
@@ -2123,7 +2123,7 @@ STDCKDINT_H = stdckdint.h
 STDDEF_H = stddef.h
 STDDEF_NOT_IDEMPOTENT = 0
 STDINT_H = stdint.h
-STRIP = /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
+STRIP = /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
 SYS_TIME_H_DEFINES_STRUCT_TIMESPEC = 0
 TIME_H_DEFINES_STRUCT_TIMESPEC = 1
 TIME_H_DEFINES_TIME_UTC = 1
