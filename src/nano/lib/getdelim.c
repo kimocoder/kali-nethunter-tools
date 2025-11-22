@@ -1,5 +1,5 @@
 /* getdelim.c --- Implementation of replacement getdelim function.
-   Copyright (C) 1994, 1996-1998, 2001, 2003, 2005-2024 Free Software
+   Copyright (C) 1994, 1996-1998, 2001, 2003, 2005-2025 Free Software
    Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
@@ -65,7 +65,13 @@ getdelim (char **lineptr, size_t *n, int delimiter, FILE *fp)
   ssize_t result;
   size_t cur_len = 0;
 
-  if (lineptr == NULL || n == NULL || fp == NULL)
+  if (lineptr == NULL || n == NULL
+      /* glibc already declares this function as __nonnull ((4)).
+         Avoid a gcc warning "‘nonnull’ argument ‘fp’ compared to NULL".  */
+#if !(__GLIBC__ >= 2)
+      || fp == NULL
+#endif
+     )
     {
       errno = EINVAL;
       return -1;

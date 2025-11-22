@@ -13,8 +13,8 @@ The complete manual for the GNU nano text editor.
 
 @smallbook
 @set EDITION 0.8
-@set VERSION 8.2
-@set UPDATED September 2024
+@set VERSION 8.7
+@set UPDATED November 2025
 
 @dircategory Editors
 @direntry
@@ -29,7 +29,7 @@ The complete manual for the GNU nano text editor.
 
 @title GNU @command{nano}
 @subtitle a small and friendly text editor
-@subtitle version 8.2
+@subtitle version 8.7
 
 @author Chris Allegretta
 
@@ -40,7 +40,7 @@ This manual documents the GNU @command{nano} text editor.
 The contents of this manual are part of the GNU @command{nano} distribution.
 
 @sp 5
-Copyright @copyright{} 1999-2009, 2014-2024 Free Software Foundation, Inc.
+Copyright @copyright{} 1999-2009, 2014-2025 Free Software Foundation, Inc.
 @sp 1
 This document is dual-licensed.  You may distribute and/or modify it
 under the terms of either of the following licenses:
@@ -79,7 +79,7 @@ For suggesting improvements: @email{nano-devel@@gnu.org}
 @node Top
 @top
 
-This manual documents GNU @command{nano}, version 8.2.
+This manual documents GNU @command{nano}, version 8.7.
 
 @menu
 * Introduction::
@@ -350,18 +350,22 @@ is running.
 @node Anchors
 @section Anchors
 
-With @kbd{M-Ins} you can place an anchor (a kind of temporary bookmark)
-at the current line.  With @kbd{M-PgUp} and @kbd{M-PgDn} you can jump
+With @kbd{M-Ins} you can place an anchor (a kind of bookmark) at
+the current line.  With @kbd{M-PgUp} and @kbd{M-PgDn} you can jump
 to an anchor in the backward/forward direction.  This jumping wraps
 around at the top and bottom.
 
-When a line with an anchor is removed, the line where the cursor ends up
-inherits the anchor.  After performing an operation on the entire buffer
-(like formatting it, piping it through a command, or doing an external
-spell check on it), any anchors that were present are gone.  And when
-you close the buffer, all its anchors simply disappear; they are not saved.
+When an operation removes a line with an anchor, the new line with the
+cursor inherits the anchor.  But after performing an operation on the
+entire buffer (like formatting it, piping it through a command, or
+doing an external spell check on it), any anchors that were present
+are gone.
 
-Anchors are visualized in the margin when line numbers are activated.
+When @option{--positionlog} or @code{set positionlog} is active, anchors
+are saved when the file is closed, and restored when the file is reopened.
+
+Anchors are visualized in the left margin if line numbers are active,
+and are always visualized (on the right-hand side) in the mini bar.
 
 @node Limitations
 @section Limitations
@@ -494,6 +498,7 @@ beginning of a paragraph (unless auto-indenting is on).
 @itemx --positionlog
 For the 200 most recent files, log the last position of the cursor,
 and place it at that position again upon reopening such a file.
+Also save and restore the positions of any anchors.
 
 @item -Q "@var{regex}"
 @itemx --quotestr="@var{regex}"
@@ -570,7 +575,7 @@ the last one given takes effect.)
 
 @item -c
 @itemx --constantshow
-Constantly display the cursor position (line number, column number,
+Constantly report the cursor position (line number, column number,
 and character number) on the status bar.
 Note that this overrides option @option{-U} (@option{--quickblank}).
 
@@ -637,8 +642,8 @@ and writes to the pipe when the user saves the "file".  This way
 
 @item -o @var{directory}
 @itemx --operatingdir=@var{directory}
-Set the operating directory.  This makes @command{nano} set up something
-similar to a chroot.
+Change to the given @var{directory}, and allow reading and writing
+files only in this directory and its subdirectories.
 
 @item -p
 @itemx --preserve
@@ -951,7 +956,7 @@ the original filename as is.  To disable this colon parsing for some
 file, use @code{+1} or similar before the relevant filename.
 
 @item set constantshow
-Constantly display the cursor position on the status bar.
+Constantly report the cursor position on the status bar.
 Note that this overrides @option{quickblank}.
 
 @item set cutfromcursor
@@ -1096,14 +1101,12 @@ Use this color combination for line numbers.
 @xref{@code{set keycolor}} for valid color names.
 
 @item set operatingdir "@var{directory}"
-@command{nano} only reads and writes files inside "directory" and its
-subdirectories.  Also, the current directory is changed to here, so
-files are inserted from this directory.  By default, the operating
-directory feature is turned off.
+At startup, make @command{nano} change to the given @var{directory}, and
+allow reading and writing files only in this directory and its subdirectories.
 
 @item set positionlog
-Save the cursor position of files between editing sessions.
-The cursor position is remembered for the 200 most-recently edited files.
+Save the positions of cursor and anchors between editing sessions.
+These positions are remembered for the 200 most-recently edited files.
 
 @item set preserve
 Preserve the XOFF and XON sequences (@kbd{^S} and @kbd{^Q}) so that
@@ -1389,18 +1392,18 @@ Same as above, except that the matching is case insensitive.
 
 @item color [bold,][italic,]@var{fgcolor},@var{bgcolor} start="@var{fromrx}" end="@var{torx}"
 Paint all pieces of text whose start matches extended regular expression
-"fromrx" and whose end matches extended regular expression "torx" with
-the given foreground and background colors, at least one of
+@var{fromrx} and whose end matches extended regular expression @var{torx}
+with the given foreground and background colors, at least one of
 which must be specified.  This means that, after an initial instance of
-"fromrx", all text until the first instance of "torx" is colored.
+@var{fromrx}, all text until the first instance of @var{torx} is colored.
 This allows syntax highlighting to span multiple lines.
 
 @item icolor [bold,][italic,]@var{fgcolor},@var{bgcolor} start="@var{fromrx}" end="@var{torx}"
 Same as above, except that the matching is case insensitive.
 
 @item include "@var{syntaxfile}"
-Read in self-contained color syntaxes from "syntaxfile".  Note that
-"syntaxfile" may contain only the above commands, from @code{syntax}
+Read in self-contained color syntaxes from @var{syntaxfile}.  Note that
+such a syntax file may contain only the above commands, from @code{syntax}
 to @code{icolor}.
 
 @item extendsyntax @var{name} @var{command} @var{argument} @dots{}
@@ -1441,12 +1444,13 @@ Unbinds @code{key} from @code{menu}
 Note that @code{bind key "@{function@}" menu} is equivalent to
 @code{bind key function menu}, except that for the latter form
 @command{nano} checks the availability of the @code{function}
-in the given @code{menu} at startup time (and report an error if
+in the given @code{menu} at startup time (and reports an error if
 it does not exist there), whereas for the first form @command{nano}
 checks at execution time that the @code{function} exists but not
 whether it makes any sense in the current menu. The user has to take
 care that a function name between braces (or any sequence of them)
-is appropriate.  Strange behavior can result when it is not.
+is appropriate.  Strange behavior or even a crash can result when
+the braced name is unfitting.
 
 @sp 1
 The format of @code{key} should be one of:
@@ -1572,7 +1576,10 @@ and characters in the current buffer (or in the marked region).
 
 @item execute
 Prompts for a program to execute.  The program's output will be inserted
-into the current buffer (or into a new buffer when @kbd{M-F} is toggled).
+into the current buffer --- or into a new buffer when @kbd{M-F} is toggled.
+When the program's name is preceded by a pipe symbol (@kbd{|}), then the
+current buffer (or the marked region) is piped to the program, and the
+output of the program replaces the buffer (or the marked region).
 
 @item speller
 Invokes a spell-checking program, either the default @command{hunspell}
@@ -1692,8 +1699,10 @@ Goes to the first line of the file.
 Goes to the last line of the file.
 
 @item gotoline
-Goes to a specific line (and column if specified).  Negative numbers count
-from the end of the file (and end of the line).
+Goes to a specific line (and column if given).
+A negative number counts from the end of the buffer (and end of the line).
+Putting @code{++} or @code{--} before the first number will jump the given
+number of lines forward or backward.
 
 @item findbracket
 Moves the cursor to the bracket (or brace or parenthesis, etc.) that matches
@@ -1831,7 +1840,8 @@ and the linter.  All further toggles are available in the main menu only.)
 Toggles the presence of title bar and status bar.
 
 @item constantshow
-Toggles the constant display of the current line, column, and character positions.
+Toggles the constant reporting (on the status bar)
+of the current line, column, and character positions.
 
 @item softwrap
 Toggles the displaying of overlong lines on multiple screen lines.

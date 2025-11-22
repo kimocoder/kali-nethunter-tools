@@ -1,5 +1,5 @@
 /* Provide a more complete sys/stat.h header file.
-   Copyright (C) 2005-2024 Free Software Foundation, Inc.
+   Copyright (C) 2005-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -585,11 +585,11 @@ _GL_WARN_ON_USE (fstatat, "fstatat is not portable - "
 #   undef futimens
 #   define futimens rpl_futimens
 #  endif
-_GL_FUNCDECL_RPL (futimens, int, (int fd, struct timespec const times[2]));
+_GL_FUNCDECL_RPL (futimens, int, (int fd, struct timespec const times[2]), );
 _GL_CXXALIAS_RPL (futimens, int, (int fd, struct timespec const times[2]));
 # else
 #  if !@HAVE_FUTIMENS@
-_GL_FUNCDECL_SYS (futimens, int, (int fd, struct timespec const times[2]));
+_GL_FUNCDECL_SYS (futimens, int, (int fd, struct timespec const times[2]), );
 #  endif
 _GL_CXXALIAS_SYS (futimens, int, (int fd, struct timespec const times[2]));
 # endif
@@ -608,9 +608,9 @@ _GL_WARN_ON_USE (futimens, "futimens is not portable - "
 #if @GNULIB_GETUMASK@
 # if !@HAVE_GETUMASK@
 #  if __GLIBC__ + (__GLIBC_MINOR__ >= 2) > 2
-_GL_FUNCDECL_SYS (getumask, mode_t, (void)) _GL_ATTRIBUTE_NOTHROW;
+_GL_FUNCDECL_SYS (getumask, mode_t, (void), ) _GL_ATTRIBUTE_NOTHROW;
 #  else
-_GL_FUNCDECL_SYS (getumask, mode_t, (void));
+_GL_FUNCDECL_SYS (getumask, mode_t, (void), );
 #  endif
 # endif
 _GL_CXXALIAS_SYS (getumask, mode_t, (void));
@@ -790,8 +790,7 @@ _GL_CXXALIAS_RPL (mknod, int, (char const *file, mode_t mode, dev_t dev));
 _GL_FUNCDECL_SYS (mknod, int, (char const *file, mode_t mode, dev_t dev),
                               _GL_ARG_NONNULL ((1)));
 #  endif
-/* Need to cast, because on OSF/1 5.1, the third parameter is '...'.  */
-_GL_CXXALIAS_SYS_CAST (mknod, int, (char const *file, mode_t mode, dev_t dev));
+_GL_CXXALIAS_SYS (mknod, int, (char const *file, mode_t mode, dev_t dev));
 # endif
 _GL_CXXALIASWARN (mknod);
 #elif defined GNULIB_POSIXCHECK
@@ -849,7 +848,11 @@ _GL_WARN_ON_USE (mknodat, "mknodat is not portable - "
 #   elif @WINDOWS_64_BIT_ST_SIZE@
      /* Above, we define stat to _stati64.  */
 #    if defined __MINGW32__ && defined _stati64
-#     ifndef _USE_32BIT_TIME_T
+#     ifdef _USE_32BIT_TIME_T
+       /* The system headers possibly define _stati64 to _stat32i64.  */
+#      undef _stat32i64
+#      define _stat32i64(name, st) rpl_stat (name, st)
+#     else
        /* The system headers define _stati64 to _stat64.  */
 #      undef _stat64
 #      define _stat64(name, st) rpl_stat (name, st)

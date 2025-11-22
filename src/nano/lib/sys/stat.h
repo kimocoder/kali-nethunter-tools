@@ -1,6 +1,6 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* Provide a more complete sys/stat.h header file.
-   Copyright (C) 2005-2024 Free Software Foundation, Inc.
+   Copyright (C) 2005-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -87,7 +87,7 @@
 
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
 /* C++ compatible function declaration macros.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -192,10 +192,15 @@
 # define _GL_EXTERN_C_FUNC
 #endif
 
-/* _GL_FUNCDECL_RPL (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_RPL (func, rettype, parameters, [attributes]);
    declares a replacement function, named rpl_func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_RPL (free, void, (void *ptr), ) _GL_ATTRIBUTE_NOTHROW;
      _GL_FUNCDECL_RPL (open, int, (const char *filename, int flags, ...),
                                   _GL_ARG_NONNULL ((1)));
 
@@ -204,24 +209,22 @@
    because
      [[...]] extern "C" <declaration>;
    is invalid syntax in C++.)
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_RPL invocation, at the end of the declaration.
  */
 #define _GL_FUNCDECL_RPL(func,rettype,parameters,...) \
   _GL_FUNCDECL_RPL_1 (rpl_##func, rettype, parameters, __VA_ARGS__)
 #define _GL_FUNCDECL_RPL_1(rpl_func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype rpl_func parameters
 
-/* _GL_FUNCDECL_SYS (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_SYS (func, rettype, parameters, [attributes]);
    declares the system function, named func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
-     _GL_FUNCDECL_SYS (open, int, (const char *filename, int flags, ...),
-                                  _GL_ARG_NONNULL ((1)));
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_SYS invocation, at the end of the declaration.
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_SYS (getumask, mode_t, (void), ) _GL_ATTRIBUTE_NOTHROW;
+     _GL_FUNCDECL_SYS (posix_openpt, int, (int flags), _GL_ATTRIBUTE_NODISCARD);
  */
 #define _GL_FUNCDECL_SYS(func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype func parameters
@@ -395,7 +398,7 @@
    _GL_CXXALIASWARN_1 (func, GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN_1(func,namespace) \
    _GL_CXXALIASWARN_2 (func, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN_2(func,namespace) \
@@ -423,7 +426,7 @@
                         GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN1_1(func,rettype,parameters_and_attributes,namespace) \
    _GL_CXXALIASWARN1_2 (func, rettype, parameters_and_attributes, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN1_2(func,rettype,parameters_and_attributes,namespace) \
@@ -443,7 +446,7 @@
 
 /* The definition of _GL_ARG_NONNULL is copied here.  */
 /* A C macro for declaring that specific arguments must not be NULL.
-   Copyright (C) 2009-2024 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -471,7 +474,7 @@
 
 /* The definition of _GL_WARN_ON_USE is copied here.  */
 /* A C macro for emitting warnings if a function is used.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -1119,11 +1122,11 @@ _GL_WARN_ON_USE (fstatat, "fstatat is not portable - "
 #   undef futimens
 #   define futimens rpl_futimens
 #  endif
-_GL_FUNCDECL_RPL (futimens, int, (int fd, struct timespec const times[2]));
+_GL_FUNCDECL_RPL (futimens, int, (int fd, struct timespec const times[2]), );
 _GL_CXXALIAS_RPL (futimens, int, (int fd, struct timespec const times[2]));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (futimens, int, (int fd, struct timespec const times[2]));
+_GL_FUNCDECL_SYS (futimens, int, (int fd, struct timespec const times[2]), );
 #  endif
 _GL_CXXALIAS_SYS (futimens, int, (int fd, struct timespec const times[2]));
 # endif
@@ -1142,9 +1145,9 @@ _GL_WARN_ON_USE (futimens, "futimens is not portable - "
 #if 0
 # if !1
 #  if __GLIBC__ + (__GLIBC_MINOR__ >= 2) > 2
-_GL_FUNCDECL_SYS (getumask, mode_t, (void)) _GL_ATTRIBUTE_NOTHROW;
+_GL_FUNCDECL_SYS (getumask, mode_t, (void), ) _GL_ATTRIBUTE_NOTHROW;
 #  else
-_GL_FUNCDECL_SYS (getumask, mode_t, (void));
+_GL_FUNCDECL_SYS (getumask, mode_t, (void), );
 #  endif
 # endif
 _GL_CXXALIAS_SYS (getumask, mode_t, (void));
@@ -1324,8 +1327,7 @@ _GL_CXXALIAS_RPL (mknod, int, (char const *file, mode_t mode, dev_t dev));
 _GL_FUNCDECL_SYS (mknod, int, (char const *file, mode_t mode, dev_t dev),
                               _GL_ARG_NONNULL ((1)));
 #  endif
-/* Need to cast, because on OSF/1 5.1, the third parameter is '...'.  */
-_GL_CXXALIAS_SYS_CAST (mknod, int, (char const *file, mode_t mode, dev_t dev));
+_GL_CXXALIAS_SYS (mknod, int, (char const *file, mode_t mode, dev_t dev));
 # endif
 _GL_CXXALIASWARN (mknod);
 #elif defined GNULIB_POSIXCHECK
@@ -1383,7 +1385,11 @@ _GL_WARN_ON_USE (mknodat, "mknodat is not portable - "
 #   elif 0
      /* Above, we define stat to _stati64.  */
 #    if defined __MINGW32__ && defined _stati64
-#     ifndef _USE_32BIT_TIME_T
+#     ifdef _USE_32BIT_TIME_T
+       /* The system headers possibly define _stati64 to _stat32i64.  */
+#      undef _stat32i64
+#      define _stat32i64(name, st) rpl_stat (name, st)
+#     else
        /* The system headers define _stati64 to _stat64.  */
 #      undef _stat64
 #      define _stat64(name, st) rpl_stat (name, st)

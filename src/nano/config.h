@@ -1,6 +1,12 @@
 /* config.h.  Generated from config.h.in by configure.  */
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+#if defined __GNUC__ && __GNUC__ >= 15 && !defined __clang__
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wtrailing-whitespace"
+#endif
+
+
 /* Witness that <config.h> has been included.  */
 #define _GL_CONFIG_H_INCLUDED 1
 
@@ -12,19 +18,19 @@
 /* #undef AVOID_ANY_THREADS */
 
 /* Define to the number of bits in type 'ptrdiff_t'. */
-#define BITSIZEOF_PTRDIFF_T 64
+/* #undef BITSIZEOF_PTRDIFF_T */
 
 /* Define to the number of bits in type 'sig_atomic_t'. */
-#define BITSIZEOF_SIG_ATOMIC_T 32
+/* #undef BITSIZEOF_SIG_ATOMIC_T */
 
 /* Define to the number of bits in type 'size_t'. */
-#define BITSIZEOF_SIZE_T 64
+/* #undef BITSIZEOF_SIZE_T */
 
 /* Define to the number of bits in type 'wchar_t'. */
 #define BITSIZEOF_WCHAR_T 32
 
 /* Define to the number of bits in type 'wint_t'. */
-#define BITSIZEOF_WINT_T 32
+/* #undef BITSIZEOF_WINT_T */
 
 /* Define if you wish *printf() functions that have a safe handling of
    non-IEEE-754 'long double' values. */
@@ -35,10 +41,10 @@
 
 /* Define as the bit index in the word where to find bit 0 of the exponent of
    'double'. */
-#define DBL_EXPBIT0_BIT 20
+/* #undef DBL_EXPBIT0_BIT */
 
 /* Define as the word index where to find the exponent of 'double'. */
-#define DBL_EXPBIT0_WORD 1
+/* #undef DBL_EXPBIT0_WORD */
 
 /* Define as the bit index in the word where to find the sign of 'double'. */
 /* #undef DBL_SIGNBIT_BIT */
@@ -150,9 +156,6 @@
    dot component. */
 #define FUNC_MKDIR_DOT_BUG 1
 
-/* Define to 1 if nl_langinfo (YESEXPR) returns a non-empty string. */
-/* #undef FUNC_NL_LANGINFO_YESEXPR_WORKS */
-
 /* Define to 1 if realpath() can malloc memory, always gives an absolute path,
    and handles a trailing slash correctly. */
 /* #undef FUNC_REALPATH_NEARLY_WORKS */
@@ -177,10 +180,6 @@
 #define GNULIB_CLOSE 1
 
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
-   whether the gnulib module fd-safer-flag shall be considered present. */
-#define GNULIB_FD_SAFER_FLAG 1
-
-/* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module fscanf shall be considered present. */
 #define GNULIB_FSCANF 1
 
@@ -197,8 +196,16 @@
 #define GNULIB_ISBLANK 1
 
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
+   whether the gnulib module issymlink shall be considered present. */
+#define GNULIB_ISSYMLINK 1
+
+/* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module localeconv shall be considered present. */
 #define GNULIB_LOCALECONV 1
+
+/* Define to the directory where to find the localizations of the translation
+   domain 'gnulib', as a C string. */
+#define GNULIB_LOCALEDIR "/home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/nano/share/locale"
 
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module lock shall be considered present. */
@@ -288,6 +295,9 @@
 
 /* Define to 1 when the gnulib module c32tolower should be tested. */
 #define GNULIB_TEST_C32TOLOWER 1
+
+/* Define to 1 when the gnulib module c32width should be tested. */
+#define GNULIB_TEST_C32WIDTH 1
 
 /* Define to 1 when the gnulib module c32_apply_type_test should be tested. */
 #define GNULIB_TEST_C32_APPLY_TYPE_TEST 1
@@ -425,6 +435,9 @@
 /* Define to 1 when the gnulib module lstat should be tested. */
 #define GNULIB_TEST_LSTAT 1
 
+/* Define to 1 when the gnulib module malloc-gnu should be tested. */
+#define GNULIB_TEST_MALLOC_GNU 1
+
 /* Define to 1 when the gnulib module malloc-posix should be tested. */
 #define GNULIB_TEST_MALLOC_POSIX 1
 
@@ -436,6 +449,9 @@
 
 /* Define to 1 when the gnulib module mbsinit should be tested. */
 #define GNULIB_TEST_MBSINIT 1
+
+/* Define to 1 when the gnulib module mbsnlen should be tested. */
+#define GNULIB_TEST_MBSNLEN 1
 
 /* Define to 1 when the gnulib module mbsrtoc32s should be tested. */
 #define GNULIB_TEST_MBSRTOC32S 1
@@ -475,9 +491,6 @@
 
 /* Define to 1 when the gnulib module opendir should be tested. */
 #define GNULIB_TEST_OPENDIR 1
-
-/* Define to 1 when the gnulib module pipe should be tested. */
-#define GNULIB_TEST_PIPE 1
 
 /* Define to 1 when the gnulib module printf should be tested. */
 #define GNULIB_TEST_PRINTF 1
@@ -541,6 +554,9 @@
 
 /* Define to 1 when the gnulib module strerror should be tested. */
 #define GNULIB_TEST_STRERROR 1
+
+/* Define to 1 when the gnulib module stringeq should be tested. */
+#define GNULIB_TEST_STRINGEQ 1
 
 /* Define to 1 when the gnulib module strnlen should be tested. */
 #define GNULIB_TEST_STRNLEN 1
@@ -747,6 +763,10 @@
    don't. */
 /* #undef HAVE_DECL_MBSRTOWCS */
 
+/* Define to 1 if you have the declaration of `memeq', and to 0 if you don't.
+   */
+#define HAVE_DECL_MEMEQ 0
+
 /* Define to 1 if you have the declaration of `memrchr', and to 0 if you
    don't. */
 #define HAVE_DECL_MEMRCHR 1
@@ -770,6 +790,10 @@
 /* Define to 1 if you have the declaration of `strdup', and to 0 if you don't.
    */
 #define HAVE_DECL_STRDUP 1
+
+/* Define to 1 if you have the declaration of `streq', and to 0 if you don't.
+   */
+#define HAVE_DECL_STREQ 0
 
 /* Define to 1 if you have the declaration of `strerror_r', and to 0 if you
    don't. */
@@ -989,7 +1013,7 @@
 #define HAVE_LANGINFO_H 1
 
 /* Define if the ldexpl function is available in libc. */
-/* #undef HAVE_LDEXPL_IN_LIBC */
+#define HAVE_LDEXPL_IN_LIBC 1
 
 /* Define if the ldexp function is available in libc. */
 #define HAVE_LDEXP_IN_LIBC 1
@@ -1015,11 +1039,17 @@
 /* Define to 1 if you have the `lstat' function. */
 #define HAVE_LSTAT 1
 
+/* Define to 1 if you have the `lutimens' function. */
+/* #undef HAVE_LUTIMENS */
+
 /* Define to 1 if you have the `lutimes' function. */
 /* #undef HAVE_LUTIMES */
 
 /* Define to 1 if you have the <magic.h> header file. */
 /* #undef HAVE_MAGIC_H */
+
+/* Define to 1 if malloc (0) returns nonnull. */
+/* #undef HAVE_MALLOC_0_NONNULL */
 
 /* Define to 1 if you have the <malloc.h> header file. */
 #define HAVE_MALLOC_H 1
@@ -1027,9 +1057,9 @@
 /* Define if malloc, realloc, and calloc set errno on allocation failure. */
 #define HAVE_MALLOC_POSIX 1
 
-/* Define to 1 if mmap()'s MAP_ANONYMOUS flag is available after including
-   config.h and <sys/mman.h>. */
-#define HAVE_MAP_ANONYMOUS 1
+/* Define to 1 if malloc-like functions do not allocate objects larger than
+   PTRDIFF_MAX bytes. */
+/* #undef HAVE_MALLOC_PTRDIFF */
 
 /* Define to 1 if you have the <math.h> header file. */
 #define HAVE_MATH_H 1
@@ -1129,11 +1159,14 @@
 /* Define to 1 if you have the `readlink' function. */
 #define HAVE_READLINK 1
 
+/* Define to 1 if realloc (..., 0) returns nonnull. */
+/* #undef HAVE_REALLOC_0_NONNULL */
+
 /* Define to 1 if you have the `realpath' function. */
 #define HAVE_REALPATH 1
 
 /* Define to 1 if 'long double' and 'double' have the same representation. */
-/* #undef HAVE_SAME_LONG_DOUBLE_AS_DOUBLE */
+#define HAVE_SAME_LONG_DOUBLE_AS_DOUBLE 1
 
 /* Define to 1 if you have the <sched.h> header file. */
 #define HAVE_SCHED_H 1
@@ -1160,7 +1193,7 @@
 #define HAVE_SIGINTERRUPT 1
 
 /* Define to 1 if 'sig_atomic_t' is a signed integer type. */
-#define HAVE_SIGNED_SIG_ATOMIC_T 1
+/* #undef HAVE_SIGNED_SIG_ATOMIC_T */
 
 /* Define to 1 if 'wchar_t' is a signed integer type. */
 /* #undef HAVE_SIGNED_WCHAR_T */
@@ -1324,6 +1357,9 @@
 /* Define to 1 if you have the `utime' function. */
 #define HAVE_UTIME 1
 
+/* Define to 1 if you have the `utimens' function. */
+/* #undef HAVE_UTIMENS */
+
 /* Define to 1 if you have the `utimensat' function. */
 #define HAVE_UTIMENSAT 1
 
@@ -1335,6 +1371,9 @@
 
 /* Define to 1 if you have the `vasnprintf' function. */
 /* #undef HAVE_VASNPRINTF */
+
+/* Define to 1 if you have the `vasprintf' function. */
+#define HAVE_VASPRINTF 1
 
 /* Define to 1 or 0, depending whether the compiler supports simple visibility
    declarations. */
@@ -1371,6 +1410,9 @@
    symbols. */
 /* #undef HAVE_WEAK_SYMBOLS */
 
+/* Define to 1 if <locale.h> defines the _locale_t type. */
+/* #undef HAVE_WINDOWS_LOCALE_T */
+
 /* Define to 1 if you have the <winsock2.h> header file. */
 /* #undef HAVE_WINSOCK2_H */
 
@@ -1390,10 +1432,13 @@
 /* Define if the mbrtoc32 function basically works. */
 #define HAVE_WORKING_MBRTOC32 1
 
-/* Define to 1 if O_NOATIME works. */
+/* Define to 1 if O_DIRECTORY works, 0 otherwise. */
+#define HAVE_WORKING_O_DIRECTORY 0
+
+/* Define to 1 if O_NOATIME works, 0 otherwise. */
 #define HAVE_WORKING_O_NOATIME 0
 
-/* Define to 1 if O_NOFOLLOW works. */
+/* Define to 1 if O_NOFOLLOW works, 0 otherwise. */
 #define HAVE_WORKING_O_NOFOLLOW 0
 
 /* Define if utimes works properly. */
@@ -1416,7 +1461,10 @@
 #elif HAVE___BUILTIN_EXPECT == 2
 # include <builtins.h>
 #endif
-    
+
+
+/* Define to 1 if you have the `__fseterr' function. */
+/* #undef HAVE___FSETERR */
 
 /* Define to 1 if ctype.h defines __header_inline. */
 /* #undef HAVE___HEADER_INLINE */
@@ -1438,9 +1486,11 @@
    functions or macros in standard C headers like <ctype.h>.  For example,
    if isdigit is mistakenly implemented via a static inline function,
    a program containing an extern inline function that calls isdigit
-   may not work since the C standard prohibits extern inline functions
-   from calling static functions (ISO C 99 section 6.7.4.(3).
-   This bug is known to occur on:
+   may not work since C99 through C23 prohibit extern inline functions
+   from calling static functions (ISO C 23 section 6.7.5.(2)).
+   Although a future C standard will likely relax this restriction
+   <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3622.txt>,
+   respect it for now.  This bug is known to occur on:
 
      OS X 10.8 and earlier; see:
      https://lists.gnu.org/r/bug-gnulib/2012-12/msg00023.html
@@ -1507,8 +1557,8 @@
    suppress bogus "no previous prototype for 'FOO'"
    and "no previous declaration for 'FOO'" diagnostics,
    when FOO is an inline function in the header; see
-   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=54113> and
-   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63877>.  */
+   <https://gcc.gnu.org/PR54113> and
+   <https://gcc.gnu.org/PR63877>.  */
 #if __GNUC__ == 4 && 6 <= __GNUC_MINOR__
 # if defined __GNUC_STDC_INLINE__ && __GNUC_STDC_INLINE__
 #  define _GL_INLINE_HEADER_CONST_PRAGMA
@@ -1549,9 +1599,6 @@
    slash. */
 #define LSTAT_FOLLOWS_SLASHED_SYMLINK 1
 
-/* If malloc(0) is != NULL, define this to 1. Otherwise define this to 0. */
-#define MALLOC_0_IS_NONNULL 0
-
 /* Define to a substitute value for mmap()'s MAP_ANONYMOUS flag. */
 /* #undef MAP_ANONYMOUS */
 
@@ -1577,9 +1624,6 @@
 
 /* Define if the mbrtowc function has the NULL pwc argument bug. */
 /* #undef MBRTOWC_NULL_ARG1_BUG */
-
-/* Define if the mbrtowc function has the NULL string argument bug. */
-/* #undef MBRTOWC_NULL_ARG2_BUG */
 
 /* Define if the mbrtowc function does not return 0 for a NUL character. */
 /* #undef MBRTOWC_NUL_RETVAL_BUG */
@@ -1645,6 +1689,10 @@
    */
 #define NEED_PRINTF_FLAG_GROUPING 1
 
+/* Define if the vasnprintf implementation needs special code for the ' flag,
+   for integer directives only. */
+/* #undef NEED_PRINTF_FLAG_GROUPING_INT */
+
 /* Define if the vasnprintf implementation needs special code for the '-'
    flag. */
 /* #undef NEED_PRINTF_FLAG_LEFTADJUST */
@@ -1669,6 +1717,9 @@
    large precisions without arbitrary bounds. */
 /* #undef NEED_PRINTF_UNBOUNDED_PRECISION */
 
+/* Define to 1 if realloc should abort upon undefined behaviour. */
+/* #undef NEED_SANITIZED_REALLOC */
+
 /* Define this if you need the _XOPEN_SOURCE_EXTENDED macro for color support.
    */
 /* #undef NEED_XOPEN_SOURCE_EXTENDED */
@@ -1689,7 +1740,7 @@
 #define PACKAGE_NAME "GNU nano"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "GNU nano 8.2"
+#define PACKAGE_STRING "GNU nano 8.7"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "nano"
@@ -1698,21 +1749,21 @@
 #define PACKAGE_URL "https://www.gnu.org/software/nano/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "8.2"
+#define PACKAGE_VERSION "8.7"
 
 /* Where data are placed to. */
-#define PKGDATADIR "/home/kimocoder/kali-nethunter-tools/out/aarch64-linux-android/nano/share/nano"
+#define PKGDATADIR "/home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/nano/share/nano"
 
 /* Define to the type that is the result of default argument promotions of
    type mode_t. */
-#define PROMOTED_MODE_T mode_t
+#define PROMOTED_MODE_T int
 
 /* Define if the pthread_in_use() detection is hard. */
 /* #undef PTHREAD_IN_USE_DETECTION_HARD */
 
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'ptrdiff_t'. */
-#define PTRDIFF_T_SUFFIX l
+/* #undef PTRDIFF_T_SUFFIX */
 
 /* Specify an alternate rcfile name (default: .nanorc). */
 /* #undef RCFILE_NAME */
@@ -1756,7 +1807,7 @@
 
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'sig_atomic_t'. */
-#define SIG_ATOMIC_T_SUFFIX 
+/* #undef SIG_ATOMIC_T_SUFFIX */
 
 /* Define as the maximum value of type 'size_t', if the system doesn't define
    it. */
@@ -1766,7 +1817,7 @@
 
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'size_t'. */
-#define SIZE_T_SUFFIX ul
+/* #undef SIZE_T_SUFFIX */
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
@@ -1912,11 +1963,11 @@
 /* #undef USE_WINDOWS_THREADS */
 
 /* Version number of package */
-#define VERSION "8.2"
+#define VERSION "8.7"
 
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'wchar_t'. */
-#define WCHAR_T_SUFFIX u
+/* #undef WCHAR_T_SUFFIX */
 
 /* Define if the wcrtomb function does not work in the C locale. */
 #define WCRTOMB_C_LOCALE_BUG 1
@@ -1926,7 +1977,7 @@
 
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'wint_t'. */
-#define WINT_T_SUFFIX u
+/* #undef WINT_T_SUFFIX */
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
@@ -1941,7 +1992,7 @@
 #endif
 
 /* Number of bits in a file offset, on hosts where this is settable. */
-/* #undef _FILE_OFFSET_BITS */
+#define _FILE_OFFSET_BITS 64
 
 /* True if the compiler says it groks GNU C version MAJOR.MINOR.
     Except that
@@ -1976,33 +2027,25 @@
 /* Define so that AIX headers are more compatible with GNU/Linux. */
 #define _LINUX_SOURCE_COMPAT 1
 
-/* The _Noreturn keyword of C11.  */
+/* The _Noreturn keyword of C11.
+   Do not use [[noreturn]], because with it the syntax
+     extern _Noreturn void func (...);
+   would not be valid; such a declaration would be valid only with 'extern'
+   and '_Noreturn' swapped, or without the 'extern' keyword.  However, some
+   AIX system header files and several gnulib header files use precisely
+   this syntax with 'extern'.  So even though C23 deprecates _Noreturn,
+   it is currently more portable to prefer it to [[noreturn]].
+
+   Also, do not try to work around LLVM bug 59792 (clang 15 or earlier).
+   This rare bug can be worked around by compiling with 'clang -D_Noreturn=',
+   though the workaround may generate many false-alarm warnings.  */
 #ifndef _Noreturn
-# if (defined __cplusplus \
-      && ((201103 <= __cplusplus && !(__GNUC__ == 4 && __GNUC_MINOR__ == 7)) \
-          || (defined _MSC_VER && 1900 <= _MSC_VER)) \
-      && 0)
-    /* [[noreturn]] is not practically usable, because with it the syntax
-         extern _Noreturn void func (...);
-       would not be valid; such a declaration would only be valid with 'extern'
-       and '_Noreturn' swapped, or without the 'extern' keyword.  However, some
-       AIX system header files and several gnulib header files use precisely
-       this syntax with 'extern'.  */
-#  define _Noreturn [[noreturn]]
-# elif (defined __clang__ && __clang_major__ < 16 \
-        && defined _GL_WORK_AROUND_LLVM_BUG_59792)
-   /* Compile with -D_GL_WORK_AROUND_LLVM_BUG_59792 to work around
-      that rare LLVM bug, though you may get many false-alarm warnings.  */
-#  define _Noreturn
-# elif ((!defined __cplusplus || defined __clang__) \
-        && (201112 <= (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) \
-            || (!defined __STRICT_ANSI__ \
-                && (_GL_GNUC_PREREQ (4, 7) \
-                    || (defined __apple_build_version__ \
-                        ? 6000000 <= __apple_build_version__ \
-                        : 3 < __clang_major__ + (5 <= __clang_minor__))))))
+# if ((!defined __cplusplus || defined __clang__) \
+      && (201112 <= (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0)))
    /* _Noreturn works as-is.  */
 # elif _GL_GNUC_PREREQ (2, 8) || defined __clang__ || 0x5110 <= __SUNPRO_C
+   /* Prefer __attribute__ ((__noreturn__)) to plain _Noreturn even if the
+      latter works, as 'gcc -std=gnu99 -Wpedantic' warns about _Noreturn.  */
 #  define _Noreturn __attribute__ ((__noreturn__))
 # elif 1200 <= (defined _MSC_VER ? _MSC_VER : 0)
 #  define _Noreturn __declspec (noreturn)
@@ -2083,6 +2126,9 @@
 #  define _GL_HAS_ATTRIBUTE(attr) __has_attribute (__##attr##__)
 # else
 #  define _GL_HAS_ATTRIBUTE(attr) _GL_ATTR_##attr
+/* The following lines list the first GCC version that supports the attribute.
+   Although the lines are not used in GCC 5 and later (as GCC 5 introduced
+   __has_attribute support), list GCC versions 5+ anyway for completeness.  */
 #  define _GL_ATTR_alloc_size _GL_GNUC_PREREQ (4, 3)
 #  define _GL_ATTR_always_inline _GL_GNUC_PREREQ (3, 2)
 #  define _GL_ATTR_artificial _GL_GNUC_PREREQ (4, 3)
@@ -2103,14 +2149,15 @@
 #  endif
 #  define _GL_ATTR_noinline _GL_GNUC_PREREQ (3, 1)
 #  define _GL_ATTR_nonnull _GL_GNUC_PREREQ (3, 3)
+#  define _GL_ATTR_nonnull_if_nonzero _GL_GNUC_PREREQ (15, 1)
 #  define _GL_ATTR_nonstring _GL_GNUC_PREREQ (8, 0)
 #  define _GL_ATTR_nothrow _GL_GNUC_PREREQ (3, 3)
 #  define _GL_ATTR_packed _GL_GNUC_PREREQ (2, 7)
 #  define _GL_ATTR_pure _GL_GNUC_PREREQ (2, 96)
-#  define _GL_ATTR_reproducible 0 /* not yet supported, as of GCC 14 */
+#  define _GL_ATTR_reproducible _GL_GNUC_PREREQ (15, 1)
 #  define _GL_ATTR_returns_nonnull _GL_GNUC_PREREQ (4, 9)
 #  define _GL_ATTR_sentinel _GL_GNUC_PREREQ (4, 0)
-#  define _GL_ATTR_unsequenced 0 /* not yet supported, as of GCC 14 */
+#  define _GL_ATTR_unsequenced _GL_GNUC_PREREQ (15, 1)
 #  define _GL_ATTR_unused _GL_GNUC_PREREQ (2, 7)
 #  define _GL_ATTR_warn_unused_result _GL_GNUC_PREREQ (3, 4)
 # endif
@@ -2138,7 +2185,7 @@
       ======================================================================
       This gives a syntax error
         - in C mode with gcc
-          <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=108796>, and
+          <https://gcc.gnu.org/PR108796>, and
         - in C++ mode with clang++ version < 16, and
         - in C++ mode, inside extern "C" {}, still in newer clang++ versions
           <https://github.com/llvm/llvm-project/issues/101990>.
@@ -2420,7 +2467,7 @@
    yet.  */
 #ifndef _GL_ATTRIBUTE_DEALLOC_FREE
 # if defined __cplusplus && defined __GNUC__ && !defined __clang__
-/* Work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=108231> */
+/* Work around GCC bug <https://gcc.gnu.org/PR108231> */
 #  define _GL_ATTRIBUTE_DEALLOC_FREE \
      _GL_ATTRIBUTE_DEALLOC ((void (*) (void *)) free, 1)
 # else
@@ -2646,6 +2693,17 @@
 # endif
 #endif
 
+/* _GL_ATTRIBUTE_NONNULL_IF_NONZERO (NP, NI) declares that the argument NP
+   (a pointer) must not be NULL if the argument NI (an integer) is != 0.  */
+/* Applies to: functions.  */
+#ifndef _GL_ATTRIBUTE_NONNULL_IF_NONZERO
+# if _GL_HAS_ATTRIBUTE (nonnull_if_nonzero)
+#  define _GL_ATTRIBUTE_NONNULL_IF_NONZERO(np, ni) __attribute__ ((__nonnull_if_nonzero__ (np, ni)))
+# else
+#  define _GL_ATTRIBUTE_NONNULL_IF_NONZERO(np, ni)
+# endif
+#endif
+
 /* _GL_ATTRIBUTE_NONSTRING declares that the contents of a character array is
    not meant to be NUL-terminated.  */
 /* Applies to: struct/union members and variables that are arrays of element
@@ -2732,7 +2790,9 @@
    than _GL_ATTRIBUTE_PURE because the function need not return
    exactly once and can affect state addressed by its arguments.)
    See also <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2956.htm> and
-   <https://stackoverflow.com/questions/76847905/>.  */
+   <https://stackoverflow.com/questions/76847905/>.
+   ATTENTION! Efforts are underway to change the meaning of this attribute.
+   See <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3424.htm>.  */
 /* Applies to: functions, pointer to functions, function types.  */
 #ifndef _GL_ATTRIBUTE_REPRODUCIBLE
 /* This may be revisited when gcc and clang support [[reproducible]] or possibly
@@ -2783,7 +2843,9 @@
    _GL_ATTRIBUTE_CONST because the function need not return exactly
    once and can depend on state addressed by its arguments.)
    See also <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2956.htm> and
-   <https://stackoverflow.com/questions/76847905/>.  */
+   <https://stackoverflow.com/questions/76847905/>.
+   ATTENTION! Efforts are underway to change the meaning of this attribute.
+   See <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3424.htm>.  */
 /* Applies to: functions, pointer to functions, function types.  */
 #ifndef _GL_ATTRIBUTE_UNSEQUENCED
 /* This may be revisited when gcc and clang support [[unsequenced]] or possibly
@@ -2819,6 +2881,35 @@
 #  define _GL_UNUSED_LABEL _GL_ATTRIBUTE_UNUSED
 # else
 #  define _GL_UNUSED_LABEL
+# endif
+#endif
+
+/* The following attributes enable detection of multithread-safety problems
+   and resource leaks at compile-time, by clang ≥ 15, when the warning option
+   -Wthread-safety is enabled.  For usage, see
+   <https://clang.llvm.org/docs/ThreadSafetyAnalysis.html>.  */
+#ifndef _GL_ATTRIBUTE_CAPABILITY_TYPE
+# if __clang_major__ >= 15
+#  define _GL_ATTRIBUTE_CAPABILITY_TYPE(concept) \
+     __attribute__ ((__capability__ (concept)))
+# else
+#  define _GL_ATTRIBUTE_CAPABILITY_TYPE(concept)
+# endif
+#endif
+#ifndef _GL_ATTRIBUTE_ACQUIRE_CAPABILITY
+# if __clang_major__ >= 15
+#  define _GL_ATTRIBUTE_ACQUIRE_CAPABILITY(resource) \
+     __attribute__ ((__acquire_capability__ (resource)))
+# else
+#  define _GL_ATTRIBUTE_ACQUIRE_CAPABILITY(resource)
+# endif
+#endif
+#ifndef _GL_ATTRIBUTE_RELEASE_CAPABILITY
+# if __clang_major__ >= 15
+#  define _GL_ATTRIBUTE_RELEASE_CAPABILITY(resource) \
+     __attribute__ ((__release_capability__ (resource)))
+# else
+#  define _GL_ATTRIBUTE_RELEASE_CAPABILITY(resource)
 # endif
 #endif
 
@@ -2872,8 +2963,8 @@
      -1 if n1 < n2
    The naïve code   (n1 > n2 ? 1 : n1 < n2 ? -1 : 0)  produces a conditional
    jump with nearly all GCC versions up to GCC 10.
-   This variant     (n1 < n2 ? -1 : n1 > n2)  produces a conditional with many
-   GCC versions up to GCC 9.
+   This variant     (n1 < n2 ? -1 : n1 > n2)  produces a conditional jump with
+   many GCC versions up to GCC 9.
    The better code  (n1 > n2) - (n1 < n2)  from Hacker's Delight § 2-9
    avoids conditional jumps in all GCC versions >= 3.4.  */
 #define _GL_CMP(n1, n2) (((n1) > (n2)) - ((n1) < (n2)))
@@ -2962,25 +3053,31 @@
 /* #undef uid_t */
 
 
-  /* This definition is a duplicate of the one in unitypes.h.
-     It is here so that we can cope with an older version of unitypes.h
-     that does not contain this definition and that is pre-installed among
-     the public header files.  */
-  # if defined __restrict \
-       || 2 < __GNUC__ + (95 <= __GNUC_MINOR__) \
-       || __clang_major__ >= 3
-  #  define _UC_RESTRICT __restrict
-  # elif 199901L <= __STDC_VERSION__ || defined restrict
-  #  define _UC_RESTRICT restrict
-  # else
-  #  define _UC_RESTRICT
-  # endif
-  
+/* This definition is a duplicate of the one in unitypes.h.
+   It is here so that we can cope with an older version of unitypes.h
+   that does not contain this definition and that is pre-installed among
+   the public header files.  */
+# if defined __restrict \
+     || 2 < __GNUC__ + (95 <= __GNUC_MINOR__) \
+     || __clang_major__ >= 3
+#  define _UC_RESTRICT __restrict
+# elif 199901L <= __STDC_VERSION__ || defined restrict
+#  define _UC_RESTRICT restrict
+# else
+#  define _UC_RESTRICT
+# endif
+
 
 /* Define as a macro for copying va_list variables. */
 /* #undef va_copy */
 
-#ifndef HAVE_C_BOOL
+#if !(defined __cplusplus \
+      ? 1 \
+      : (defined __clang__ \
+         ? __STDC_VERSION__ >= 202000L && __clang_major__ >= 15 \
+         : (defined __GNUC__ \
+            ? __STDC_VERSION__ >= 202000L && __GNUC__ >= 13 \
+            : defined HAVE_C_BOOL)))
 # if !defined __cplusplus && !defined __bool_true_false_are_defined
 #  if HAVE_STDBOOL_H
 #   include <stdbool.h>
@@ -2997,19 +3094,42 @@
 # endif
 #endif
 
-#if (!defined HAVE_C_STATIC_ASSERT && !defined assert \
+#if (!(defined __clang__ \
+       ? (defined __cplusplus \
+          ? __cplusplus >= 201703L \
+          : __STDC_VERSION__ >= 202000L && __clang_major__ >= 16 \
+            && !defined __sun) \
+       : (defined __GNUC__ \
+          ? (defined __cplusplus \
+             ? __cplusplus >= 201103L && __GNUG__ >= 6 \
+             : __STDC_VERSION__ >= 202000L && __GNUC__ >= 13 \
+               && !defined __sun) \
+          : defined HAVE_C_STATIC_ASSERT)) \
+     && !defined assert \
      && (!defined __cplusplus \
          || (__cpp_static_assert < 201411 \
              && __GNUG__ < 6 && __clang_major__ < 6)))
  #include <assert.h>
  #undef/**/assert
- #ifdef __sgi
-  #undef/**/__ASSERT_H__
- #endif
  /* Solaris 11.4 <assert.h> defines static_assert as a macro with 2 arguments.
-    We need it also to be invocable with a single argument.  */
- #if defined __sun && (__STDC_VERSION__ - 0 >= 201112L) && !defined __cplusplus
+    We need it also to be invocable with a single argument.
+    Haiku 2022 <assert.h> does not define static_assert at all.  */
+ #if (__STDC_VERSION__ - 0 >= 201112L) && !defined __cplusplus
   #undef/**/static_assert
   #define static_assert _Static_assert
  #endif
 #endif
+
+#if defined __GNUC__ && __GNUC__ >= 15 && !defined __clang__
+# pragma GCC diagnostic pop
+#endif
+
+
+
+/* The text domainname for Gnulib messages.  Ordinarily this is "gnulib",
+   but packages that do their own translations of Gnulib can use something
+   different by defining GNULIB_TEXT_DOMAIN in their config.h file.  */
+#ifndef GNULIB_TEXT_DOMAIN
+# define GNULIB_TEXT_DOMAIN/**/"gnulib"
+#endif
+

@@ -1,6 +1,6 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* <uchar.h> substitute - 16-bit and 32-bit wide character types.
-   Copyright (C) 2019-2024 Free Software Foundation, Inc.
+   Copyright (C) 2019-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -29,7 +29,7 @@
 
 
 /* The include_next requires a split double-inclusion guard.  */
-#if 1
+#if (defined __cplusplus ? 1 : 1)
 # if defined __HAIKU__
 /* Work around <https://dev.haiku-os.org/ticket/17040>.  */
 #  include <stdint.h>
@@ -76,7 +76,7 @@
 
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
 /* C++ compatible function declaration macros.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -181,10 +181,15 @@
 # define _GL_EXTERN_C_FUNC
 #endif
 
-/* _GL_FUNCDECL_RPL (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_RPL (func, rettype, parameters, [attributes]);
    declares a replacement function, named rpl_func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_RPL (free, void, (void *ptr), ) _GL_ATTRIBUTE_NOTHROW;
      _GL_FUNCDECL_RPL (open, int, (const char *filename, int flags, ...),
                                   _GL_ARG_NONNULL ((1)));
 
@@ -193,24 +198,22 @@
    because
      [[...]] extern "C" <declaration>;
    is invalid syntax in C++.)
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_RPL invocation, at the end of the declaration.
  */
 #define _GL_FUNCDECL_RPL(func,rettype,parameters,...) \
   _GL_FUNCDECL_RPL_1 (rpl_##func, rettype, parameters, __VA_ARGS__)
 #define _GL_FUNCDECL_RPL_1(rpl_func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype rpl_func parameters
 
-/* _GL_FUNCDECL_SYS (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_SYS (func, rettype, parameters, [attributes]);
    declares the system function, named func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
-     _GL_FUNCDECL_SYS (open, int, (const char *filename, int flags, ...),
-                                  _GL_ARG_NONNULL ((1)));
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_SYS invocation, at the end of the declaration.
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_SYS (getumask, mode_t, (void), ) _GL_ATTRIBUTE_NOTHROW;
+     _GL_FUNCDECL_SYS (posix_openpt, int, (int flags), _GL_ATTRIBUTE_NODISCARD);
  */
 #define _GL_FUNCDECL_SYS(func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype func parameters
@@ -384,7 +387,7 @@
    _GL_CXXALIASWARN_1 (func, GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN_1(func,namespace) \
    _GL_CXXALIASWARN_2 (func, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN_2(func,namespace) \
@@ -412,7 +415,7 @@
                         GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN1_1(func,rettype,parameters_and_attributes,namespace) \
    _GL_CXXALIASWARN1_2 (func, rettype, parameters_and_attributes, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN1_2(func,rettype,parameters_and_attributes,namespace) \
@@ -432,7 +435,7 @@
 
 /* The definition of _GL_ARG_NONNULL is copied here.  */
 /* A C macro for declaring that specific arguments must not be NULL.
-   Copyright (C) 2009-2024 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -460,7 +463,7 @@
 
 /* The definition of _GL_WARN_ON_USE is copied here.  */
 /* A C macro for emitting warnings if a function is used.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -617,7 +620,7 @@ _GL_WARN_EXTERN_C int _gl_warn_on_use
 _GL_INLINE_HEADER_BEGIN
 
 
-#if !(1 || (defined __cplusplus && 0))
+#if !(defined __cplusplus ? 1 || 0 : 1)
 
 /* An 8-bit variant of wchar_t.
    Note: This type is only mandated by ISO C 23 or newer, and it does
@@ -631,7 +634,7 @@ typedef unsigned char gl_char8_t;
 
 #endif
 
-#if !(1 || (defined __cplusplus && 0))
+#if !(defined __cplusplus ? 1 || 0 : 1)
 
 /* A 16-bit variant of wchar_t.
    Note: This type is only mandated by ISO C 11 or newer.  In ISO C 23
@@ -646,14 +649,14 @@ typedef uint_least16_t gl_char16_t;
 
 #endif
 
-#if !(1 || (defined __cplusplus && 0))
+#if !(defined __cplusplus ? 1 || 0 : 1)
 
 /* A 32-bit variant of wchar_t.
    Note: This type is only mandated by ISO C 11 or newer.  In ISO C 23
    and newer, it denotes UTF-32 code points; in older versions of ISO C
    it did so only on platforms on which __STDC_UTF_32__ was defined.
    In gnulib, we guarantee that it denotes UTF-32 code points if and
-   only if the module 'uchar-c23' is in use.  */
+   only if the module 'uchar-h-c23' is in use.  */
 typedef uint_least32_t char32_t;
 
 #elif 0
@@ -726,7 +729,7 @@ c32isalnum (wint_t wc)
 }
 _GL_END_C_LINKAGE
 # else
-_GL_FUNCDECL_SYS (c32isalnum, int, (wint_t wc));
+_GL_FUNCDECL_SYS (c32isalnum, int, (wint_t wc), );
 # endif
 _GL_CXXALIAS_SYS (c32isalnum, int, (wint_t wc));
 _GL_CXXALIASWARN (c32isalnum);
@@ -745,7 +748,7 @@ c32isalpha (wint_t wc)
 }
 _GL_END_C_LINKAGE
 # else
-_GL_FUNCDECL_SYS (c32isalpha, int, (wint_t wc));
+_GL_FUNCDECL_SYS (c32isalpha, int, (wint_t wc), );
 # endif
 _GL_CXXALIAS_SYS (c32isalpha, int, (wint_t wc));
 _GL_CXXALIASWARN (c32isalpha);
@@ -764,7 +767,7 @@ c32isblank (wint_t wc)
 }
 _GL_END_C_LINKAGE
 # else
-_GL_FUNCDECL_SYS (c32isblank, int, (wint_t wc));
+_GL_FUNCDECL_SYS (c32isblank, int, (wint_t wc), );
 # endif
 _GL_CXXALIAS_SYS (c32isblank, int, (wint_t wc));
 _GL_CXXALIASWARN (c32isblank);
@@ -783,7 +786,7 @@ c32iscntrl (wint_t wc)
 }
 _GL_END_C_LINKAGE
 # else
-_GL_FUNCDECL_SYS (c32iscntrl, int, (wint_t wc));
+_GL_FUNCDECL_SYS (c32iscntrl, int, (wint_t wc), );
 # endif
 _GL_CXXALIAS_SYS (c32iscntrl, int, (wint_t wc));
 _GL_CXXALIASWARN (c32iscntrl);
@@ -802,7 +805,7 @@ c32isdigit (wint_t wc)
 }
 _GL_END_C_LINKAGE
 # else
-_GL_FUNCDECL_SYS (c32isdigit, int, (wint_t wc));
+_GL_FUNCDECL_SYS (c32isdigit, int, (wint_t wc), );
 # endif
 _GL_CXXALIAS_SYS (c32isdigit, int, (wint_t wc));
 _GL_CXXALIASWARN (c32isdigit);
@@ -821,7 +824,7 @@ c32isgraph (wint_t wc)
 }
 _GL_END_C_LINKAGE
 # else
-_GL_FUNCDECL_SYS (c32isgraph, int, (wint_t wc));
+_GL_FUNCDECL_SYS (c32isgraph, int, (wint_t wc), );
 # endif
 _GL_CXXALIAS_SYS (c32isgraph, int, (wint_t wc));
 _GL_CXXALIASWARN (c32isgraph);
@@ -840,7 +843,7 @@ c32islower (wint_t wc)
 }
 _GL_END_C_LINKAGE
 # else
-_GL_FUNCDECL_SYS (c32islower, int, (wint_t wc));
+_GL_FUNCDECL_SYS (c32islower, int, (wint_t wc), );
 # endif
 _GL_CXXALIAS_SYS (c32islower, int, (wint_t wc));
 _GL_CXXALIASWARN (c32islower);
@@ -859,7 +862,7 @@ c32isprint (wint_t wc)
 }
 _GL_END_C_LINKAGE
 # else
-_GL_FUNCDECL_SYS (c32isprint, int, (wint_t wc));
+_GL_FUNCDECL_SYS (c32isprint, int, (wint_t wc), );
 # endif
 _GL_CXXALIAS_SYS (c32isprint, int, (wint_t wc));
 _GL_CXXALIASWARN (c32isprint);
@@ -878,7 +881,7 @@ c32ispunct (wint_t wc)
 }
 _GL_END_C_LINKAGE
 # else
-_GL_FUNCDECL_SYS (c32ispunct, int, (wint_t wc));
+_GL_FUNCDECL_SYS (c32ispunct, int, (wint_t wc), );
 # endif
 _GL_CXXALIAS_SYS (c32ispunct, int, (wint_t wc));
 _GL_CXXALIASWARN (c32ispunct);
@@ -897,7 +900,7 @@ c32isspace (wint_t wc)
 }
 _GL_END_C_LINKAGE
 # else
-_GL_FUNCDECL_SYS (c32isspace, int, (wint_t wc));
+_GL_FUNCDECL_SYS (c32isspace, int, (wint_t wc), );
 # endif
 _GL_CXXALIAS_SYS (c32isspace, int, (wint_t wc));
 _GL_CXXALIASWARN (c32isspace);
@@ -916,7 +919,7 @@ c32isupper (wint_t wc)
 }
 _GL_END_C_LINKAGE
 # else
-_GL_FUNCDECL_SYS (c32isupper, int, (wint_t wc));
+_GL_FUNCDECL_SYS (c32isupper, int, (wint_t wc), );
 # endif
 _GL_CXXALIAS_SYS (c32isupper, int, (wint_t wc));
 _GL_CXXALIASWARN (c32isupper);
@@ -935,7 +938,7 @@ c32isxdigit (wint_t wc)
 }
 _GL_END_C_LINKAGE
 # else
-_GL_FUNCDECL_SYS (c32isxdigit, int, (wint_t wc));
+_GL_FUNCDECL_SYS (c32isxdigit, int, (wint_t wc), );
 # endif
 _GL_CXXALIAS_SYS (c32isxdigit, int, (wint_t wc));
 _GL_CXXALIASWARN (c32isxdigit);
@@ -957,7 +960,7 @@ c32tolower (wint_t wc)
 }
 _GL_END_C_LINKAGE
 # else
-_GL_FUNCDECL_SYS (c32tolower, wint_t, (wint_t wc));
+_GL_FUNCDECL_SYS (c32tolower, wint_t, (wint_t wc), );
 # endif
 _GL_CXXALIAS_SYS (c32tolower, wint_t, (wint_t wc));
 _GL_CXXALIASWARN (c32tolower);
@@ -976,7 +979,7 @@ c32toupper (wint_t wc)
 }
 _GL_END_C_LINKAGE
 # else
-_GL_FUNCDECL_SYS (c32toupper, wint_t, (wint_t wc));
+_GL_FUNCDECL_SYS (c32toupper, wint_t, (wint_t wc), );
 # endif
 _GL_CXXALIAS_SYS (c32toupper, wint_t, (wint_t wc));
 _GL_CXXALIASWARN (c32toupper);
@@ -984,7 +987,7 @@ _GL_CXXALIASWARN (c32toupper);
 
 
 /* Number of screen columns needed for a 32-bit wide character.  */
-#if 0
+#if 1
 # if (_GL_WCHAR_T_IS_UCS4 && !GNULIB_defined_mbstate_t) && !defined IN_C32WIDTH
 _GL_BEGIN_C_LINKAGE
 _GL_INLINE int
@@ -998,7 +1001,7 @@ c32width (char32_t wc)
 }
 _GL_END_C_LINKAGE
 # else
-_GL_FUNCDECL_SYS (c32width, int, (char32_t wc));
+_GL_FUNCDECL_SYS (c32width, int, (char32_t wc), );
 # endif
 _GL_CXXALIAS_SYS (c32width, int, (char32_t wc));
 _GL_CXXALIASWARN (c32width);
@@ -1012,11 +1015,11 @@ _GL_CXXALIASWARN (c32width);
 #   undef c32rtomb
 #   define c32rtomb rpl_c32rtomb
 #  endif
-_GL_FUNCDECL_RPL (c32rtomb, size_t, (char *s, char32_t wc, mbstate_t *ps));
+_GL_FUNCDECL_RPL (c32rtomb, size_t, (char *s, char32_t wc, mbstate_t *ps), );
 _GL_CXXALIAS_RPL (c32rtomb, size_t, (char *s, char32_t wc, mbstate_t *ps));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (c32rtomb, size_t, (char *s, char32_t wc, mbstate_t *ps));
+_GL_FUNCDECL_SYS (c32rtomb, size_t, (char *s, char32_t wc, mbstate_t *ps), );
 #  endif
 _GL_CXXALIAS_SYS (c32rtomb, size_t, (char *s, char32_t wc, mbstate_t *ps));
 # endif
@@ -1151,7 +1154,7 @@ c32tob (wint_t wc)
 }
 _GL_END_C_LINKAGE
 # else
-_GL_FUNCDECL_SYS (c32tob, int, (wint_t wc));
+_GL_FUNCDECL_SYS (c32tob, int, (wint_t wc), );
 # endif
 _GL_CXXALIAS_SYS (c32tob, int, (wint_t wc));
 _GL_CXXALIASWARN (c32tob);
@@ -1166,13 +1169,13 @@ _GL_CXXALIASWARN (c32tob);
 #   define mbrtoc32 rpl_mbrtoc32
 #  endif
 _GL_FUNCDECL_RPL (mbrtoc32, size_t,
-                  (char32_t *pc, const char *s, size_t n, mbstate_t *ps));
+                  (char32_t *pc, const char *s, size_t n, mbstate_t *ps), );
 _GL_CXXALIAS_RPL (mbrtoc32, size_t,
                   (char32_t *pc, const char *s, size_t n, mbstate_t *ps));
 # else
 #  if !1
 _GL_FUNCDECL_SYS (mbrtoc32, size_t,
-                  (char32_t *pc, const char *s, size_t n, mbstate_t *ps));
+                  (char32_t *pc, const char *s, size_t n, mbstate_t *ps), );
 #  endif
 _GL_CXXALIAS_SYS (mbrtoc32, size_t,
                   (char32_t *pc, const char *s, size_t n, mbstate_t *ps));
@@ -1198,13 +1201,13 @@ _GL_WARN_ON_USE (mbrtoc32, "mbrtoc32 is not portable - "
 #   define mbrtoc16 rpl_mbrtoc16
 #  endif
 _GL_FUNCDECL_RPL (mbrtoc16, size_t,
-                  (char16_t *pc, const char *s, size_t n, mbstate_t *ps));
+                  (char16_t *pc, const char *s, size_t n, mbstate_t *ps), );
 _GL_CXXALIAS_RPL (mbrtoc16, size_t,
                   (char16_t *pc, const char *s, size_t n, mbstate_t *ps));
 # else
 #  if !1
 _GL_FUNCDECL_SYS (mbrtoc16, size_t,
-                  (char16_t *pc, const char *s, size_t n, mbstate_t *ps));
+                  (char16_t *pc, const char *s, size_t n, mbstate_t *ps), );
 #  endif
 _GL_CXXALIAS_SYS (mbrtoc16, size_t,
                   (char16_t *pc, const char *s, size_t n, mbstate_t *ps));
@@ -1360,7 +1363,7 @@ c32_apply_type_test (wint_t wc, c32_type_test_t property)
 _GL_END_C_LINKAGE
 #  else
 _GL_FUNCDECL_SYS (c32_apply_type_test, int,
-                  (wint_t wc, c32_type_test_t property));
+                  (wint_t wc, c32_type_test_t property), );
 #  endif
 # else
 _GL_FUNCDECL_SYS (c32_apply_type_test, int,

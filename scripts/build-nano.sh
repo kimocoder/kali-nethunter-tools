@@ -12,10 +12,10 @@ source "$SCRIPT_DIR/build-env.sh"
 # Tool Configuration
 # ============================================================================
 TOOL_NAME="nano"
-TOOL_VERSION="8.2"
+TOOL_VERSION="8.7"
 TOOL_DEPS=("ncurses")
 TOOL_CONFIGURE_OPTS="--disable-nls"
-TOOL_PATCHES=("nano-android.patch")
+TOOL_PATCHES=()
 
 # ============================================================================
 # Directories

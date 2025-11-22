@@ -1,7 +1,7 @@
 /**************************************************************************
  *   definitions.h  --  This file is part of GNU nano.                    *
  *                                                                        *
- *   Copyright (C) 1999-2011, 2013-2024 Free Software Foundation, Inc.    *
+ *   Copyright (C) 1999-2011, 2013-2025 Free Software Foundation, Inc.    *
  *   Copyright (C) 2014-2017 Benno Schulenberg                            *
  *                                                                        *
  *   GNU nano is free software: you can redistribute it and/or modify     *
@@ -15,7 +15,7 @@
  *   See the GNU General Public License for more details.                 *
  *                                                                        *
  *   You should have received a copy of the GNU General Public License    *
- *   along with this program.  If not, see http://www.gnu.org/licenses/.  *
+ *   along with this program.  If not, see https://gnu.org/licenses/.     *
  *                                                                        *
  **************************************************************************/
 
@@ -60,10 +60,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-/* Prefer wide ncurses over normal ncurses over curses. */
-#if defined(HAVE_NCURSESW_NCURSES_H)
-#include <ncursesw/ncurses.h>
-#elif defined(HAVE_NCURSES_H)
+#ifdef HAVE_NCURSES_H
 #include <ncurses.h>
 #else
 #include <curses.h>
@@ -205,8 +202,6 @@
 #define SHIFT_ALT_RIGHT  0x432
 #define SHIFT_ALT_UP     0x433
 #define SHIFT_ALT_DOWN   0x434
-//#define SHIFT_LEFT 0x451
-//#define SHIFT_RIGHT 0x452
 #define SHIFT_UP        0x453
 #define SHIFT_DOWN      0x454
 #define SHIFT_HOME      0x455
@@ -216,16 +211,20 @@
 #define SHIFT_DELETE    0x45D
 #define SHIFT_TAB       0x45F
 
-#define FOCUS_IN	0x491
-#define FOCUS_OUT	0x499
+#define FOCUS_IN   0x491
+#define FOCUS_OUT  0x499
+
+/* Custom keycodes for signaling the start and end of a bracketed paste. */
+#define START_OF_PASTE  0x4B5
+#define END_OF_PASTE    0x4BE
 
 /* Special keycodes for when a string bind has been partially implanted
  * or has an unpaired opening brace, or when a function in a string bind
  * needs execution or a specified function name is invalid. */
-#define MORE_PLANTS       0x4EA
-#define MISSING_BRACE     0x4EB
-#define PLANTED_A_COMMAND 0x4EC
-#define NO_SUCH_FUNCTION  0x4EF
+#define MORE_PLANTS        0x4EA
+#define MISSING_BRACE      0x4EB
+#define PLANTED_A_COMMAND  0x4EC
+#define NO_SUCH_FUNCTION   0x4EF
 
 #ifndef NANO_TINY
 /* A special keycode for Ctrl + the central key on the numeric keypad. */
@@ -234,9 +233,6 @@
 /* A special keycode for when we get a SIGWINCH (a window resize). */
 #define THE_WINDOW_RESIZED  0x4F7
 #endif
-
-/* A special keycode to signal the beginning and end of a bracketed paste. */
-#define BRACKETED_PASTE_MARKER  0x4FB
 
 /* A special keycode for when a key produces an unknown escape sequence. */
 #define FOREIGN_SEQUENCE  0x4FC
@@ -539,6 +535,8 @@ typedef struct poshiststruct {
 		/* The line where the cursor was when we closed the file. */
 	ssize_t columnnumber;
 		/* The column where the cursor was. */
+	char *anchors;
+		/* The line numbers where anchors were placed, in string form. */
 	struct poshiststruct *next;
 		/* The next item of position history. */
 } poshiststruct;

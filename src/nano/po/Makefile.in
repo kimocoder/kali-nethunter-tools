@@ -11,7 +11,7 @@
 GETTEXT_MACRO_VERSION = 0.20
 
 PACKAGE = nano
-VERSION = 8.2
+VERSION = 8.7
 PACKAGE_BUGREPORT = nano-devel@gnu.org
 
 SED = /usr/bin/sed
@@ -22,7 +22,7 @@ srcdir = .
 top_srcdir = ..
 
 
-prefix = /home/kimocoder/kali-nethunter-tools/out/aarch64-linux-android/nano
+prefix = /home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/nano
 exec_prefix = ${prefix}
 datarootdir = ${prefix}/share
 datadir = ${datarootdir}
@@ -207,7 +207,7 @@ $(DOMAIN).pot-update: $(POTFILES) $(srcdir)/POTFILES.in remove-potcdate.sed
 	      --files-from=$(srcdir)/POTFILES.in \
 	      --copyright-holder='$(COPYRIGHT_HOLDER)' \
 	      --package-name="$${package_prefix}nano" \
-	      --package-version='8.2' \
+	      --package-version='8.7' \
 	      --msgid-bugs-address="$$msgid_bugs_address" \
 	      $(XGETTEXT_OPTIONS)  --flag=error:3:c-format --flag=error_at_line:5:c-format \
 	    ;; \

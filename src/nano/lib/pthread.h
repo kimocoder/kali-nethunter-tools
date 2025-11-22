@@ -1,7 +1,7 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* Implement the most essential subset of POSIX pthread.h.
 
-   Copyright (C) 2009-2024 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -88,7 +88,7 @@
 
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
 /* C++ compatible function declaration macros.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -193,10 +193,15 @@
 # define _GL_EXTERN_C_FUNC
 #endif
 
-/* _GL_FUNCDECL_RPL (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_RPL (func, rettype, parameters, [attributes]);
    declares a replacement function, named rpl_func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_RPL (free, void, (void *ptr), ) _GL_ATTRIBUTE_NOTHROW;
      _GL_FUNCDECL_RPL (open, int, (const char *filename, int flags, ...),
                                   _GL_ARG_NONNULL ((1)));
 
@@ -205,24 +210,22 @@
    because
      [[...]] extern "C" <declaration>;
    is invalid syntax in C++.)
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_RPL invocation, at the end of the declaration.
  */
 #define _GL_FUNCDECL_RPL(func,rettype,parameters,...) \
   _GL_FUNCDECL_RPL_1 (rpl_##func, rettype, parameters, __VA_ARGS__)
 #define _GL_FUNCDECL_RPL_1(rpl_func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype rpl_func parameters
 
-/* _GL_FUNCDECL_SYS (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_SYS (func, rettype, parameters, [attributes]);
    declares the system function, named func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
-     _GL_FUNCDECL_SYS (open, int, (const char *filename, int flags, ...),
-                                  _GL_ARG_NONNULL ((1)));
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_SYS invocation, at the end of the declaration.
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_SYS (getumask, mode_t, (void), ) _GL_ATTRIBUTE_NOTHROW;
+     _GL_FUNCDECL_SYS (posix_openpt, int, (int flags), _GL_ATTRIBUTE_NODISCARD);
  */
 #define _GL_FUNCDECL_SYS(func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype func parameters
@@ -396,7 +399,7 @@
    _GL_CXXALIASWARN_1 (func, GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN_1(func,namespace) \
    _GL_CXXALIASWARN_2 (func, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN_2(func,namespace) \
@@ -424,7 +427,7 @@
                         GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN1_1(func,rettype,parameters_and_attributes,namespace) \
    _GL_CXXALIASWARN1_2 (func, rettype, parameters_and_attributes, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN1_2(func,rettype,parameters_and_attributes,namespace) \
@@ -444,7 +447,7 @@
 
 /* The definition of _Noreturn is copied here.  */
 /* A C macro for declaring that a function does not return.
-   Copyright (C) 2011-2024 Free Software Foundation, Inc.
+   Copyright (C) 2011-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -459,33 +462,26 @@
    You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
+/* The _Noreturn keyword of C11.
+   Do not use [[noreturn]], because with it the syntax
+     extern _Noreturn void func (...);
+   would not be valid; such a declaration would be valid only with 'extern'
+   and '_Noreturn' swapped, or without the 'extern' keyword.  However, some
+   AIX system header files and several gnulib header files use precisely
+   this syntax with 'extern'.  So even though C23 deprecates _Noreturn,
+   it is currently more portable to prefer it to [[noreturn]].
+
+   Also, do not try to work around LLVM bug 59792 (clang 15 or earlier).
+   This rare bug can be worked around by compiling with 'clang -D_Noreturn=',
+   though the workaround may generate many false-alarm warnings.  */
 #ifndef _Noreturn
-# if (defined __cplusplus \
-      && ((201103 <= __cplusplus && !(__GNUC__ == 4 && __GNUC_MINOR__ == 7)) \
-          || (defined _MSC_VER && 1900 <= _MSC_VER)) \
-      && 0)
-    /* [[noreturn]] is not practically usable, because with it the syntax
-         extern _Noreturn void func (...);
-       would not be valid; such a declaration would only be valid with 'extern'
-       and '_Noreturn' swapped, or without the 'extern' keyword.  However, some
-       AIX system header files and several gnulib header files use precisely
-       this syntax with 'extern'.  */
-#  define _Noreturn [[noreturn]]
-# elif (defined __clang__ && __clang_major__ < 16 \
-        && defined _GL_WORK_AROUND_LLVM_BUG_59792)
-   /* Compile with -D_GL_WORK_AROUND_LLVM_BUG_59792 to work around
-      that rare LLVM bug, though you may get many false-alarm warnings.  */
-#  define _Noreturn
-# elif ((!defined __cplusplus || defined __clang__) \
-        && (201112 <= (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) \
-            || (!defined __STRICT_ANSI__ \
-                && (4 < __GNUC__ + (7 <= __GNUC_MINOR__) && !defined __clang__ \
-                    || (defined __apple_build_version__ \
-                        ? 6000000 <= __apple_build_version__ \
-                        : 3 < __clang_major__ + (5 <= __clang_minor__))))))
+# if ((!defined __cplusplus || defined __clang__) \
+      && (201112 <= (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0)))
    /* _Noreturn works as-is.  */
 # elif (2 < __GNUC__ + (8 <= __GNUC_MINOR__) || defined __clang__ \
         || 0x5110 <= __SUNPRO_C)
+   /* Prefer __attribute__ ((__noreturn__)) to plain _Noreturn even if the
+      latter works, as 'gcc -std=gnu99 -Wpedantic' warns about _Noreturn.  */
 #  define _Noreturn __attribute__ ((__noreturn__))
 # elif 1200 <= (defined _MSC_VER ? _MSC_VER : 0)
 #  define _Noreturn __declspec (noreturn)
@@ -496,7 +492,7 @@
 
 /* The definition of _GL_ARG_NONNULL is copied here.  */
 /* A C macro for declaring that specific arguments must not be NULL.
-   Copyright (C) 2009-2024 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -524,7 +520,7 @@
 
 /* The definition of _GL_WARN_ON_USE is copied here.  */
 /* A C macro for emitting warnings if a function is used.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -1260,11 +1256,11 @@ _GL_WARN_ON_USE (pthread_self, "pthread_self is not portable - "
 #   undef pthread_equal
 #   define pthread_equal rpl_pthread_equal
 #  endif
-_GL_FUNCDECL_RPL (pthread_equal, int, (pthread_t thread1, pthread_t thread2));
+_GL_FUNCDECL_RPL (pthread_equal, int, (pthread_t thread1, pthread_t thread2), );
 _GL_CXXALIAS_RPL (pthread_equal, int, (pthread_t thread1, pthread_t thread2));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (pthread_equal, int, (pthread_t thread1, pthread_t thread2));
+_GL_FUNCDECL_SYS (pthread_equal, int, (pthread_t thread1, pthread_t thread2), );
 #  endif
 _GL_CXXALIAS_SYS (pthread_equal, int, (pthread_t thread1, pthread_t thread2));
 # endif
@@ -1285,11 +1281,11 @@ _GL_WARN_ON_USE (pthread_equal, "pthread_equal is not portable - "
 #   undef pthread_detach
 #   define pthread_detach rpl_pthread_detach
 #  endif
-_GL_FUNCDECL_RPL (pthread_detach, int, (pthread_t thread));
+_GL_FUNCDECL_RPL (pthread_detach, int, (pthread_t thread), );
 _GL_CXXALIAS_RPL (pthread_detach, int, (pthread_t thread));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (pthread_detach, int, (pthread_t thread));
+_GL_FUNCDECL_SYS (pthread_detach, int, (pthread_t thread), );
 #  endif
 _GL_CXXALIAS_SYS (pthread_detach, int, (pthread_t thread));
 # endif
@@ -1310,11 +1306,11 @@ _GL_WARN_ON_USE (pthread_detach, "pthread_detach is not portable - "
 #   undef pthread_join
 #   define pthread_join rpl_pthread_join
 #  endif
-_GL_FUNCDECL_RPL (pthread_join, int, (pthread_t thread, void **valuep));
+_GL_FUNCDECL_RPL (pthread_join, int, (pthread_t thread, void **valuep), );
 _GL_CXXALIAS_RPL (pthread_join, int, (pthread_t thread, void **valuep));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (pthread_join, int, (pthread_t thread, void **valuep));
+_GL_FUNCDECL_SYS (pthread_join, int, (pthread_t thread, void **valuep), );
 #  endif
 _GL_CXXALIAS_SYS (pthread_join, int, (pthread_t thread, void **valuep));
 # endif
@@ -1335,11 +1331,11 @@ _GL_WARN_ON_USE (pthread_join, "pthread_join is not portable - "
 #   undef pthread_exit
 #   define pthread_exit rpl_pthread_exit
 #  endif
-_GL_FUNCDECL_RPL (pthread_exit, _Noreturn void, (void *value));
+_GL_FUNCDECL_RPL (pthread_exit, _Noreturn void, (void *value), );
 _GL_CXXALIAS_RPL (pthread_exit, void, (void *value));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (pthread_exit, _Noreturn void, (void *value));
+_GL_FUNCDECL_SYS (pthread_exit, _Noreturn void, (void *value), );
 #  endif
 /* Need to cast because of AIX with xlclang++.  */
 _GL_CXXALIAS_SYS_CAST (pthread_exit, void, (void *value));
@@ -2368,13 +2364,13 @@ _GL_WARN_ON_USE (pthread_key_create, "pthread_key_create is not portable - "
 #   define pthread_setspecific rpl_pthread_setspecific
 #  endif
 _GL_FUNCDECL_RPL (pthread_setspecific, int,
-                  (pthread_key_t key, const void *value));
+                  (pthread_key_t key, const void *value), );
 _GL_CXXALIAS_RPL (pthread_setspecific, int,
                   (pthread_key_t key, const void *value));
 # else
 #  if !1
 _GL_FUNCDECL_SYS (pthread_setspecific, int,
-                  (pthread_key_t key, const void *value));
+                  (pthread_key_t key, const void *value), );
 #  endif
 _GL_CXXALIAS_SYS (pthread_setspecific, int,
                   (pthread_key_t key, const void *value));
@@ -2396,11 +2392,11 @@ _GL_WARN_ON_USE (pthread_setspecific, "pthread_setspecific is not portable - "
 #   undef pthread_getspecific
 #   define pthread_getspecific rpl_pthread_getspecific
 #  endif
-_GL_FUNCDECL_RPL (pthread_getspecific, void *, (pthread_key_t key));
+_GL_FUNCDECL_RPL (pthread_getspecific, void *, (pthread_key_t key), );
 _GL_CXXALIAS_RPL (pthread_getspecific, void *, (pthread_key_t key));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (pthread_getspecific, void *, (pthread_key_t key));
+_GL_FUNCDECL_SYS (pthread_getspecific, void *, (pthread_key_t key), );
 #  endif
 _GL_CXXALIAS_SYS (pthread_getspecific, void *, (pthread_key_t key));
 # endif
@@ -2421,11 +2417,11 @@ _GL_WARN_ON_USE (pthread_getspecific, "pthread_getspecific is not portable - "
 #   undef pthread_key_delete
 #   define pthread_key_delete rpl_pthread_key_delete
 #  endif
-_GL_FUNCDECL_RPL (pthread_key_delete, int, (pthread_key_t key));
+_GL_FUNCDECL_RPL (pthread_key_delete, int, (pthread_key_t key), );
 _GL_CXXALIAS_RPL (pthread_key_delete, int, (pthread_key_t key));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (pthread_key_delete, int, (pthread_key_t key));
+_GL_FUNCDECL_SYS (pthread_key_delete, int, (pthread_key_t key), );
 #  endif
 _GL_CXXALIAS_SYS (pthread_key_delete, int, (pthread_key_t key));
 # endif

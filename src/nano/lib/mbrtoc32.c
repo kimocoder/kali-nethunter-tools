@@ -1,5 +1,5 @@
 /* Convert multibyte character to 32-bit wide character.
-   Copyright (C) 2020-2024 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -30,7 +30,7 @@
 # include "lc-charset-unicode.h"
 #endif
 
-#if GNULIB_defined_mbstate_t /* AIX, IRIX */
+#if GNULIB_defined_mbstate_t /* AIX */
 /* Implement mbrtoc32() on top of mbtowc() for the non-UTF-8 locales
    and directly for the UTF-8 locales.  */
 

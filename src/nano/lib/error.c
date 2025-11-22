@@ -1,5 +1,5 @@
 /* Error handler for noninteractive utilities
-   Copyright (C) 1990-2024 Free Software Foundation, Inc.
+   Copyright (C) 1990-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@
 
 #if !_LIBC && ENABLE_NLS
 # include "gettext.h"
-# define _(msgid) gettext (msgid)
+# define _(msgid) dgettext (GNULIB_TEXT_DOMAIN, msgid)
 #endif
 
 #ifdef _LIBC
@@ -165,8 +165,8 @@ flush_stdout (void)
 #if !_LIBC
   int stdout_fd;
 
-# if GNULIB_FREOPEN_SAFER
-  /* Use of gnulib's freopen-safer module normally ensures that
+# if GNULIB_FREOPEN_SAFER || GNULIB_XSTDOPEN
+  /* Gnulib's freopen-safer and/or xstdopen modules normally ensure that
        fileno (stdout) == 1
      whenever stdout is open.  */
   stdout_fd = STDOUT_FILENO;
@@ -197,7 +197,7 @@ print_errno_message (int errnum)
   if (__strerror_r (errnum, errbuf, sizeof errbuf) == 0)
     s = errbuf;
   else
-    s = 0;
+    s = NULL;
 # endif
 #else
   s = strerror (errnum);
@@ -228,7 +228,6 @@ error_tail (int status, int errnum, const char *message, va_list args,
 #else
   vfprintf (stderr, message, args);
 #endif
-  va_end (args);
 
   ++error_message_count;
   if (errnum)

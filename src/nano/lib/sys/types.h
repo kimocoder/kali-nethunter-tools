@@ -1,7 +1,7 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* Provide a more complete sys/types.h.
 
-   Copyright (C) 2011-2024 Free Software Foundation, Inc.
+   Copyright (C) 2011-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -116,6 +116,22 @@ typedef unsigned long long int rpl_ino_t;
 /* But avoid namespace pollution on glibc systems.  */
 #if (defined _WIN32 && ! defined __CYGWIN__) && ! defined __GLIBC__
 # include <stddef.h>
+#endif
+
+/* Define blksize_t, required by POSIX:2024.  */
+#if !1
+# if !defined GNULIB_defined_blksize_t
+typedef int blksize_t;
+#  define GNULIB_defined_blksize_t 1
+# endif
+#endif
+
+/* Define blkcnt_t, required by POSIX:2024.  */
+#if !1
+# if !defined GNULIB_defined_blkcnt_t
+typedef long long blkcnt_t;
+#  define GNULIB_defined_blkcnt_t 1
+# endif
 #endif
 
 #endif /* _GL_SYS_TYPES_H */

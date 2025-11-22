@@ -1,5 +1,6 @@
-/* Create a pipe.
-   Copyright (C) 2009-2024 Free Software Foundation, Inc.
+/* Inline functions for <stdlib.h>.
+
+   Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -14,37 +15,7 @@
    You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#define _GL_STDLIB_INLINE _GL_EXTERN_INLINE
 #include <config.h>
 
-/* Specification.  */
-#include <unistd.h>
-
-#if defined _WIN32 && ! defined __CYGWIN__
-/* Native Windows API.  */
-
-/* Get _pipe().  */
-# include <io.h>
-
-/* Get _O_BINARY.  */
-# include <fcntl.h>
-
-int
-pipe (int fd[2])
-{
-  /* Mingw changes fd to {-1,-1} on failure, but this violates
-     http://austingroupbugs.net/view.php?id=467 */
-  int tmp[2];
-  int result = _pipe (tmp, 4096, _O_BINARY);
-  if (!result)
-    {
-      fd[0] = tmp[0];
-      fd[1] = tmp[1];
-    }
-  return result;
-}
-
-#else
-
-# error "This platform lacks a pipe function, and Gnulib doesn't provide a replacement. This is a bug in Gnulib."
-
-#endif
+#include <stdlib.h>

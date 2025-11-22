@@ -1,7 +1,7 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* A substitute for ISO C99 <wctype.h>, for platforms that lack it.
 
-   Copyright (C) 2006-2024 Free Software Foundation, Inc.
+   Copyright (C) 2006-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -82,7 +82,7 @@ _GL_INLINE_HEADER_BEGIN
 
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
 /* C++ compatible function declaration macros.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -187,10 +187,15 @@ _GL_INLINE_HEADER_BEGIN
 # define _GL_EXTERN_C_FUNC
 #endif
 
-/* _GL_FUNCDECL_RPL (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_RPL (func, rettype, parameters, [attributes]);
    declares a replacement function, named rpl_func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_RPL (free, void, (void *ptr), ) _GL_ATTRIBUTE_NOTHROW;
      _GL_FUNCDECL_RPL (open, int, (const char *filename, int flags, ...),
                                   _GL_ARG_NONNULL ((1)));
 
@@ -199,24 +204,22 @@ _GL_INLINE_HEADER_BEGIN
    because
      [[...]] extern "C" <declaration>;
    is invalid syntax in C++.)
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_RPL invocation, at the end of the declaration.
  */
 #define _GL_FUNCDECL_RPL(func,rettype,parameters,...) \
   _GL_FUNCDECL_RPL_1 (rpl_##func, rettype, parameters, __VA_ARGS__)
 #define _GL_FUNCDECL_RPL_1(rpl_func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype rpl_func parameters
 
-/* _GL_FUNCDECL_SYS (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_SYS (func, rettype, parameters, [attributes]);
    declares the system function, named func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
-     _GL_FUNCDECL_SYS (open, int, (const char *filename, int flags, ...),
-                                  _GL_ARG_NONNULL ((1)));
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_SYS invocation, at the end of the declaration.
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_SYS (getumask, mode_t, (void), ) _GL_ATTRIBUTE_NOTHROW;
+     _GL_FUNCDECL_SYS (posix_openpt, int, (int flags), _GL_ATTRIBUTE_NODISCARD);
  */
 #define _GL_FUNCDECL_SYS(func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype func parameters
@@ -390,7 +393,7 @@ _GL_INLINE_HEADER_BEGIN
    _GL_CXXALIASWARN_1 (func, GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN_1(func,namespace) \
    _GL_CXXALIASWARN_2 (func, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN_2(func,namespace) \
@@ -418,7 +421,7 @@ _GL_INLINE_HEADER_BEGIN
                         GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN1_1(func,rettype,parameters_and_attributes,namespace) \
    _GL_CXXALIASWARN1_2 (func, rettype, parameters_and_attributes, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN1_2(func,rettype,parameters_and_attributes,namespace) \
@@ -438,7 +441,7 @@ _GL_INLINE_HEADER_BEGIN
 
 /* The definition of _GL_ARG_NONNULL is copied here.  */
 /* A C macro for declaring that specific arguments must not be NULL.
-   Copyright (C) 2009-2024 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -466,7 +469,7 @@ _GL_INLINE_HEADER_BEGIN
 
 /* The definition of _GL_WARN_ON_USE is copied here.  */
 /* A C macro for emitting warnings if a function is used.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -798,27 +801,7 @@ rpl_towupper (wint_t wc)
 
 #  else
 
-/* IRIX 5.3 has macros but no functions, its isw* macros refer to an
-   undefined variable _ctmp_ and to <ctype.h> macros like _P, and they
-   refer to system functions like _iswctype that are not in the
-   standard C library.  Rather than try to get ancient buggy
-   implementations like this to work, just disable them.  */
-#   undef iswalnum
-#   undef iswalpha
-#   undef iswblank
-#   undef iswcntrl
-#   undef iswdigit
-#   undef iswgraph
-#   undef iswlower
-#   undef iswprint
-#   undef iswpunct
-#   undef iswspace
-#   undef iswupper
-#   undef iswxdigit
-#   undef towlower
-#   undef towupper
-
-/* Linux libc5 has <wctype.h> and the functions but they are broken.  */
+/* On some old platforms the functions are broken.  */
 #   if 0
 #    if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #     define iswalnum rpl_iswalnum
@@ -1012,9 +995,9 @@ towupper
 #    if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #     define iswblank rpl_iswblank
 #    endif
-_GL_FUNCDECL_RPL (iswblank, int, (wint_t wc));
+_GL_FUNCDECL_RPL (iswblank, int, (wint_t wc), );
 #   else
-_GL_FUNCDECL_SYS (iswblank, int, (wint_t wc));
+_GL_FUNCDECL_SYS (iswblank, int, (wint_t wc), );
 #   endif
 #  endif
 
@@ -1024,7 +1007,7 @@ _GL_FUNCDECL_SYS (iswblank, int, (wint_t wc));
 #     undef iswdigit
 #     define iswdigit rpl_iswdigit
 #    endif
-_GL_FUNCDECL_RPL (iswdigit, int, (wint_t wc));
+_GL_FUNCDECL_RPL (iswdigit, int, (wint_t wc), );
 #   endif
 #  endif
 
@@ -1034,7 +1017,7 @@ _GL_FUNCDECL_RPL (iswdigit, int, (wint_t wc));
 #     undef iswpunct
 #     define iswpunct rpl_iswpunct
 #    endif
-_GL_FUNCDECL_RPL (iswpunct, int, (wint_t wc));
+_GL_FUNCDECL_RPL (iswpunct, int, (wint_t wc), );
 #   endif
 #  endif
 
@@ -1044,7 +1027,7 @@ _GL_FUNCDECL_RPL (iswpunct, int, (wint_t wc));
 #     undef iswxdigit
 #     define iswxdigit rpl_iswxdigit
 #    endif
-_GL_FUNCDECL_RPL (iswxdigit, int, (wint_t wc));
+_GL_FUNCDECL_RPL (iswxdigit, int, (wint_t wc), );
 #   endif
 #  endif
 
@@ -1223,11 +1206,11 @@ _GL_WARN_ON_USE (wctype, "wctype is unportable - "
 #   undef iswctype
 #   define iswctype rpl_iswctype
 #  endif
-_GL_FUNCDECL_RPL (iswctype, int, (wint_t wc, wctype_t desc));
+_GL_FUNCDECL_RPL (iswctype, int, (wint_t wc, wctype_t desc), );
 _GL_CXXALIAS_RPL (iswctype, int, (wint_t wc, wctype_t desc));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (iswctype, int, (wint_t wc, wctype_t desc));
+_GL_FUNCDECL_SYS (iswctype, int, (wint_t wc, wctype_t desc), );
 #  endif
 _GL_CXXALIAS_SYS (iswctype, int, (wint_t wc, wctype_t desc));
 # endif
@@ -1305,11 +1288,11 @@ _GL_WARN_ON_USE (wctrans, "wctrans is unportable - "
 #   undef towctrans
 #   define towctrans rpl_towctrans
 #  endif
-_GL_FUNCDECL_RPL (towctrans, wint_t, (wint_t wc, wctrans_t desc));
+_GL_FUNCDECL_RPL (towctrans, wint_t, (wint_t wc, wctrans_t desc), );
 _GL_CXXALIAS_RPL (towctrans, wint_t, (wint_t wc, wctrans_t desc));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (towctrans, wint_t, (wint_t wc, wctrans_t desc));
+_GL_FUNCDECL_SYS (towctrans, wint_t, (wint_t wc, wctrans_t desc), );
 #  endif
 _GL_CXXALIAS_SYS (towctrans, wint_t, (wint_t wc, wctrans_t desc));
 # endif

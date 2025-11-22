@@ -1,6 +1,6 @@
 /* Implement the most essential subset of POSIX pthread.h.
 
-   Copyright (C) 2009-2024 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -22,7 +22,7 @@
 #endif
 @PRAGMA_COLUMNS@
 
-#if defined _GL_ALREADY_INCLUDING_PTHREAD_H
+#if defined _@GUARD_PREFIX@_ALREADY_INCLUDING_PTHREAD_H
 /* Special invocation convention:
    On Android, we have a sequence of nested includes
    <pthread.h> -> <time.h> -> <sys/time.h> -> <sys/select.h> ->
@@ -39,12 +39,12 @@
 
 #if @HAVE_PTHREAD_H@
 
-# define _GL_ALREADY_INCLUDING_PTHREAD_H
+# define _@GUARD_PREFIX@_ALREADY_INCLUDING_PTHREAD_H
 
 /* The include_next requires a split double-inclusion guard.  */
 # @INCLUDE_NEXT@ @NEXT_PTHREAD_H@
 
-# undef _GL_ALREADY_INCLUDING_PTHREAD_H
+# undef _@GUARD_PREFIX@_ALREADY_INCLUDING_PTHREAD_H
 
 #endif
 
@@ -676,11 +676,11 @@ _GL_WARN_ON_USE (pthread_self, "pthread_self is not portable - "
 #   undef pthread_equal
 #   define pthread_equal rpl_pthread_equal
 #  endif
-_GL_FUNCDECL_RPL (pthread_equal, int, (pthread_t thread1, pthread_t thread2));
+_GL_FUNCDECL_RPL (pthread_equal, int, (pthread_t thread1, pthread_t thread2), );
 _GL_CXXALIAS_RPL (pthread_equal, int, (pthread_t thread1, pthread_t thread2));
 # else
 #  if !@HAVE_PTHREAD_EQUAL@
-_GL_FUNCDECL_SYS (pthread_equal, int, (pthread_t thread1, pthread_t thread2));
+_GL_FUNCDECL_SYS (pthread_equal, int, (pthread_t thread1, pthread_t thread2), );
 #  endif
 _GL_CXXALIAS_SYS (pthread_equal, int, (pthread_t thread1, pthread_t thread2));
 # endif
@@ -701,11 +701,11 @@ _GL_WARN_ON_USE (pthread_equal, "pthread_equal is not portable - "
 #   undef pthread_detach
 #   define pthread_detach rpl_pthread_detach
 #  endif
-_GL_FUNCDECL_RPL (pthread_detach, int, (pthread_t thread));
+_GL_FUNCDECL_RPL (pthread_detach, int, (pthread_t thread), );
 _GL_CXXALIAS_RPL (pthread_detach, int, (pthread_t thread));
 # else
 #  if !@HAVE_PTHREAD_DETACH@
-_GL_FUNCDECL_SYS (pthread_detach, int, (pthread_t thread));
+_GL_FUNCDECL_SYS (pthread_detach, int, (pthread_t thread), );
 #  endif
 _GL_CXXALIAS_SYS (pthread_detach, int, (pthread_t thread));
 # endif
@@ -726,11 +726,11 @@ _GL_WARN_ON_USE (pthread_detach, "pthread_detach is not portable - "
 #   undef pthread_join
 #   define pthread_join rpl_pthread_join
 #  endif
-_GL_FUNCDECL_RPL (pthread_join, int, (pthread_t thread, void **valuep));
+_GL_FUNCDECL_RPL (pthread_join, int, (pthread_t thread, void **valuep), );
 _GL_CXXALIAS_RPL (pthread_join, int, (pthread_t thread, void **valuep));
 # else
 #  if !@HAVE_PTHREAD_JOIN@
-_GL_FUNCDECL_SYS (pthread_join, int, (pthread_t thread, void **valuep));
+_GL_FUNCDECL_SYS (pthread_join, int, (pthread_t thread, void **valuep), );
 #  endif
 _GL_CXXALIAS_SYS (pthread_join, int, (pthread_t thread, void **valuep));
 # endif
@@ -751,11 +751,11 @@ _GL_WARN_ON_USE (pthread_join, "pthread_join is not portable - "
 #   undef pthread_exit
 #   define pthread_exit rpl_pthread_exit
 #  endif
-_GL_FUNCDECL_RPL (pthread_exit, _Noreturn void, (void *value));
+_GL_FUNCDECL_RPL (pthread_exit, _Noreturn void, (void *value), );
 _GL_CXXALIAS_RPL (pthread_exit, void, (void *value));
 # else
 #  if !@HAVE_PTHREAD_EXIT@
-_GL_FUNCDECL_SYS (pthread_exit, _Noreturn void, (void *value));
+_GL_FUNCDECL_SYS (pthread_exit, _Noreturn void, (void *value), );
 #  endif
 /* Need to cast because of AIX with xlclang++.  */
 _GL_CXXALIAS_SYS_CAST (pthread_exit, void, (void *value));
@@ -1784,13 +1784,13 @@ _GL_WARN_ON_USE (pthread_key_create, "pthread_key_create is not portable - "
 #   define pthread_setspecific rpl_pthread_setspecific
 #  endif
 _GL_FUNCDECL_RPL (pthread_setspecific, int,
-                  (pthread_key_t key, const void *value));
+                  (pthread_key_t key, const void *value), );
 _GL_CXXALIAS_RPL (pthread_setspecific, int,
                   (pthread_key_t key, const void *value));
 # else
 #  if !@HAVE_PTHREAD_SETSPECIFIC@
 _GL_FUNCDECL_SYS (pthread_setspecific, int,
-                  (pthread_key_t key, const void *value));
+                  (pthread_key_t key, const void *value), );
 #  endif
 _GL_CXXALIAS_SYS (pthread_setspecific, int,
                   (pthread_key_t key, const void *value));
@@ -1812,11 +1812,11 @@ _GL_WARN_ON_USE (pthread_setspecific, "pthread_setspecific is not portable - "
 #   undef pthread_getspecific
 #   define pthread_getspecific rpl_pthread_getspecific
 #  endif
-_GL_FUNCDECL_RPL (pthread_getspecific, void *, (pthread_key_t key));
+_GL_FUNCDECL_RPL (pthread_getspecific, void *, (pthread_key_t key), );
 _GL_CXXALIAS_RPL (pthread_getspecific, void *, (pthread_key_t key));
 # else
 #  if !@HAVE_PTHREAD_GETSPECIFIC@
-_GL_FUNCDECL_SYS (pthread_getspecific, void *, (pthread_key_t key));
+_GL_FUNCDECL_SYS (pthread_getspecific, void *, (pthread_key_t key), );
 #  endif
 _GL_CXXALIAS_SYS (pthread_getspecific, void *, (pthread_key_t key));
 # endif
@@ -1837,11 +1837,11 @@ _GL_WARN_ON_USE (pthread_getspecific, "pthread_getspecific is not portable - "
 #   undef pthread_key_delete
 #   define pthread_key_delete rpl_pthread_key_delete
 #  endif
-_GL_FUNCDECL_RPL (pthread_key_delete, int, (pthread_key_t key));
+_GL_FUNCDECL_RPL (pthread_key_delete, int, (pthread_key_t key), );
 _GL_CXXALIAS_RPL (pthread_key_delete, int, (pthread_key_t key));
 # else
 #  if !@HAVE_PTHREAD_KEY_DELETE@
-_GL_FUNCDECL_SYS (pthread_key_delete, int, (pthread_key_t key));
+_GL_FUNCDECL_SYS (pthread_key_delete, int, (pthread_key_t key), );
 #  endif
 _GL_CXXALIAS_SYS (pthread_key_delete, int, (pthread_key_t key));
 # endif

@@ -1,7 +1,7 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* stdckdint.h -- checked integer arithmetic
 
-   Copyright 2022-2024 Free Software Foundation, Inc.
+   Copyright 2022-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -16,10 +16,30 @@
    You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#if __GNUC__ >= 3
+#pragma GCC system_header
+#endif
+
+
+#ifndef _GL_STDCKDINT_H
+
+/* The include_next requires a split double-inclusion guard.  */
+#if defined __cplusplus ? 0 : 0
+# include_next <stdckdint.h>
+#endif
+
 #ifndef _GL_STDCKDINT_H
 #define _GL_STDCKDINT_H
 
-#include "intprops-internal.h"
+/* Do nothing but include the system header if it works properly.  */
+# if defined __cplusplus ? !0 : !0
+
+/* Avoid redefining macros.  */
+#  undef ckd_add
+#  undef ckd_sub
+#  undef ckd_mul
+
+#  include "intprops-internal.h"
 
 /* Store into *R the low-order bits of A + B, A - B, A * B, respectively.
    Return 1 if the result overflows, 0 otherwise.
@@ -27,10 +47,13 @@
    bit-precise integer type, or an enumeration type.
 
    These are like the standard macros introduced in C23, except that
-   arguments should not have side effects.  */
+   arguments should not have side effects.  The C++26 standard is
+   expected to add this header and it's macros.  */
 
-#define ckd_add(r, a, b) ((bool) _GL_INT_ADD_WRAPV (a, b, r))
-#define ckd_sub(r, a, b) ((bool) _GL_INT_SUBTRACT_WRAPV (a, b, r))
-#define ckd_mul(r, a, b) ((bool) _GL_INT_MULTIPLY_WRAPV (a, b, r))
+#  define ckd_add(r, a, b) ((bool) _GL_INT_ADD_WRAPV (a, b, r))
+#  define ckd_sub(r, a, b) ((bool) _GL_INT_SUBTRACT_WRAPV (a, b, r))
+#  define ckd_mul(r, a, b) ((bool) _GL_INT_MULTIPLY_WRAPV (a, b, r))
 
+# endif /* defined __cplusplus ? 0 : 0 */
+#endif /* _GL_STDCKDINT_H */
 #endif /* _GL_STDCKDINT_H */

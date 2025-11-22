@@ -1,7 +1,7 @@
 /**************************************************************************
  *   text.c  --  This file is part of GNU nano.                           *
  *                                                                        *
- *   Copyright (C) 1999-2011, 2013-2024 Free Software Foundation, Inc.    *
+ *   Copyright (C) 1999-2011, 2013-2025 Free Software Foundation, Inc.    *
  *   Copyright (C) 2014-2015 Mark Majeres                                 *
  *   Copyright (C) 2016 Mike Scalora                                      *
  *   Copyright (C) 2016 Sumedh Pendurkar                                  *
@@ -19,7 +19,7 @@
  *   See the GNU General Public License for more details.                 *
  *                                                                        *
  *   You should have received a copy of the GNU General Public License    *
- *   along with this program.  If not, see http://www.gnu.org/licenses/.  *
+ *   along with this program.  If not, see https://gnu.org/licenses/.     *
  *                                                                        *
  **************************************************************************/
 
@@ -876,14 +876,13 @@ void do_enter(void)
 			allblanks = (indent_length(openfile->current->data) == extra);
 	}
 #endif /* NANO_TINY */
-	newnode->data = nmalloc(strlen(openfile->current->data +
-										openfile->current_x) + extra + 1);
-	strcpy(&newnode->data[extra], openfile->current->data +
-										openfile->current_x);
+
+	newnode->data = nmalloc(strlen(openfile->current->data + openfile->current_x) + extra + 1);
+	strcpy(&newnode->data[extra], openfile->current->data + openfile->current_x);
+
 #ifndef NANO_TINY
 	/* Adjust the mark if it is on the current line after the cursor. */
-	if (openfile->mark == openfile->current &&
-				openfile->mark_x > openfile->current_x) {
+	if (openfile->mark == openfile->current && openfile->mark_x > openfile->current_x) {
 		openfile->mark = newnode;
 		openfile->mark_x += extra - openfile->current_x;
 	}
@@ -894,6 +893,8 @@ void do_enter(void)
 		/* If there were only blanks before the cursor, trim them. */
 		if (allblanks)
 			openfile->current_x = 0;
+		if (allblanks && openfile->mark == openfile->current)
+			openfile->mark_x = 0;
 	}
 #endif
 
@@ -2166,6 +2167,10 @@ void treat(char *tempfile_name, char *theprogram, bool spelling)
 	if (spelling) {
 		terminal_init();
 		doupdate();
+#ifndef NANO_TINY
+		if (the_window_resized)
+			regenerate_screen();
+#endif
 	} else
 		full_refresh();
 
@@ -2755,6 +2760,13 @@ void do_linter(void)
 
 	if (!WIFEXITED(lint_status) || WEXITSTATUS(lint_status) > 2) {
 		statusline(ALERT, _("Error invoking '%s'"), openfile->syntax->linter);
+		for (curlint = lints; curlint != NULL;) {
+			tmplint = curlint;
+			curlint = curlint->next;
+			free(tmplint->msg);
+			free(tmplint->filename);
+			free(tmplint);
+		}
 		return;
 	}
 
@@ -2764,6 +2776,7 @@ void do_linter(void)
 		return;
 	}
 
+	/* When the help lines are off and there is room, force them on. */
 	if (helpless && LINES > 5) {
 		UNSET(NO_HELP);
 		window_init();
@@ -3092,8 +3105,10 @@ char *copy_completion(char *text)
  * and paste the next possible completion. */
 void complete_a_word(void)
 {
+#ifdef ENABLE_MULTIBUFFER
 	static openfilestruct *scouring = NULL;
 		/* The buffer that is being searched for possible completions. */
+#endif
 	static completionstruct *list_of_completions;
 		/* A linked list of the completions that have been attempted. */
 	static int pletion_x = 0;
@@ -3119,7 +3134,9 @@ void complete_a_word(void)
 		openfile->last_action = OTHER;
 
 		/* Initialize the starting point for searching. */
+#ifdef ENABLE_MULTIBUFFER
 		scouring = openfile;
+#endif
 		pletion_line = openfile->filetop;
 		pletion_x = 0;
 
@@ -3157,7 +3174,7 @@ void complete_a_word(void)
 
 	/* Run through all of the lines in the buffer, looking for shard. */
 	while (pletion_line != NULL) {
-		ssize_t threshold = strlen(pletion_line->data) - shard_length - 1;
+		ssize_t threshold = strlen(pletion_line->data) - shard_length;
 				/* The point where we can stop searching for shard. */
 		completionstruct *some_word;
 		char *completion;

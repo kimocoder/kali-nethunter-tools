@@ -1,7 +1,7 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* A substitute for ISO C99 <wchar.h>, for platforms that have issues.
 
-   Copyright (C) 2007-2024 Free Software Foundation, Inc.
+   Copyright (C) 2007-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -37,8 +37,7 @@
          && ((defined _INTTYPES_INCLUDED                                \
               && !defined _GL_FINISHED_INCLUDING_SYSTEM_INTTYPES_H)     \
              || defined _GL_JUST_INCLUDE_SYSTEM_WCHAR_H))               \
-     || (defined __MINGW32__ && defined __STRING_H_SOURCED__)           \
-     || defined _GL_ALREADY_INCLUDING_WCHAR_H)
+     || (defined __MINGW32__ && defined __STRING_H_SOURCED__))
 /* Special invocation convention:
    - Inside glibc and uClibc header files, but not MinGW.
    - On HP-UX 11.00 we have a sequence of nested includes
@@ -48,19 +47,17 @@
      therefore we cannot provide the function overrides; instead include only
      the system's <wchar.h>.
    - With MinGW 3.22, when <string.h> includes <wchar.h>, only some part of
-     <wchar.h> is actually processed, and that doesn't include 'mbstate_t'.
-   - On IRIX 6.5, similarly, we have an include <wchar.h> -> <wctype.h>, and
-     the latter includes <wchar.h>.  But here, we have no way to detect whether
-     <wctype.h> is completely included or is still being included.  */
+     <wchar.h> is actually processed, and that doesn't include 'mbstate_t'.  */
 
 #include_next <wchar.h>
+/* The glibc 2.5 /usr/include/wchar.h defines __need_wint_t but never undefines
+   it.  We need to do that here.  */
+#undef __need_wint_t
 
 #else
 /* Normal invocation convention.  */
 
 #ifndef _GL_WCHAR_H
-
-#define _GL_ALREADY_INCLUDING_WCHAR_H
 
 #if 1
 # include <features.h> /* for __GLIBC__ */
@@ -79,8 +76,6 @@
 #if 1
 # include_next <wchar.h>
 #endif
-
-#undef _GL_ALREADY_INCLUDING_WCHAR_H
 
 #ifndef _GL_WCHAR_H
 #define _GL_WCHAR_H
@@ -108,7 +103,7 @@
 /* Applies to: functions.  Cannot be used on inline functions.  */
 #ifndef _GL_ATTRIBUTE_DEALLOC_FREE
 # if defined __cplusplus && defined __GNUC__ && !defined __clang__
-/* Work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=108231> */
+/* Work around GCC bug <https://gcc.gnu.org/PR108231> */
 #  define _GL_ATTRIBUTE_DEALLOC_FREE \
      _GL_ATTRIBUTE_DEALLOC ((void (*) (void *)) free, 1)
 # else
@@ -138,6 +133,18 @@
 # endif
 #endif
 
+/* _GL_ATTRIBUTE_NONNULL_IF_NONZERO (NP, NI) declares that the argument NP
+   (a pointer) must not be NULL if the argument NI (an integer) is != 0.  */
+/* Applies to: functions.  */
+#ifndef _GL_ATTRIBUTE_NONNULL_IF_NONZERO
+# if __GNUC__ >= 15 && !defined __clang__
+#  define _GL_ATTRIBUTE_NONNULL_IF_NONZERO(np, ni) \
+     __attribute__ ((__nonnull_if_nonzero__ (np, ni)))
+# else
+#  define _GL_ATTRIBUTE_NONNULL_IF_NONZERO(np, ni)
+# endif
+#endif
+
 /* _GL_ATTRIBUTE_NOTHROW declares that the function does not throw exceptions.
  */
 #ifndef _GL_ATTRIBUTE_NOTHROW
@@ -162,7 +169,7 @@
 
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
 /* C++ compatible function declaration macros.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -267,10 +274,15 @@
 # define _GL_EXTERN_C_FUNC
 #endif
 
-/* _GL_FUNCDECL_RPL (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_RPL (func, rettype, parameters, [attributes]);
    declares a replacement function, named rpl_func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_RPL (free, void, (void *ptr), ) _GL_ATTRIBUTE_NOTHROW;
      _GL_FUNCDECL_RPL (open, int, (const char *filename, int flags, ...),
                                   _GL_ARG_NONNULL ((1)));
 
@@ -279,24 +291,22 @@
    because
      [[...]] extern "C" <declaration>;
    is invalid syntax in C++.)
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_RPL invocation, at the end of the declaration.
  */
 #define _GL_FUNCDECL_RPL(func,rettype,parameters,...) \
   _GL_FUNCDECL_RPL_1 (rpl_##func, rettype, parameters, __VA_ARGS__)
 #define _GL_FUNCDECL_RPL_1(rpl_func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype rpl_func parameters
 
-/* _GL_FUNCDECL_SYS (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_SYS (func, rettype, parameters, [attributes]);
    declares the system function, named func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
-     _GL_FUNCDECL_SYS (open, int, (const char *filename, int flags, ...),
-                                  _GL_ARG_NONNULL ((1)));
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_SYS invocation, at the end of the declaration.
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_SYS (getumask, mode_t, (void), ) _GL_ATTRIBUTE_NOTHROW;
+     _GL_FUNCDECL_SYS (posix_openpt, int, (int flags), _GL_ATTRIBUTE_NODISCARD);
  */
 #define _GL_FUNCDECL_SYS(func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype func parameters
@@ -470,7 +480,7 @@
    _GL_CXXALIASWARN_1 (func, GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN_1(func,namespace) \
    _GL_CXXALIASWARN_2 (func, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN_2(func,namespace) \
@@ -498,7 +508,7 @@
                         GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN1_1(func,rettype,parameters_and_attributes,namespace) \
    _GL_CXXALIASWARN1_2 (func, rettype, parameters_and_attributes, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN1_2(func,rettype,parameters_and_attributes,namespace) \
@@ -518,7 +528,7 @@
 
 /* The definition of _GL_ARG_NONNULL is copied here.  */
 /* A C macro for declaring that specific arguments must not be NULL.
-   Copyright (C) 2009-2024 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -546,7 +556,7 @@
 
 /* The definition of _GL_WARN_ON_USE is copied here.  */
 /* A C macro for emitting warnings if a function is used.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -730,17 +740,11 @@ typedef unsigned int rpl_wint_t;
 
 
 /* Override mbstate_t if it is too small.
-   On IRIX 6.5, sizeof (mbstate_t) == 1, which is not sufficient for
-   implementing mbrtowc for encodings like UTF-8.
-   On AIX and MSVC, mbrtowc needs to be overridden, but mbstate_t exists and is
-   large enough and overriding it would cause problems in C++ mode.  */
+   On AIX, MSVC, and OpenBSD 6.0, mbrtowc needs to be overridden, but
+   mbstate_t exists and is large enough and overriding it would cause problems
+   in C++ mode.  */
 #if !(((defined _WIN32 && !defined __CYGWIN__) || 1) && 1) || 0
 # if !GNULIB_defined_mbstate_t
-#  if !(defined _AIX || defined _MSC_VER)
-typedef int rpl_mbstate_t;
-#   undef mbstate_t
-#   define mbstate_t rpl_mbstate_t
-#  endif
 #  define GNULIB_defined_mbstate_t 1
 # endif
 #endif
@@ -796,6 +800,55 @@ _GL_EXTERN_C void free (void *);
 #endif
 
 
+/* Declarations for ISO C N3322.  */
+#if defined __GNUC__ && __GNUC__ >= 15 && !defined __clang__
+_GL_EXTERN_C wchar_t *wmemcpy (wchar_t *__dest, const wchar_t *__src, size_t __n)
+# if __GLIBC__ + (__GLIBC_MINOR__ >= 2) > 2
+  _GL_ATTRIBUTE_NOTHROW
+# endif
+  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (1, 3)
+  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (2, 3);
+_GL_EXTERN_C wchar_t *wmemmove (wchar_t *__dest, const wchar_t *__src, size_t __n)
+# if __GLIBC__ + (__GLIBC_MINOR__ >= 2) > 2
+  _GL_ATTRIBUTE_NOTHROW
+# endif
+  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (1, 3)
+  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (2, 3);
+_GL_EXTERN_C wchar_t *wcsncpy (wchar_t *__dest, const wchar_t *__src, size_t __n)
+# if __GLIBC__ + (__GLIBC_MINOR__ >= 2) > 2
+  _GL_ATTRIBUTE_NOTHROW
+# endif
+  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (1, 3)
+  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (2, 3);
+_GL_EXTERN_C wchar_t *wcsncat (wchar_t *__dest, const wchar_t *__src, size_t __n)
+# if __GLIBC__ + (__GLIBC_MINOR__ >= 2) > 2
+  _GL_ATTRIBUTE_NOTHROW
+# endif
+  _GL_ARG_NONNULL ((1)) _GL_ATTRIBUTE_NONNULL_IF_NONZERO (2, 3);
+_GL_EXTERN_C int wmemcmp (const wchar_t *__s1, const wchar_t *__s2, size_t __n)
+# if __GLIBC__ + (__GLIBC_MINOR__ >= 2) > 2
+  _GL_ATTRIBUTE_NOTHROW
+# endif
+  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (1, 3)
+  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (2, 3);
+_GL_EXTERN_C int wcsncmp (const wchar_t *__s1, const wchar_t *__s2, size_t __n)
+# if __GLIBC__ + (__GLIBC_MINOR__ >= 2) > 2
+  _GL_ATTRIBUTE_NOTHROW
+# endif
+  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (1, 3)
+  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (2, 3);
+# ifndef __cplusplus
+_GL_EXTERN_C wchar_t *wmemchr (const wchar_t *__s, wchar_t __wc, size_t __n)
+  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (1, 3);
+# endif
+_GL_EXTERN_C wchar_t *wmemset (wchar_t *__s, wchar_t __wc, size_t __n)
+# if __GLIBC__ + (__GLIBC_MINOR__ >= 2) > 2
+  _GL_ATTRIBUTE_NOTHROW
+# endif
+  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (1, 3);
+#endif
+
+
 /* Convert a single-byte character to a wide character.  */
 #if 1
 # if 1
@@ -835,7 +888,7 @@ _GL_FUNCDECL_RPL (wctob, int, (wint_t wc), _GL_ATTRIBUTE_PURE);
 _GL_CXXALIAS_RPL (wctob, int, (wint_t wc));
 # else
 #  if !defined wctob && !1
-/* wctob is provided by gnulib, or wctob exists but is not declared.  */
+/* wctob is provided by gnulib.  */
 _GL_FUNCDECL_SYS (wctob, int, (wint_t wc), _GL_ATTRIBUTE_PURE);
 #  endif
 _GL_CXXALIAS_SYS (wctob, int, (wint_t wc));
@@ -859,11 +912,11 @@ _GL_WARN_ON_USE (wctob, "wctob is unportable - "
 #   undef mbsinit
 #   define mbsinit rpl_mbsinit
 #  endif
-_GL_FUNCDECL_RPL (mbsinit, int, (const mbstate_t *ps));
+_GL_FUNCDECL_RPL (mbsinit, int, (const mbstate_t *ps), );
 _GL_CXXALIAS_RPL (mbsinit, int, (const mbstate_t *ps));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (mbsinit, int, (const mbstate_t *ps));
+_GL_FUNCDECL_SYS (mbsinit, int, (const mbstate_t *ps), );
 #  endif
 _GL_CXXALIAS_SYS (mbsinit, int, (const mbstate_t *ps));
 # endif
@@ -912,7 +965,7 @@ _GL_WARN_ON_USE (mbsinit, "mbsinit is unportable - "
    without considering what mbsinit() does, we get test failures such as
      assertion "mbsinit (&iter->state)" failed
  */
-# if GNULIB_defined_mbstate_t                             /* AIX, IRIX */
+# if GNULIB_defined_mbstate_t                             /* AIX */
 /* mbstate_t has at least 4 bytes.  They are used as coded in
    gnulib/lib/mbrtowc.c.  */
 #  define _GL_MBSTATE_INIT_SIZE 1
@@ -1065,16 +1118,19 @@ _GL_WARN_ON_USE (mbsinit, "mbsinit is unportable - "
 #  define _GL_MBSTATE_ZERO_SIZE sizeof (mbstate_t)
 # endif
 _GL_BEGIN_C_LINKAGE
-# if defined IN_MBSZERO
+# if !GNULIB_defined_mbszero
+#  if defined IN_MBSZERO
 _GL_EXTERN_INLINE
-# else
+#  else
 _GL_INLINE
-# endif
+#  endif
 _GL_ARG_NONNULL ((1)) void
 mbszero (mbstate_t *ps)
 {
   memset (ps, 0, _GL_MBSTATE_ZERO_SIZE);
 }
+#  define GNULIB_defined_mbszero 1
+# endif
 _GL_END_C_LINKAGE
 _GL_CXXALIAS_SYS (mbszero, void, (mbstate_t *ps));
 _GL_CXXALIASWARN (mbszero);
@@ -1090,7 +1146,7 @@ _GL_CXXALIASWARN (mbszero);
 #  endif
 _GL_FUNCDECL_RPL (mbrtowc, size_t,
                   (wchar_t *restrict pwc, const char *restrict s, size_t n,
-                   mbstate_t *restrict ps));
+                   mbstate_t *restrict ps), );
 _GL_CXXALIAS_RPL (mbrtowc, size_t,
                   (wchar_t *restrict pwc, const char *restrict s, size_t n,
                    mbstate_t *restrict ps));
@@ -1098,7 +1154,7 @@ _GL_CXXALIAS_RPL (mbrtowc, size_t,
 #  if !1
 _GL_FUNCDECL_SYS (mbrtowc, size_t,
                   (wchar_t *restrict pwc, const char *restrict s, size_t n,
-                   mbstate_t *restrict ps));
+                   mbstate_t *restrict ps), );
 #  endif
 _GL_CXXALIAS_SYS (mbrtowc, size_t,
                   (wchar_t *restrict pwc, const char *restrict s, size_t n,
@@ -1124,13 +1180,13 @@ _GL_WARN_ON_USE (mbrtowc, "mbrtowc is unportable - "
 #   define mbrlen rpl_mbrlen
 #  endif
 _GL_FUNCDECL_RPL (mbrlen, size_t,
-                  (const char *restrict s, size_t n, mbstate_t *restrict ps));
+                  (const char *restrict s, size_t n, mbstate_t *restrict ps), );
 _GL_CXXALIAS_RPL (mbrlen, size_t,
                   (const char *restrict s, size_t n, mbstate_t *restrict ps));
 # else
 #  if !1
 _GL_FUNCDECL_SYS (mbrlen, size_t,
-                  (const char *restrict s, size_t n, mbstate_t *restrict ps));
+                  (const char *restrict s, size_t n, mbstate_t *restrict ps), );
 #  endif
 _GL_CXXALIAS_SYS (mbrlen, size_t,
                   (const char *restrict s, size_t n, mbstate_t *restrict ps));
@@ -1237,13 +1293,13 @@ _GL_WARN_ON_USE (mbsnrtowcs, "mbsnrtowcs is unportable - "
 #   define wcrtomb rpl_wcrtomb
 #  endif
 _GL_FUNCDECL_RPL (wcrtomb, size_t,
-                  (char *restrict s, wchar_t wc, mbstate_t *restrict ps));
+                  (char *restrict s, wchar_t wc, mbstate_t *restrict ps), );
 _GL_CXXALIAS_RPL (wcrtomb, size_t,
                   (char *restrict s, wchar_t wc, mbstate_t *restrict ps));
 # else
 #  if !1
 _GL_FUNCDECL_SYS (wcrtomb, size_t,
-                  (char *restrict s, wchar_t wc, mbstate_t *restrict ps));
+                  (char *restrict s, wchar_t wc, mbstate_t *restrict ps), );
 #  endif
 _GL_CXXALIAS_SYS (wcrtomb, size_t,
                   (char *restrict s, wchar_t wc, mbstate_t *restrict ps));
@@ -1377,8 +1433,9 @@ _GL_WARN_ON_USE (wcwidth, "wcwidth is unportable - "
 /* Search N wide characters of S for C.  */
 #if 1
 # if !1
-_GL_FUNCDECL_SYS (wmemchr, wchar_t *, (const wchar_t *s, wchar_t c, size_t n),
-                                      _GL_ATTRIBUTE_PURE);
+_GL_FUNCDECL_SYS (wmemchr, wchar_t *,
+                  (const wchar_t *s, wchar_t c, size_t n),
+                  _GL_ATTRIBUTE_PURE _GL_ATTRIBUTE_NONNULL_IF_NONZERO (1, 3));
 # endif
   /* On some systems, this function is defined as an overloaded function:
        extern "C++" {
@@ -1415,14 +1472,18 @@ _GL_WARN_ON_USE (wmemchr, "wmemchr is unportable - "
 #  endif
 _GL_FUNCDECL_RPL (wmemcmp, int,
                   (const wchar_t *s1, const wchar_t *s2, size_t n),
-                  _GL_ATTRIBUTE_PURE);
+                  _GL_ATTRIBUTE_PURE
+                  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (1, 3)
+                  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (2, 3));
 _GL_CXXALIAS_RPL (wmemcmp, int,
                   (const wchar_t *s1, const wchar_t *s2, size_t n));
 # else
 #  if !1
 _GL_FUNCDECL_SYS (wmemcmp, int,
                   (const wchar_t *s1, const wchar_t *s2, size_t n),
-                  _GL_ATTRIBUTE_PURE);
+                  _GL_ATTRIBUTE_PURE
+                  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (1, 3)
+                  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (2, 3));
 #  endif
 _GL_CXXALIAS_SYS (wmemcmp, int,
                   (const wchar_t *s1, const wchar_t *s2, size_t n));
@@ -1444,7 +1505,9 @@ _GL_WARN_ON_USE (wmemcmp, "wmemcmp is unportable - "
 # if !1
 _GL_FUNCDECL_SYS (wmemcpy, wchar_t *,
                   (wchar_t *restrict dest,
-                   const wchar_t *restrict src, size_t n));
+                   const wchar_t *restrict src, size_t n),
+                  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (1, 3)
+                  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (2, 3));
 # endif
 _GL_CXXALIAS_SYS (wmemcpy, wchar_t *,
                   (wchar_t *restrict dest,
@@ -1466,7 +1529,9 @@ _GL_WARN_ON_USE (wmemcpy, "wmemcpy is unportable - "
 #if 0
 # if !1
 _GL_FUNCDECL_SYS (wmemmove, wchar_t *,
-                  (wchar_t *dest, const wchar_t *src, size_t n));
+                  (wchar_t *dest, const wchar_t *src, size_t n),
+                  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (1, 3)
+                  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (2, 3));
 # endif
 _GL_CXXALIAS_SYS (wmemmove, wchar_t *,
                   (wchar_t *dest, const wchar_t *src, size_t n));
@@ -1492,7 +1557,7 @@ _GL_WARN_ON_USE (wmemmove, "wmemmove is unportable - "
 #  endif
 _GL_FUNCDECL_RPL (wmempcpy, wchar_t *,
                   (wchar_t *restrict dest,
-                   const wchar_t *restrict src, size_t n));
+                   const wchar_t *restrict src, size_t n), );
 _GL_CXXALIAS_RPL (wmempcpy, wchar_t *,
                   (wchar_t *restrict dest,
                    const wchar_t *restrict src, size_t n));
@@ -1500,7 +1565,7 @@ _GL_CXXALIAS_RPL (wmempcpy, wchar_t *,
 #  if !0
 _GL_FUNCDECL_SYS (wmempcpy, wchar_t *,
                   (wchar_t *restrict dest,
-                   const wchar_t *restrict src, size_t n));
+                   const wchar_t *restrict src, size_t n), );
 #  endif
 _GL_CXXALIAS_SYS (wmempcpy, wchar_t *,
                   (wchar_t *restrict dest,
@@ -1521,7 +1586,8 @@ _GL_WARN_ON_USE (wmempcpy, "wmempcpy is unportable - "
 /* Set N wide characters of S to C.  */
 #if 0
 # if !1
-_GL_FUNCDECL_SYS (wmemset, wchar_t *, (wchar_t *s, wchar_t c, size_t n));
+_GL_FUNCDECL_SYS (wmemset, wchar_t *, (wchar_t *s, wchar_t c, size_t n),
+                                      _GL_ATTRIBUTE_NONNULL_IF_NONZERO (1, 3));
 # endif
 _GL_CXXALIAS_SYS (wmemset, wchar_t *, (wchar_t *s, wchar_t c, size_t n));
 # if __GLIBC__ >= 2
@@ -1578,7 +1644,7 @@ _GL_WARN_ON_USE (wcsnlen, "wcsnlen is unportable - "
 #if 0
 # if !1
 _GL_FUNCDECL_SYS (wcscpy, wchar_t *,
-                  (wchar_t *restrict dest, const wchar_t *restrict src));
+                  (wchar_t *restrict dest, const wchar_t *restrict src), );
 # endif
 _GL_CXXALIAS_SYS (wcscpy, wchar_t *,
                   (wchar_t *restrict dest, const wchar_t *restrict src));
@@ -1601,7 +1667,7 @@ _GL_WARN_ON_USE (wcscpy, "wcscpy is unportable - "
    the global namespace.  */
 # if !1 || (defined __sun && defined __cplusplus)
 _GL_FUNCDECL_SYS (wcpcpy, wchar_t *,
-                  (wchar_t *restrict dest, const wchar_t *restrict src));
+                  (wchar_t *restrict dest, const wchar_t *restrict src), );
 # endif
 _GL_CXXALIAS_SYS (wcpcpy, wchar_t *,
                   (wchar_t *restrict dest, const wchar_t *restrict src));
@@ -1620,7 +1686,9 @@ _GL_WARN_ON_USE (wcpcpy, "wcpcpy is unportable - "
 # if !1
 _GL_FUNCDECL_SYS (wcsncpy, wchar_t *,
                   (wchar_t *restrict dest,
-                   const wchar_t *restrict src, size_t n));
+                   const wchar_t *restrict src, size_t n),
+                  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (1, 3)
+                  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (2, 3));
 # endif
 _GL_CXXALIAS_SYS (wcsncpy, wchar_t *,
                   (wchar_t *restrict dest,
@@ -1646,7 +1714,7 @@ _GL_WARN_ON_USE (wcsncpy, "wcsncpy is unportable - "
 # if !1 || (defined __sun && defined __cplusplus)
 _GL_FUNCDECL_SYS (wcpncpy, wchar_t *,
                   (wchar_t *restrict dest,
-                   const wchar_t *restrict src, size_t n));
+                   const wchar_t *restrict src, size_t n), );
 # endif
 _GL_CXXALIAS_SYS (wcpncpy, wchar_t *,
                   (wchar_t *restrict dest,
@@ -1665,7 +1733,7 @@ _GL_WARN_ON_USE (wcpncpy, "wcpncpy is unportable - "
 #if 0
 # if !1
 _GL_FUNCDECL_SYS (wcscat, wchar_t *,
-                  (wchar_t *restrict dest, const wchar_t *restrict src));
+                  (wchar_t *restrict dest, const wchar_t *restrict src), );
 # endif
 _GL_CXXALIAS_SYS (wcscat, wchar_t *,
                   (wchar_t *restrict dest, const wchar_t *restrict src));
@@ -1683,14 +1751,31 @@ _GL_WARN_ON_USE (wcscat, "wcscat is unportable - "
 
 /* Append no more than N wide characters of SRC onto DEST.  */
 #if 0
-# if !1
-_GL_FUNCDECL_SYS (wcsncat, wchar_t *,
+# if 0
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef wcsncat
+#   define wcsncat rpl_wcsncat
+#  endif
+_GL_FUNCDECL_RPL (wcsncat, wchar_t *,
+                  (wchar_t *restrict dest, const wchar_t *restrict src,
+                   size_t n),
+                  _GL_ARG_NONNULL ((1))
+                  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (2, 3));
+_GL_CXXALIAS_RPL (wcsncat, wchar_t *,
                   (wchar_t *restrict dest, const wchar_t *restrict src,
                    size_t n));
-# endif
+# else
+#  if !1
+_GL_FUNCDECL_SYS (wcsncat, wchar_t *,
+                  (wchar_t *restrict dest, const wchar_t *restrict src,
+                   size_t n),
+                  _GL_ARG_NONNULL ((1))
+                  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (2, 3));
+#  endif
 _GL_CXXALIAS_SYS (wcsncat, wchar_t *,
                   (wchar_t *restrict dest, const wchar_t *restrict src,
                    size_t n));
+# endif
 # if __GLIBC__ >= 2
 _GL_CXXALIASWARN (wcsncat);
 # endif
@@ -1741,14 +1826,18 @@ _GL_WARN_ON_USE (wcscmp, "wcscmp is unportable - "
 #  endif
 _GL_FUNCDECL_RPL (wcsncmp, int,
                   (const wchar_t *s1, const wchar_t *s2, size_t n),
-                  _GL_ATTRIBUTE_PURE);
+                  _GL_ATTRIBUTE_PURE
+                  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (1, 3)
+                  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (2, 3));
 _GL_CXXALIAS_RPL (wcsncmp, int,
                   (const wchar_t *s1, const wchar_t *s2, size_t n));
 # else
 #  if !1
 _GL_FUNCDECL_SYS (wcsncmp, int,
                   (const wchar_t *s1, const wchar_t *s2, size_t n),
-                  _GL_ATTRIBUTE_PURE);
+                  _GL_ATTRIBUTE_PURE
+                  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (1, 3)
+                  _GL_ATTRIBUTE_NONNULL_IF_NONZERO (2, 3));
 #  endif
 _GL_CXXALIAS_SYS (wcsncmp, int,
                   (const wchar_t *s1, const wchar_t *s2, size_t n));
@@ -1811,7 +1900,7 @@ _GL_WARN_ON_USE (wcsncasecmp, "wcsncasecmp is unportable - "
    category of the current locale.  */
 #if 0
 # if !1
-_GL_FUNCDECL_SYS (wcscoll, int, (const wchar_t *s1, const wchar_t *s2));
+_GL_FUNCDECL_SYS (wcscoll, int, (const wchar_t *s1, const wchar_t *s2), );
 # endif
 _GL_CXXALIAS_SYS (wcscoll, int, (const wchar_t *s1, const wchar_t *s2));
 # if __GLIBC__ >= 2
@@ -1832,7 +1921,7 @@ _GL_WARN_ON_USE (wcscoll, "wcscoll is unportable - "
 #if 0
 # if !1
 _GL_FUNCDECL_SYS (wcsxfrm, size_t,
-                  (wchar_t *restrict s1, const wchar_t *restrict s2, size_t n));
+                  (wchar_t *restrict s1, const wchar_t *restrict s2, size_t n), );
 # endif
 _GL_CXXALIAS_SYS (wcsxfrm, size_t,
                   (wchar_t *restrict s1, const wchar_t *restrict s2, size_t n));
@@ -2126,7 +2215,7 @@ _GL_WARN_ON_USE (wcsstr, "wcsstr is unportable - "
 #  endif
 _GL_FUNCDECL_RPL (wcstok, wchar_t *,
                   (wchar_t *restrict wcs, const wchar_t *restrict delim,
-                   wchar_t **restrict ptr));
+                   wchar_t **restrict ptr), );
 _GL_CXXALIAS_RPL (wcstok, wchar_t *,
                   (wchar_t *restrict wcs, const wchar_t *restrict delim,
                    wchar_t **restrict ptr));
@@ -2134,7 +2223,7 @@ _GL_CXXALIAS_RPL (wcstok, wchar_t *,
 #  if !1
 _GL_FUNCDECL_SYS (wcstok, wchar_t *,
                   (wchar_t *restrict wcs, const wchar_t *restrict delim,
-                   wchar_t **restrict ptr));
+                   wchar_t **restrict ptr), );
 #  endif
 _GL_CXXALIAS_SYS (wcstok, wchar_t *,
                   (wchar_t *restrict wcs, const wchar_t *restrict delim,
@@ -2238,7 +2327,7 @@ _GL_WARN_ON_USE (wcsftime, "wcsftime is unportable - "
    Possible errno values include:
      - ERANGE if SIZE is too small.
      - ENOMEM if the memory could no be allocated.  */
-_GL_FUNCDECL_SYS (wgetcwd, wchar_t *, (wchar_t *buf, size_t size));
+_GL_FUNCDECL_SYS (wgetcwd, wchar_t *, (wchar_t *buf, size_t size), );
 #endif
 
 

@@ -1,7 +1,7 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* A substitute <strings.h>.
 
-   Copyright (C) 2007-2024 Free Software Foundation, Inc.
+   Copyright (C) 2007-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -37,7 +37,7 @@
 #ifndef _GL_STRINGS_H
 #define _GL_STRINGS_H
 
-/* This file uses GNULIB_POSIXCHECK, HAVE_RAW_DECL_*.  */
+/* This file uses _GL_ARG_NONNULL, GNULIB_POSIXCHECK, HAVE_RAW_DECL_*.  */
 #if !_GL_CONFIG_H_INCLUDED
  #error "Please include config.h first."
 #endif
@@ -47,10 +47,20 @@
 # include <stddef.h>
 #endif
 
+#if 0 || 0
+/* Get locale_t.  */
+# include <locale.h>
+# if ((__GLIBC__ == 2 && __GLIBC_MINOR__ < 10) \
+      || (defined __APPLE__ && defined __MACH__))
+/* Get the declaration of strcasecmp_l.  */
+#  include <string.h>
+# endif
+#endif
+
 
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
 /* C++ compatible function declaration macros.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -155,10 +165,15 @@
 # define _GL_EXTERN_C_FUNC
 #endif
 
-/* _GL_FUNCDECL_RPL (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_RPL (func, rettype, parameters, [attributes]);
    declares a replacement function, named rpl_func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_RPL (free, void, (void *ptr), ) _GL_ATTRIBUTE_NOTHROW;
      _GL_FUNCDECL_RPL (open, int, (const char *filename, int flags, ...),
                                   _GL_ARG_NONNULL ((1)));
 
@@ -167,24 +182,22 @@
    because
      [[...]] extern "C" <declaration>;
    is invalid syntax in C++.)
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_RPL invocation, at the end of the declaration.
  */
 #define _GL_FUNCDECL_RPL(func,rettype,parameters,...) \
   _GL_FUNCDECL_RPL_1 (rpl_##func, rettype, parameters, __VA_ARGS__)
 #define _GL_FUNCDECL_RPL_1(rpl_func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype rpl_func parameters
 
-/* _GL_FUNCDECL_SYS (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_SYS (func, rettype, parameters, [attributes]);
    declares the system function, named func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
-     _GL_FUNCDECL_SYS (open, int, (const char *filename, int flags, ...),
-                                  _GL_ARG_NONNULL ((1)));
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_SYS invocation, at the end of the declaration.
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_SYS (getumask, mode_t, (void), ) _GL_ATTRIBUTE_NOTHROW;
+     _GL_FUNCDECL_SYS (posix_openpt, int, (int flags), _GL_ATTRIBUTE_NODISCARD);
  */
 #define _GL_FUNCDECL_SYS(func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype func parameters
@@ -358,7 +371,7 @@
    _GL_CXXALIASWARN_1 (func, GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN_1(func,namespace) \
    _GL_CXXALIASWARN_2 (func, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN_2(func,namespace) \
@@ -386,7 +399,7 @@
                         GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN1_1(func,rettype,parameters_and_attributes,namespace) \
    _GL_CXXALIASWARN1_2 (func, rettype, parameters_and_attributes, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN1_2(func,rettype,parameters_and_attributes,namespace) \
@@ -406,7 +419,7 @@
 
 /* The definition of _GL_ARG_NONNULL is copied here.  */
 /* A C macro for declaring that specific arguments must not be NULL.
-   Copyright (C) 2009-2024 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -434,7 +447,7 @@
 
 /* The definition of _GL_WARN_ON_USE is copied here.  */
 /* A C macro for emitting warnings if a function is used.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -592,10 +605,10 @@ extern "C" {
 #endif
 
 
-  /* Find the index of the least-significant set bit.  */
 #if 0
+/* Find the index of the least-significant set bit.  */
 # if !1
-_GL_FUNCDECL_SYS (ffs, int, (int i));
+_GL_FUNCDECL_SYS (ffs, int, (int i), );
 # endif
 _GL_CXXALIAS_SYS (ffs, int, (int i));
 _GL_CXXALIASWARN (ffs);
@@ -606,49 +619,149 @@ _GL_WARN_ON_USE (ffs, "ffs is not portable - use the ffs module");
 # endif
 #endif
 
+#if 1
 /* Compare strings S1 and S2, ignoring case, returning less than, equal to or
    greater than zero if S1 is lexicographically less than, equal to or greater
    than S2.
    Note: This function does not work in multibyte locales.  */
-#if ! 1
-extern int strcasecmp (char const *s1, char const *s2)
-     _GL_ARG_NONNULL ((1, 2));
-#endif
-#if defined GNULIB_POSIXCHECK
+# if 0
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef strcasecmp
+#   define strcasecmp rpl_strcasecmp
+#  endif
+_GL_FUNCDECL_RPL (strcasecmp, int, (const char *, const char *),
+                                   _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_RPL (strcasecmp, int, (const char *, const char *));
+# else
+#  if !1
+_GL_FUNCDECL_SYS (strcasecmp, int, (const char *, const char *),
+                                   _GL_ARG_NONNULL ((1, 2)));
+#  endif
+_GL_CXXALIAS_SYS (strcasecmp, int, (const char *, const char *));
+# endif
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (strcasecmp);
+# endif
+#elif defined GNULIB_POSIXCHECK
 /* strcasecmp() does not work with multibyte strings:
    POSIX says that it operates on "strings", and "string" in POSIX is defined
    as a sequence of bytes, not of characters.   */
 # undef strcasecmp
 # if HAVE_RAW_DECL_STRCASECMP
 _GL_WARN_ON_USE (strcasecmp, "strcasecmp cannot work correctly on character "
-                 "strings in multibyte locales - "
+                 "strings in multibyte locales and is unportable - "
                  "use mbscasecmp if you care about "
-                 "internationalization, or use c_strcasecmp , "
-                 "gnulib module c-strcase) if you want a locale "
+                 "internationalization, or use c_strcasecmp "
+                 "(gnulib module c-strcasecmp) if you want a locale "
                  "independent function");
 # endif
 #endif
 
+#if 0
+# if 0
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef strcasecmp_l
+#   define strcasecmp_l rpl_strcasecmp_l
+#  endif
+_GL_FUNCDECL_RPL (strcasecmp_l, int,
+                  (const char *s1, const char *s2, locale_t locale),
+                  _GL_ARG_NONNULL ((1, 2, 3)));
+_GL_CXXALIAS_RPL (strcasecmp_l, int,
+                  (const char *s1, const char *s2, locale_t locale));
+# else
+#  if !1
+_GL_FUNCDECL_SYS (strcasecmp_l, int,
+                  (const char *s1, const char *s2, locale_t locale),
+                  _GL_ARG_NONNULL ((1, 2, 3)));
+#  endif
+_GL_CXXALIAS_SYS (strcasecmp_l, int,
+                  (const char *s1, const char *s2, locale_t locale));
+# endif
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (strcasecmp_l);
+# endif
+#elif defined GNULIB_POSIXCHECK
+/* strcasecmp_l() does not work with multibyte strings:
+   POSIX says that it operates on "strings", and "string" in POSIX is defined
+   as a sequence of bytes, not of characters.   */
+# undef strcasecmp_l
+# if HAVE_RAW_DECL_STRCASECMP_L
+_GL_WARN_ON_USE (strcasecmp_l, "strcasecmp_l cannot work correctly on "
+                 "character strings in multibyte locales and is unportable - "
+                 "use gnulib module strcasecmp_l for portability");
+# endif
+#endif
+
+#if 1
 /* Compare no more than N bytes of strings S1 and S2, ignoring case,
    returning less than, equal to or greater than zero if S1 is
    lexicographically less than, equal to or greater than S2.
    Note: This function cannot work correctly in multibyte locales.  */
-#if ! 1
-extern int strncasecmp (char const *s1, char const *s2, size_t n)
-     _GL_ARG_NONNULL ((1, 2));
-#endif
-#if defined GNULIB_POSIXCHECK
+# if 0
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef strncasecmp
+#   define strncasecmp rpl_strncasecmp
+#  endif
+_GL_FUNCDECL_RPL (strncasecmp, int, (const char *, const char *, size_t),
+                                    _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_RPL (strncasecmp, int, (const char *, const char *, size_t));
+# else
+#  if !1
+_GL_FUNCDECL_SYS (strncasecmp, int, (const char *, const char *, size_t),
+                                    _GL_ARG_NONNULL ((1, 2)));
+#  endif
+_GL_CXXALIAS_SYS (strncasecmp, int, (const char *, const char *, size_t));
+# endif
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (strncasecmp);
+# endif
+#elif defined GNULIB_POSIXCHECK
 /* strncasecmp() does not work with multibyte strings:
    POSIX says that it operates on "strings", and "string" in POSIX is defined
    as a sequence of bytes, not of characters.  */
 # undef strncasecmp
 # if HAVE_RAW_DECL_STRNCASECMP
 _GL_WARN_ON_USE (strncasecmp, "strncasecmp cannot work correctly on character "
-                 "strings in multibyte locales - "
+                 "strings in multibyte locales and is unportable - "
                  "use mbsncasecmp or mbspcasecmp if you care about "
-                 "internationalization, or use c_strncasecmp , "
-                 "gnulib module c-strcase) if you want a locale "
+                 "internationalization, or use c_strncasecmp "
+                 "(gnulib module c-strncasecmp) if you want a locale "
                  "independent function");
+# endif
+#endif
+
+#if 0
+# if 0
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef strncasecmp_l
+#   define strncasecmp_l rpl_strncasecmp_l
+#  endif
+_GL_FUNCDECL_RPL (strncasecmp_l, int,
+                  (const char *s1, const char *s2, size_t n, locale_t locale),
+                  _GL_ARG_NONNULL ((1, 2, 4)));
+_GL_CXXALIAS_RPL (strncasecmp_l, int,
+                  (const char *s1, const char *s2, size_t n, locale_t locale));
+# else
+#  if !1
+_GL_FUNCDECL_SYS (strncasecmp_l, int,
+                  (const char *s1, const char *s2, size_t n, locale_t locale),
+                  _GL_ARG_NONNULL ((1, 2, 4)));
+#  endif
+_GL_CXXALIAS_SYS (strncasecmp_l, int,
+                  (const char *s1, const char *s2, size_t n, locale_t locale));
+# endif
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (strncasecmp_l);
+# endif
+#elif defined GNULIB_POSIXCHECK
+/* strncasecmp_l() does not work with multibyte strings:
+   POSIX says that it operates on "strings", and "string" in POSIX is defined
+   as a sequence of bytes, not of characters.   */
+# undef strncasecmp_l
+# if HAVE_RAW_DECL_STRNCASECMP_L
+_GL_WARN_ON_USE (strncasecmp_l, "strncasecmp_l cannot work correctly on "
+                 "character strings in multibyte locales and is unportable - "
+                 "use gnulib module strncasecmp_l for portability");
 # endif
 #endif
 

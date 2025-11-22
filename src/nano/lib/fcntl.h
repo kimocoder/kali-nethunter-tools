@@ -1,7 +1,7 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* Like <fcntl.h>, but with non-working flags defined to 0.
 
-   Copyright (C) 2006-2024 Free Software Foundation, Inc.
+   Copyright (C) 2006-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -23,8 +23,12 @@
 #endif
 
 
-#if defined __need_system_fcntl_h
-/* Special invocation convention.  */
+#if defined __need_system_fcntl_h || defined _GL_ALREADY_INCLUDING_FCNTL_H
+/* Special invocation convention:
+   - On Haiku we have a sequence of nested includes
+       <fcntl.h> -> <unistd.h> -> <fcntl.h>
+     In this situation, GNULIB_defined_O_NONBLOCK gets defined before the
+     system's definition of O_NONBLOCK is processed.  */
 
 /* Needed before <sys/stat.h>.
    May also define off_t to a 64-bit type on native Windows.  */
@@ -51,6 +55,8 @@
 
 #ifndef _GL_FCNTL_H
 
+#define _GL_ALREADY_INCLUDING_FCNTL_H
+
 /* Needed before <sys/stat.h>.
    May also define off_t to a 64-bit type on native Windows.
    Also defines off64_t on macOS, NetBSD, OpenBSD, MSVC, Cygwin, Haiku.  */
@@ -73,6 +79,8 @@
 # include <io.h>
 #endif
 
+#undef _GL_ALREADY_INCLUDING_FCNTL_H
+
 #ifndef _GL_FCNTL_H
 #define _GL_FCNTL_H
 
@@ -88,7 +96,7 @@
 
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
 /* C++ compatible function declaration macros.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -193,10 +201,15 @@
 # define _GL_EXTERN_C_FUNC
 #endif
 
-/* _GL_FUNCDECL_RPL (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_RPL (func, rettype, parameters, [attributes]);
    declares a replacement function, named rpl_func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_RPL (free, void, (void *ptr), ) _GL_ATTRIBUTE_NOTHROW;
      _GL_FUNCDECL_RPL (open, int, (const char *filename, int flags, ...),
                                   _GL_ARG_NONNULL ((1)));
 
@@ -205,24 +218,22 @@
    because
      [[...]] extern "C" <declaration>;
    is invalid syntax in C++.)
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_RPL invocation, at the end of the declaration.
  */
 #define _GL_FUNCDECL_RPL(func,rettype,parameters,...) \
   _GL_FUNCDECL_RPL_1 (rpl_##func, rettype, parameters, __VA_ARGS__)
 #define _GL_FUNCDECL_RPL_1(rpl_func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype rpl_func parameters
 
-/* _GL_FUNCDECL_SYS (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_SYS (func, rettype, parameters, [attributes]);
    declares the system function, named func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
-     _GL_FUNCDECL_SYS (open, int, (const char *filename, int flags, ...),
-                                  _GL_ARG_NONNULL ((1)));
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_SYS invocation, at the end of the declaration.
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_SYS (getumask, mode_t, (void), ) _GL_ATTRIBUTE_NOTHROW;
+     _GL_FUNCDECL_SYS (posix_openpt, int, (int flags), _GL_ATTRIBUTE_NODISCARD);
  */
 #define _GL_FUNCDECL_SYS(func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype func parameters
@@ -396,7 +407,7 @@
    _GL_CXXALIASWARN_1 (func, GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN_1(func,namespace) \
    _GL_CXXALIASWARN_2 (func, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN_2(func,namespace) \
@@ -424,7 +435,7 @@
                         GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN1_1(func,rettype,parameters_and_attributes,namespace) \
    _GL_CXXALIASWARN1_2 (func, rettype, parameters_and_attributes, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN1_2(func,rettype,parameters_and_attributes,namespace) \
@@ -444,7 +455,7 @@
 
 /* The definition of _GL_ARG_NONNULL is copied here.  */
 /* A C macro for declaring that specific arguments must not be NULL.
-   Copyright (C) 2009-2024 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -472,7 +483,7 @@
 
 /* The definition of _GL_WARN_ON_USE is copied here.  */
 /* A C macro for emitting warnings if a function is used.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -675,14 +686,14 @@ _GL_CXXALIASWARN (creat);
 #   undef fcntl
 #   define fcntl rpl_fcntl
 #  endif
-_GL_FUNCDECL_RPL (fcntl, int, (int fd, int action, ...));
+_GL_FUNCDECL_RPL (fcntl, int, (int fd, int action, ...), );
 _GL_CXXALIAS_RPL (fcntl, int, (int fd, int action, ...));
 #  if !GNULIB_defined_rpl_fcntl
 #   define GNULIB_defined_rpl_fcntl 1
 #  endif
 # else
 #  if !1
-_GL_FUNCDECL_SYS (fcntl, int, (int fd, int action, ...));
+_GL_FUNCDECL_SYS (fcntl, int, (int fd, int action, ...), );
 #   if !GNULIB_defined_fcntl
 #    define GNULIB_defined_fcntl 1
 #   endif
@@ -699,7 +710,7 @@ _GL_WARN_ON_USE (fcntl, "fcntl is not always POSIX compliant - "
 #endif
 
 #if 1
-# if 0
+# if 1
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef open
 #   define open rpl_open
@@ -735,7 +746,9 @@ _GL_WARN_ON_USE (open, "open is not always POSIX compliant - "
 #   undef open
 #   define open _open
 #  endif
-_GL_CXXALIAS_MDA (open, int, (const char *filename, int flags, ...));
+/* Need to cast, because in MSVC the parameter list of _open as a C++ function
+   is (const char *, int, int = 0).  */
+_GL_CXXALIAS_MDA_CAST (open, int, (const char *filename, int flags, ...));
 # else
 _GL_CXXALIAS_SYS (open, int, (const char *filename, int flags, ...));
 # endif
@@ -745,7 +758,7 @@ _GL_CXXALIASWARN (open);
 #endif
 
 #if 1
-# if 0
+# if 1
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef openat
 #   define openat rpl_openat
@@ -773,6 +786,46 @@ _GL_WARN_ON_USE (openat, "openat is not portable - "
 # endif
 #endif
 
+#if 0
+# if !defined RESOLVE_NO_XDEV && defined __has_include
+#  if __has_include (<linux/openat2.h>)
+#   include <linux/openat2.h>
+#  endif
+# endif
+# ifndef RESOLVE_NO_XDEV
+struct open_how
+{
+#  ifdef __UINT64_TYPE__
+  __UINT64_TYPE__ flags, mode, resolve;
+#  else
+  unsigned long long int flags, mode, resolve;
+#  endif
+};
+#  define RESOLVE_NO_XDEV	0x01
+#  define RESOLVE_NO_MAGICLINKS	0x02
+#  define RESOLVE_NO_SYMLINKS	0x04
+#  define RESOLVE_BENEATH	0x08
+#  define RESOLVE_IN_ROOT	0x10
+#  define RESOLVE_CACHED	0x20
+# endif
+
+# if !0
+_GL_FUNCDECL_SYS (openat2, int,
+                  (int fd, char const *file, struct open_how const *how,
+                   size_t size),
+                  _GL_ARG_NONNULL ((2, 3)));
+# endif
+_GL_CXXALIAS_SYS (openat2, int,
+                  (int fd, char const *file, struct open_how const *how,
+                   size_t size));
+_GL_CXXALIASWARN (openat2);
+#elif defined GNULIB_POSIXCHECK
+# undef openat2
+# if HAVE_RAW_DECL_OPENAT2
+_GL_WARN_ON_USE (openat2, "openat2 is not portable - "
+                 "use gnulib module openat2 for portability");
+# endif
+#endif
 
 /* Fix up the FD_* macros, only known to be missing on mingw.  */
 
@@ -817,11 +870,6 @@ _GL_WARN_ON_USE (openat, "openat is not portable - "
 # endif
 #endif
 
-#if !defined O_DIRECT && defined O_DIRECTIO
-/* Tru64 spells it 'O_DIRECTIO'.  */
-# define O_DIRECT O_DIRECTIO
-#endif
-
 #if !defined O_CLOEXEC && defined O_NOINHERIT
 /* Mingw spells it 'O_NOINHERIT'.  */
 # define O_CLOEXEC O_NOINHERIT
@@ -839,7 +887,7 @@ _GL_WARN_ON_USE (openat, "openat is not portable - "
 #endif
 
 #ifndef O_DIRECTORY
-# define O_DIRECTORY 0
+# define O_DIRECTORY 0x20000000 /* Try to not collide with system O_* flags.  */
 #endif
 
 #ifndef O_DSYNC
@@ -903,8 +951,12 @@ _GL_WARN_ON_USE (openat, "openat is not portable - "
 # define O_RSYNC 0
 #endif
 
+#if defined O_SEARCH && defined O_PATH && O_SEARCH == O_PATH
+# undef O_SEARCH /* musl mistakenly #defines O_SEARCH to O_PATH.  */
+#endif
+
 #ifndef O_SEARCH
-# define O_SEARCH O_RDONLY /* This is often close enough in older systems.  */
+# define O_SEARCH O_RDONLY /* Often close enough in non-POSIX systems.  */
 #endif
 
 #ifndef O_SYNC

@@ -1,5 +1,5 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
-/* Copyright (C) 2001-2002, 2004-2024 Free Software Foundation, Inc.
+/* Copyright (C) 2001-2002, 2004-2025 Free Software Foundation, Inc.
    Written by Paul Eggert, Bruno Haible, Sam Steingold, Peter Burwood.
    This file is part of gnulib.
 
@@ -52,13 +52,6 @@
    in public interfaces due to compiler differences.  */
 
 #if 1
-# if defined __sgi && ! defined __c99
-   /* Bypass IRIX's <stdint.h> if in C89 mode, since it merely annoys users
-      with "This header file is to be used only for c99 mode compilations"
-      diagnostics.  */
-#  define __STDINT_H__
-# endif
-
   /* Some pre-C++11 <stdint.h> implementations need this.  */
 # ifdef __cplusplus
 #  ifndef __STDC_CONSTANT_MACROS
@@ -93,10 +86,10 @@
 # define WINT_MAX 0xffffffffU
 #endif
 
-#if ! 0
+#if ! 1
 
-/* <sys/types.h> defines some of the stdint.h types as well, on glibc,
-   IRIX 6.5, and OpenBSD 3.8 (via <machine/types.h>).
+/* <sys/types.h> defines some of the stdint.h types as well, on glibc and
+   OpenBSD 3.8 (via <machine/types.h>).
    AIX 5.2 <sys/types.h> isn't needed and causes troubles.
    Mac OS X 10.4.6 <sys/types.h> includes <stdint.h> (which is us), but
    relies on the system <stdint.h> definitions, so include
@@ -552,23 +545,23 @@ typedef int _verify_intmax_size[sizeof (intmax_t) == sizeof (uintmax_t)
 #  endif
 # else
 #  define PTRDIFF_MIN  \
-    _STDINT_SIGNED_MIN (64, 0l)
+    _STDINT_SIGNED_MIN (, 0)
 #  define PTRDIFF_MAX  \
-    _STDINT_MAX (1, 64, 0l)
+    _STDINT_MAX (1, , 0)
 # endif
 
 /* sig_atomic_t limits */
 # undef SIG_ATOMIC_MIN
 # undef SIG_ATOMIC_MAX
-# if 1
+# if 
 #  define SIG_ATOMIC_MIN  \
-    _STDINT_SIGNED_MIN (32, 0)
+    _STDINT_SIGNED_MIN (, 0)
 # else
 #  define SIG_ATOMIC_MIN  \
-    _STDINT_UNSIGNED_MIN (32, 0)
+    _STDINT_UNSIGNED_MIN (, 0)
 # endif
 # define SIG_ATOMIC_MAX  \
-   _STDINT_MAX (1, 32, \
+   _STDINT_MAX (, , \
                 0)
 
 
@@ -581,15 +574,11 @@ typedef int _verify_intmax_size[sizeof (intmax_t) == sizeof (uintmax_t)
 #   define SIZE_MAX  _STDINT_MAX (0, 32, 0ul)
 #  endif
 # else
-#  define SIZE_MAX  _STDINT_MAX (0, 64, 0ul)
+#  define SIZE_MAX  _STDINT_MAX (0, , 0)
 # endif
 
 /* wchar_t limits */
-/* Get WCHAR_MIN, WCHAR_MAX.
-   This include is not on the top, above, because on OSF/1 4.0 we have a
-   sequence of nested includes
-   <wchar.h> -> <stdio.h> -> <getopt.h> -> <stdlib.h>, and the latter includes
-   <stdint.h> and assumes its types are already defined.  */
+/* Get WCHAR_MIN, WCHAR_MAX.  */
 # if 1 && ! (defined WCHAR_MIN && defined WCHAR_MAX)
 #  define _GL_JUST_INCLUDE_SYSTEM_WCHAR_H
 #  include <wchar.h>
@@ -597,31 +586,31 @@ typedef int _verify_intmax_size[sizeof (intmax_t) == sizeof (uintmax_t)
 # endif
 # undef WCHAR_MIN
 # undef WCHAR_MAX
-# if 0
+# if 
 #  define WCHAR_MIN  \
-    _STDINT_SIGNED_MIN (32, 0u)
+    _STDINT_SIGNED_MIN (32, 0)
 # else
 #  define WCHAR_MIN  \
-    _STDINT_UNSIGNED_MIN (32, 0u)
+    _STDINT_UNSIGNED_MIN (32, 0)
 # endif
 # define WCHAR_MAX  \
-   _STDINT_MAX (0, 32, 0u)
+   _STDINT_MAX (, 32, 0)
 
 /* wint_t limits */
-/* If gnulib's <wchar.h> or <wctype.h> overrides wint_t, u is not
+/* If gnulib's <wchar.h> or <wctype.h> overrides wint_t,  is not
    accurate, therefore use the definitions from above.  */
 # if !0
 #  undef WINT_MIN
 #  undef WINT_MAX
-#  if 0
+#  if 
 #   define WINT_MIN  \
-     _STDINT_SIGNED_MIN (32, 0u)
+     _STDINT_SIGNED_MIN (, 0)
 #  else
 #   define WINT_MIN  \
-     _STDINT_UNSIGNED_MIN (32, 0u)
+     _STDINT_UNSIGNED_MIN (, 0)
 #  endif
 #  define WINT_MAX  \
-    _STDINT_MAX (0, 32, 0u)
+    _STDINT_MAX (, , 0)
 # endif
 
 /* 7.18.4. Macros for integer constants */
@@ -686,7 +675,7 @@ typedef int _verify_intmax_size[sizeof (intmax_t) == sizeof (uintmax_t)
 #  endif
 # endif
 
-#endif /* !0 */
+#endif /* !1 */
 
 /* Macros specified by ISO/IEC TS 18661-1:2014.  */
 

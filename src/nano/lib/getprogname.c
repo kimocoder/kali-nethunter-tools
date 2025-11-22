@@ -1,5 +1,5 @@
 /* Program name management.
-   Copyright (C) 2016-2024 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -40,14 +40,6 @@
 # include <sys/param.h>
 # include <sys/pstat.h>
 # include <string.h>
-#endif
-
-#if defined __sgi || defined __osf__
-# include <string.h>
-# include <unistd.h>
-# include <stdio.h>
-# include <fcntl.h>
-# include <sys/procfs.h>
 #endif
 
 #if defined __SCO_VERSION__ || defined __sysv5__
@@ -137,7 +129,7 @@ getprogname (void)
               else
                 p = cmd;
               if (strlen (p) > PST_UCOMMLEN - 1
-                  && memcmp (p, ucomm, PST_UCOMMLEN - 1) == 0)
+                  && memeq (p, ucomm, PST_UCOMMLEN - 1))
                 /* p is less truncated than ucomm.  */
                 ;
               else
@@ -173,7 +165,7 @@ getprogname (void)
                   else
                     p = cmd;
                   if (strlen (p) > PST_UCOMMLEN - 1
-                      && memcmp (p, ucomm, PST_UCOMMLEN - 1) == 0)
+                      && memeq (p, ucomm, PST_UCOMMLEN - 1))
                     /* p is less truncated than ucomm.  */
                     ;
                   else
@@ -234,37 +226,6 @@ getprogname (void)
       free (buf.ps_pathptr);
     }
   return p;
-# elif defined __sgi || defined __osf__                     /* IRIX or Tru64 */
-  char filename[50];
-  int fd;
-
-  # if defined __sgi
-    sprintf (filename, "/proc/pinfo/%d", (int) getpid ());
-  # else
-    sprintf (filename, "/proc/%d", (int) getpid ());
-  # endif
-  fd = open (filename, O_RDONLY | O_CLOEXEC);
-  if (0 <= fd)
-    {
-      prpsinfo_t buf;
-      int ioctl_ok = 0 <= ioctl (fd, PIOCPSINFO, &buf);
-      close (fd);
-      if (ioctl_ok)
-        {
-          char *name = buf.pr_fname;
-          size_t namesize = sizeof buf.pr_fname;
-          /* It may not be NUL-terminated.  */
-          char *namenul = memchr (name, '\0', namesize);
-          size_t namelen = namenul ? namenul - name : namesize;
-          char *namecopy = malloc (namelen + 1);
-          if (namecopy)
-            {
-              namecopy[namelen] = '\0';
-              return memcpy (namecopy, name, namelen);
-            }
-        }
-    }
-  return NULL;
 # elif defined __SCO_VERSION__ || defined __sysv5__                /* SCO OpenServer6/UnixWare */
   char buf[80];
   int fd;

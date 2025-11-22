@@ -1,6 +1,6 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* Declarations for getopt.
-   Copyright (C) 1989-2024 Free Software Foundation, Inc.
+   Copyright (C) 1989-2025 Free Software Foundation, Inc.
    This file is part of gnulib.
    Unlike most of the getopt implementation, it is NOT shared
    with the GNU C Library, which supplies a different version of
@@ -31,7 +31,12 @@
    <getopt.h>; our definitions will be present soon enough.  */
 #if 1
 # define _GL_SYSTEM_GETOPT
+/* Rename the system's 'struct option' to 'struct sys_option',
+   so that we don't have to rename ours to 'struct rpl_option'
+   (which would cause significant trouble in C++ mode).  */
+# define option sys_option
 # include_next <getopt.h>
+# undef option
 # undef _GL_SYSTEM_GETOPT
 #endif
 
@@ -55,7 +60,7 @@
 
 /* The definition of _GL_ARG_NONNULL is copied here.  */
 /* A C macro for declaring that specific arguments must not be NULL.
-   Copyright (C) 2009-2024 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published

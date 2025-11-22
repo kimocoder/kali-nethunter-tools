@@ -1,1 +1,57 @@
-# dummy
+libgnu_a-frexpl.o: frexpl.c ../config.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdbool.h \
+  assert.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/assert.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/cdefs.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/versioning.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/api-level.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/get_device_api_level_inlines.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/ndk-version.h \
+  math.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include/math.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/math.h \
+  limits.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/limits.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/limits.h \
+  float.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/float.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/limits.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/posix_limits.h
+
+../config.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdbool.h:
+
+assert.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/assert.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/cdefs.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/versioning.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/api-level.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/get_device_api_level_inlines.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/ndk-version.h:
+
+math.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include/math.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/math.h:
+
+limits.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/limits.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/limits.h:
+
+float.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/float.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/limits.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/posix_limits.h:

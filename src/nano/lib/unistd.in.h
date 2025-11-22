@@ -1,5 +1,5 @@
 /* Substitute for and wrapper around <unistd.h>.
-   Copyright (C) 2003-2024 Free Software Foundation, Inc.
+   Copyright (C) 2003-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -95,28 +95,6 @@
 # include <stdio.h>
 #endif
 
-/* Cygwin 1.7.1 and Android 4.3 declare unlinkat in <fcntl.h>, not in
-   <unistd.h>.  */
-/* But avoid namespace pollution on glibc systems.  */
-#if (@GNULIB_UNLINKAT@ || defined GNULIB_POSIXCHECK) \
-    && (defined __CYGWIN__ || defined __ANDROID__) \
-    && ! defined __GLIBC__
-# include <fcntl.h>
-#endif
-
-/* mingw fails to declare _exit in <unistd.h>.  */
-/* mingw, MSVC, BeOS, Haiku declare environ in <stdlib.h>, not in
-   <unistd.h>.  */
-/* Solaris declares getcwd not only in <unistd.h> but also in <stdlib.h>.  */
-/* OSF Tru64 Unix cannot see gnulib rpl_strtod when system <stdlib.h> is
-   included here.  */
-/* But avoid namespace pollution on glibc systems.  */
-#if !defined __GLIBC__ && !defined __osf__
-# define __need_system_stdlib_h
-# include <stdlib.h>
-# undef __need_system_stdlib_h
-#endif
-
 /* Native Windows platforms declare _chdir, _getcwd, _rmdir in
    <io.h> and/or <direct.h>, not in <unistd.h>.
    They also declare _access(), _chmod(), _close(), _dup(), _dup2(), _isatty(),
@@ -126,15 +104,35 @@
 # include <direct.h>
 #endif
 
+/* Cygwin 1.7.1 and Android 4.3 declare unlinkat in <fcntl.h>, not in
+   <unistd.h>.  */
+/* But avoid namespace pollution on glibc systems.  */
+#if ((@GNULIB_UNLINKAT@ || defined GNULIB_POSIXCHECK) \
+      && (defined __CYGWIN__ || defined __ANDROID__) \
+      && ! defined __GLIBC__)
+# include <fcntl.h>
+#endif
+
+/* mingw fails to declare _exit in <unistd.h>.  */
+/* mingw, MSVC, BeOS, Haiku declare environ in <stdlib.h>, not in
+   <unistd.h>.  */
+/* Solaris declares getcwd not only in <unistd.h> but also in <stdlib.h>.  */
+/* But avoid namespace pollution on glibc systems.  */
+#if !defined __GLIBC__
+# define __need_system_stdlib_h
+# include <stdlib.h>
+# undef __need_system_stdlib_h
+#endif
+
 /* Native Windows platforms declare _execl*, _execv* in <process.h>.  */
 #if defined _WIN32 && !defined __CYGWIN__
 # include <process.h>
 #endif
 
-/* AIX and OSF/1 5.1 declare getdomainname in <netdb.h>, not in <unistd.h>.
+/* AIX declares getdomainname in <netdb.h>, not in <unistd.h>.
    NonStop Kernel declares gethostname in <netdb.h>, not in <unistd.h>.  */
 /* But avoid namespace pollution on glibc systems.  */
-#if ((@GNULIB_GETDOMAINNAME@ && (defined _AIX || defined __osf__)) \
+#if ((@GNULIB_GETDOMAINNAME@ && defined _AIX) \
      || (@GNULIB_GETHOSTNAME@ && defined __TANDEM)) \
     && !defined __GLIBC__
 # include <netdb.h>
@@ -180,6 +178,9 @@
 _GL_INLINE_HEADER_BEGIN
 #ifndef _GL_UNISTD_INLINE
 # define _GL_UNISTD_INLINE _GL_INLINE
+#endif
+#ifndef _GL_GETPAGESIZE_INLINE
+# define _GL_GETPAGESIZE_INLINE _GL_INLINE
 #endif
 
 /* Hide some function declarations from <winsock2.h>.  */
@@ -399,7 +400,7 @@ _GL_WARN_ON_USE (chown, "chown fails to follow symlinks on some systems and "
 #   undef close
 #   define close rpl_close
 #  endif
-_GL_FUNCDECL_RPL (close, int, (int fd));
+_GL_FUNCDECL_RPL (close, int, (int fd), );
 _GL_CXXALIAS_RPL (close, int, (int fd));
 # elif defined _WIN32 && !defined __CYGWIN__
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
@@ -446,7 +447,7 @@ _GL_CXXALIASWARN (close);
 #  endif
 _GL_FUNCDECL_RPL (copy_file_range, ssize_t, (int ifd, off_t *ipos,
                                              int ofd, off_t *opos,
-                                             size_t len, unsigned flags));
+                                             size_t len, unsigned flags), );
 _GL_CXXALIAS_RPL (copy_file_range, ssize_t, (int ifd, off_t *ipos,
                                              int ofd, off_t *opos,
                                              size_t len, unsigned flags));
@@ -454,13 +455,15 @@ _GL_CXXALIAS_RPL (copy_file_range, ssize_t, (int ifd, off_t *ipos,
 #  if !@HAVE_COPY_FILE_RANGE@
 _GL_FUNCDECL_SYS (copy_file_range, ssize_t, (int ifd, off_t *ipos,
                                              int ofd, off_t *opos,
-                                             size_t len, unsigned flags));
+                                             size_t len, unsigned flags), );
 #  endif
 _GL_CXXALIAS_SYS (copy_file_range, ssize_t, (int ifd, off_t *ipos,
                                              int ofd, off_t *opos,
                                              size_t len, unsigned flags));
 # endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (copy_file_range);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef copy_file_range
 # if HAVE_RAW_DECL_COPY_FILE_RANGE
@@ -521,7 +524,7 @@ _GL_CXXALIASWARN (dup);
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define dup2 rpl_dup2
 #  endif
-_GL_FUNCDECL_RPL (dup2, int, (int oldfd, int newfd));
+_GL_FUNCDECL_RPL (dup2, int, (int oldfd, int newfd), );
 _GL_CXXALIAS_RPL (dup2, int, (int oldfd, int newfd));
 # elif defined _WIN32 && !defined __CYGWIN__
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
@@ -570,11 +573,11 @@ _GL_CXXALIASWARN (dup2);
 #   undef dup3
 #   define dup3 rpl_dup3
 #  endif
-_GL_FUNCDECL_RPL (dup3, int, (int oldfd, int newfd, int flags));
+_GL_FUNCDECL_RPL (dup3, int, (int oldfd, int newfd, int flags), );
 _GL_CXXALIAS_RPL (dup3, int, (int oldfd, int newfd, int flags));
 # else
 #  if !@HAVE_DUP3@
-_GL_FUNCDECL_SYS (dup3, int, (int oldfd, int newfd, int flags));
+_GL_FUNCDECL_SYS (dup3, int, (int oldfd, int newfd, int flags), );
 #  endif
 _GL_CXXALIAS_SYS (dup3, int, (int oldfd, int newfd, int flags));
 # endif
@@ -1045,11 +1048,11 @@ _GL_WARN_ON_USE (fchownat, "fchownat is not portable - "
 #   undef fdatasync
 #   define fdatasync rpl_fdatasync
 #  endif
-_GL_FUNCDECL_RPL (fdatasync, int, (int fd));
+_GL_FUNCDECL_RPL (fdatasync, int, (int fd), );
 _GL_CXXALIAS_RPL (fdatasync, int, (int fd));
 # else
 #  if !@HAVE_FDATASYNC@|| !@HAVE_DECL_FDATASYNC@
-_GL_FUNCDECL_SYS (fdatasync, int, (int fd));
+_GL_FUNCDECL_SYS (fdatasync, int, (int fd), );
 #  endif
 _GL_CXXALIAS_SYS (fdatasync, int, (int fd));
 # endif
@@ -1071,7 +1074,7 @@ _GL_WARN_ON_USE (fdatasync, "fdatasync is unportable - "
    See POSIX:2008 specification
    <https://pubs.opengroup.org/onlinepubs/9699919799/functions/fsync.html>.  */
 # if !@HAVE_FSYNC@
-_GL_FUNCDECL_SYS (fsync, int, (int fd));
+_GL_FUNCDECL_SYS (fsync, int, (int fd), );
 # endif
 _GL_CXXALIAS_SYS (fsync, int, (int fd));
 _GL_CXXALIASWARN (fsync);
@@ -1223,11 +1226,11 @@ _GL_WARN_ON_USE (getdomainname, "getdomainname is unportable - "
 #   undef getdtablesize
 #   define getdtablesize rpl_getdtablesize
 #  endif
-_GL_FUNCDECL_RPL (getdtablesize, int, (void));
+_GL_FUNCDECL_RPL (getdtablesize, int, (void), );
 _GL_CXXALIAS_RPL (getdtablesize, int, (void));
 # else
 #  if !@HAVE_GETDTABLESIZE@
-_GL_FUNCDECL_SYS (getdtablesize, int, (void));
+_GL_FUNCDECL_SYS (getdtablesize, int, (void), );
 #  endif
 /* Need to cast, because on AIX, the parameter list is
                                            (...).  */
@@ -1328,8 +1331,7 @@ _GL_CXXALIAS_RPL (gethostname, int, (char *name, size_t len));
 _GL_FUNCDECL_SYS (gethostname, int, (char *name, size_t len),
                                     _GL_ARG_NONNULL ((1)));
 #  endif
-/* Need to cast, because on Solaris 10 and OSF/1 5.1 systems, the second
-   parameter is
+/* Need to cast, because on Solaris 10 systems, the second parameter is
                                                       int len.  */
 _GL_CXXALIAS_SYS_CAST (gethostname, int, (char *name, size_t len));
 # endif
@@ -1359,11 +1361,21 @@ _GL_WARN_ON_USE (gethostname, "gethostname is unportable - "
      ${LOGNAME-$USER}        on Unix platforms,
      $USERNAME               on native Windows platforms.
  */
-# if !@HAVE_DECL_GETLOGIN@
-_GL_FUNCDECL_SYS (getlogin, char *, (void));
-# endif
+# if @REPLACE_GETLOGIN@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   define getlogin rpl_getlogin
+#  endif
+_GL_FUNCDECL_RPL (getlogin, char *, (void), );
+_GL_CXXALIAS_RPL (getlogin, char *, (void));
+# else
+#  if !@HAVE_DECL_GETLOGIN@
+_GL_FUNCDECL_SYS (getlogin, char *, (void), );
+#  endif
 _GL_CXXALIAS_SYS (getlogin, char *, (void));
+# endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (getlogin);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef getlogin
 # if HAVE_RAW_DECL_GETLOGIN
@@ -1421,13 +1433,13 @@ _GL_WARN_ON_USE (getlogin_r, "getlogin_r is unportable - "
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define getpagesize rpl_getpagesize
 #  endif
-_GL_FUNCDECL_RPL (getpagesize, int, (void));
+_GL_FUNCDECL_RPL (getpagesize, int, (void), );
 _GL_CXXALIAS_RPL (getpagesize, int, (void));
 # else
 /* On HP-UX, getpagesize exists, but it is not declared in <unistd.h> even if
    the compiler options -D_HPUX_SOURCE -D_XOPEN_SOURCE=600 are used.  */
 #  if defined __hpux
-_GL_FUNCDECL_SYS (getpagesize, int, (void));
+_GL_FUNCDECL_SYS (getpagesize, int, (void), );
 #  endif
 #  if !@HAVE_GETPAGESIZE@
 #   if !defined getpagesize
@@ -1478,7 +1490,7 @@ _GL_FUNCDECL_SYS (getpagesize, int, (void));
 #     define getpagesize() _gl_getpagesize ()
 #    else
 #     if !GNULIB_defined_getpagesize_function
-_GL_UNISTD_INLINE int
+_GL_GETPAGESIZE_INLINE int
 getpagesize ()
 {
   return _gl_getpagesize ();
@@ -1559,11 +1571,11 @@ _GL_CXXALIASWARN (getpid);
 #    undef getusershell
 #    define getusershell rpl_getusershell
 #  endif
-_GL_FUNCDECL_RPL (getusershell, char *, (void));
+_GL_FUNCDECL_RPL (getusershell, char *, (void), );
 _GL_CXXALIAS_RPL (getusershell, char *, (void));
 # else
 #  if !@HAVE_DECL_GETUSERSHELL@
-_GL_FUNCDECL_SYS (getusershell, char *, (void));
+_GL_FUNCDECL_SYS (getusershell, char *, (void), );
 #  endif
 _GL_CXXALIAS_SYS (getusershell, char *, (void));
 # endif
@@ -1583,11 +1595,11 @@ _GL_WARN_ON_USE (getusershell, "getusershell is unportable - "
 #    undef setusershell
 #    define setusershell rpl_setusershell
 #  endif
-_GL_FUNCDECL_RPL (setusershell, void, (void));
+_GL_FUNCDECL_RPL (setusershell, void, (void), );
 _GL_CXXALIAS_RPL (setusershell, void, (void));
 # else
 #  if !@HAVE_DECL_GETUSERSHELL@
-_GL_FUNCDECL_SYS (setusershell, void, (void));
+_GL_FUNCDECL_SYS (setusershell, void, (void), );
 #  endif
 _GL_CXXALIAS_SYS (setusershell, void, (void));
 # endif
@@ -1608,11 +1620,11 @@ _GL_WARN_ON_USE (setusershell, "setusershell is unportable - "
 #    undef endusershell
 #    define endusershell rpl_endusershell
 #  endif
-_GL_FUNCDECL_RPL (endusershell, void, (void));
+_GL_FUNCDECL_RPL (endusershell, void, (void), );
 _GL_CXXALIAS_RPL (endusershell, void, (void));
 # else
 #  if !@HAVE_DECL_GETUSERSHELL@
-_GL_FUNCDECL_SYS (endusershell, void, (void));
+_GL_FUNCDECL_SYS (endusershell, void, (void), );
 #  endif
 _GL_CXXALIAS_SYS (endusershell, void, (void));
 # endif
@@ -1629,7 +1641,7 @@ _GL_WARN_ON_USE (endusershell, "endusershell is unportable - "
 #if @GNULIB_GROUP_MEMBER@
 /* Determine whether group id is in calling user's group list.  */
 # if !@HAVE_GROUP_MEMBER@
-_GL_FUNCDECL_SYS (group_member, int, (gid_t gid));
+_GL_FUNCDECL_SYS (group_member, int, (gid_t gid), );
 # endif
 _GL_CXXALIAS_SYS (group_member, int, (gid_t gid));
 _GL_CXXALIASWARN (group_member);
@@ -1649,7 +1661,7 @@ _GL_WARN_ON_USE (group_member, "group_member is unportable - "
 #   define isatty rpl_isatty
 #  endif
 #  define GNULIB_defined_isatty 1
-_GL_FUNCDECL_RPL (isatty, int, (int fd));
+_GL_FUNCDECL_RPL (isatty, int, (int fd), );
 _GL_CXXALIAS_RPL (isatty, int, (int fd));
 # elif defined _WIN32 && !defined __CYGWIN__
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
@@ -1792,7 +1804,7 @@ _GL_WARN_ON_USE (linkat, "linkat is unportable - "
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define lseek rpl_lseek
 #  endif
-_GL_FUNCDECL_RPL (lseek, off_t, (int fd, off_t offset, int whence));
+_GL_FUNCDECL_RPL (lseek, off_t, (int fd, off_t offset, int whence), );
 _GL_CXXALIAS_RPL (lseek, off_t, (int fd, off_t offset, int whence));
 # elif defined _WIN32 && !defined __CYGWIN__
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
@@ -2133,9 +2145,9 @@ _GL_FUNCDECL_SYS (sethostname, int,
                   (const char *name, size_t len),
                   _GL_ARG_NONNULL ((1)) _GL_ATTRIBUTE_NODISCARD);
 #  endif
-/* Need to cast, because on Solaris 11 2011-10, Mac OS X 10.5, IRIX 6.5
-   and FreeBSD 6.4 the second parameter is int.  On Solaris 11
-   2011-10, the first parameter is not const.  */
+/* Need to cast, because on Solaris 11 2011-10, Mac OS X 10.5, and FreeBSD 6.4
+   the second parameter is int.  On Solaris 11 2011-10, the first parameter is
+   not const.  */
 _GL_CXXALIAS_SYS_CAST (sethostname, int,
                        (const char *name, size_t len));
 # endif
@@ -2161,11 +2173,11 @@ _GL_WARN_ON_USE (sethostname, "sethostname is unportable - "
 #   undef sleep
 #   define sleep rpl_sleep
 #  endif
-_GL_FUNCDECL_RPL (sleep, unsigned int, (unsigned int n));
+_GL_FUNCDECL_RPL (sleep, unsigned int, (unsigned int n), );
 _GL_CXXALIAS_RPL (sleep, unsigned int, (unsigned int n));
 # else
 #  if !@HAVE_SLEEP@
-_GL_FUNCDECL_SYS (sleep, unsigned int, (unsigned int n));
+_GL_FUNCDECL_SYS (sleep, unsigned int, (unsigned int n), );
 #  endif
 _GL_CXXALIAS_SYS (sleep, unsigned int, (unsigned int n));
 # endif
@@ -2402,18 +2414,18 @@ _GL_WARN_ON_USE (unlinkat, "unlinkat is not portable - "
 #if @GNULIB_USLEEP@
 /* Pause the execution of the current thread for N microseconds.
    Returns 0 on completion, or -1 on range error.
-   See the POSIX:2001 specification
+   See the POSIX.1-2004 specification
    <https://pubs.opengroup.org/onlinepubs/009695399/functions/usleep.html>.  */
 # if @REPLACE_USLEEP@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef usleep
 #   define usleep rpl_usleep
 #  endif
-_GL_FUNCDECL_RPL (usleep, int, (useconds_t n));
+_GL_FUNCDECL_RPL (usleep, int, (useconds_t n), );
 _GL_CXXALIAS_RPL (usleep, int, (useconds_t n));
 # else
 #  if !@HAVE_USLEEP@
-_GL_FUNCDECL_SYS (usleep, int, (useconds_t n));
+_GL_FUNCDECL_SYS (usleep, int, (useconds_t n), );
 #  endif
 /* Need to cast, because on Haiku, the first parameter is
                                      unsigned int n.  */
@@ -2474,6 +2486,18 @@ _GL_CXXALIASWARN (write);
 #endif
 
 _GL_INLINE_HEADER_END
+
+
+/* Includes that provide only macros that don't need to be overridden.
+   (Includes that are needed for type definitions and function declarations
+   have their place above, before the function overrides.)  */
+
+/* FreeBSD 14.0, NetBSD 10.0, OpenBSD 7.5, Solaris 11.4, and glibc 2.41
+   do not define O_CLOEXEC in <unistd.h>.  */
+#if ! defined O_CLOEXEC
+# include <fcntl.h>
+#endif
+
 
 #endif /* _@GUARD_PREFIX@_UNISTD_H */
 #endif /* _GL_INCLUDING_UNISTD_H */

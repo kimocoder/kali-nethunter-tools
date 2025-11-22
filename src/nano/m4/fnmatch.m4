@@ -1,9 +1,10 @@
 # fnmatch.m4
 # serial 21
-dnl Copyright (C) 2000-2007, 2009-2024 Free Software Foundation, Inc.
+dnl Copyright (C) 2000-2007, 2009-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
+dnl This file is offered as-is, without any warranty.
 
 # Check for fnmatch
 
@@ -80,7 +81,7 @@ AC_DEFUN([gl_FUNC_FNMATCH_POSIX],
                 return 1;
               if (!n ("*x", ".x", FNM_PERIOD))
                 return 1;
-              /* glibc bug <https://sourceware.org/bugzilla/show_bug.cgi?id=361>
+              /* glibc bug <https://sourceware.org/PR361>
                  exists in glibc 2.3.3, fixed in glibc 2.5.  */
               if (!y (Apat, "\\\\", 0))
                 result |= 2;
@@ -106,14 +107,14 @@ AC_DEFUN([gl_FUNC_FNMATCH_POSIX],
                 result |= 2;
               if (!(n (apat, bs01, 0) == ('a' < '\\\\')))
                 result |= 2;
-              /* glibc bug <https://sourceware.org/bugzilla/show_bug.cgi?id=12378>
+              /* glibc bug <https://sourceware.org/PR12378>
                  exists in glibc 2.12, fixed in glibc 2.13.  */
               if (!y ("[/b", "[/b", 0)) /*"]]"*/
                 result |= 4;
-              /* glibc bug <https://sourceware.org/bugzilla/show_bug.cgi?id=17062>
+              /* glibc bug <https://sourceware.org/PR17062>
                  is fixed in glibc 2.20.
-                 glibc bugs <https://sourceware.org/bugzilla/show_bug.cgi?id=18032>
-                            <https://sourceware.org/bugzilla/show_bug.cgi?id=18036>
+                 glibc bugs <https://sourceware.org/PR18032>
+                            <https://sourceware.org/PR18036>
                  are fixed in glibc 2.22.
                  These bugs are not easy to test for reliably (without mmap),
                  therefore test the glibc version.  */

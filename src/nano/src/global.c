@@ -1,7 +1,7 @@
 /**************************************************************************
  *   global.c  --  This file is part of GNU nano.                         *
  *                                                                        *
- *   Copyright (C) 1999-2011, 2013-2024 Free Software Foundation, Inc.    *
+ *   Copyright (C) 1999-2011, 2013-2025 Free Software Foundation, Inc.    *
  *   Copyright (C) 2014-2022 Benno Schulenberg                            *
  *                                                                        *
  *   GNU nano is free software: you can redistribute it and/or modify     *
@@ -15,7 +15,7 @@
  *   See the GNU General Public License for more details.                 *
  *                                                                        *
  *   You should have received a copy of the GNU General Public License    *
- *   along with this program.  If not, see http://www.gnu.org/licenses/.  *
+ *   along with this program.  If not, see https://gnu.org/licenses/.     *
  *                                                                        *
  **************************************************************************/
 
@@ -30,10 +30,14 @@
 #ifndef NANO_TINY
 volatile sig_atomic_t the_window_resized = FALSE;
 		/* Set to TRUE by the handler whenever a SIGWINCH occurs. */
+volatile sig_atomic_t resized_for_browser = FALSE;
+		/* Same as above, but used by the file browser. */
 #endif
 
 bool on_a_vt = FALSE;
 		/* Whether we're running on a Linux console (a VT). */
+bool using_utf8 = FALSE;
+		/* Whether we're in a UTF-8 locale. */
 bool shifted_metas = FALSE;
 		/* Whether any Sh-M-<letter> combo has been bound. */
 
@@ -43,8 +47,6 @@ bool shift_held;
 		/* Whether Shift was being held together with a movement key. */
 bool mute_modifiers = FALSE;
 		/* Whether to ignore modifier keys while running a macro or string bind. */
-bool bracketed_paste = FALSE;
-		/* Whether text is being pasted into nano from outside. */
 
 bool we_are_running = FALSE;
 		/* Becomes TRUE as soon as all options and files have been read. */
@@ -52,8 +54,16 @@ bool more_than_one = FALSE;
 		/* Whether more than one buffer is or has been open. */
 bool report_size = TRUE;
 		/* Whether to show the number of lines when the minibar is used. */
+
 bool ran_a_tool = FALSE;
 		/* Whether a tool has been run at the Execute-Command prompt. */
+#ifndef NANO_TINY
+char *foretext = NULL;
+		/* What was typed at the Execute prompt before invoking a tool. */
+#endif
+
+int final_status = 0;
+		/* The status value that nano returns upon exit. */
 
 bool inhelp = FALSE;
 		/* Whether we are in the help viewer. */
@@ -100,7 +110,7 @@ int controlleft, controlright, controlup, controldown;
 int controlhome, controlend;
 #ifndef NANO_TINY
 int controldelete, controlshiftdelete;
-int shiftleft, shiftright, shiftup, shiftdown;
+int shiftup, shiftdown;
 int shiftcontrolleft, shiftcontrolright, shiftcontrolup, shiftcontroldown;
 int shiftcontrolhome, shiftcontrolend;
 int altleft, altright, altup, altdown;
@@ -365,8 +375,12 @@ int keycode_from_string(const char *keystring)
 		else
 			return -1;
 	} else if (keystring[0] == 'M') {
-		if (keystring[1] == '-' && keystring[3] == '\0')
-			return tolower((unsigned char)keystring[2]);
+		if (keystring[1] == '-' && keystring[3] == '\0') {
+			if ('A' <= keystring[2] && keystring[2] <= 'Z')
+				return (keystring[2] | 0x20);
+			else
+				return keystring[2];
+		}
 		if (strcasecmp(keystring, "M-Space") == 0)
 			return (int)' ';
 		else
@@ -395,7 +409,7 @@ int keycode_from_string(const char *keystring)
 /* Report the version of ncurses that nano is linked against. */
 void show_curses_version(void)
 {
-	statusline(INFO, "ncurses-%i.%i, patch %li", NCURSES_VERSION_MAJOR,
+	statusline(NOTICE, "ncurses-%i.%i, patch %li", NCURSES_VERSION_MAJOR,
 							NCURSES_VERSION_MINOR, NCURSES_VERSION_PATCH);
 }
 #endif
@@ -475,11 +489,6 @@ const keystruct *get_shortcut(const int keycode)
 	if (meta_key && keycode < 0x20)
 		return NULL;
 
-#ifndef NANO_TINY
-	/* During a paste at a prompt, ignore all command keycodes. */
-	if (bracketed_paste && keycode != BRACKETED_PASTE_MARKER)
-		return NULL;
-#endif
 #ifdef ENABLE_NANORC
 	if (keycode == PLANTED_A_COMMAND)
 		return planted_shortcut;
@@ -507,7 +516,7 @@ functionptrtype func_from_key(const int keycode)
  * with Pico or to mimic 'less' and similar text viewers. */
 functionptrtype interpret(const int keycode)
 {
-	if (!meta_key) {
+	if (!meta_key && keycode < 0x7F) {
 		if (keycode == 'N')
 			return do_findprevious;
 		if (keycode == 'n')
@@ -921,23 +930,26 @@ void shortcut_init(void)
 
 #ifndef NANO_TINY
 	add_to_funcs(to_prev_word, MMAIN,
-			/* TRANSLATORS: Try to keep the next ten strings at most 12 characters. */
+			/* TRANSLATORS: Try to keep the next four strings at most 12 characters. */
 			N_("Prev Word"), WHENHELP(prevword_gist), TOGETHER);
 	add_to_funcs(to_next_word, MMAIN,
 			N_("Next Word"), WHENHELP(nextword_gist), TOGETHER);
 #endif
 
 	add_to_funcs(do_home, MMAIN,
+			/* TRANSLATORS: These two mean: "to beginning of line", "to end of line". */
 			N_("Home"), WHENHELP(home_gist), TOGETHER);
 	add_to_funcs(do_end, MMAIN,
 			N_("End"), WHENHELP(end_gist), BLANKAFTER);
 
 	add_to_funcs(do_up, MMAIN|MBROWSER|MHELP,
+			/* TRANSLATORS: Try to keep the next two strings at most 10 characters. */
 			N_("Prev Line"), WHENHELP(prevline_gist), TOGETHER);
 	add_to_funcs(do_down, MMAIN|MBROWSER|MHELP,
 			N_("Next Line"), WHENHELP(nextline_gist), TOGETHER);
 #if !defined(NANO_TINY) || defined(ENABLE_HELP)
 	add_to_funcs(do_scroll_up, MMAIN,
+			/* TRANSLATORS: Try to keep the next four strings at most 12 characters. */
 			N_("Scroll Up"), WHENHELP(scrollup_gist), TOGETHER);
 	add_to_funcs(do_scroll_down, MMAIN,
 			N_("Scroll Down"), WHENHELP(scrolldown_gist), BLANKAFTER);
@@ -963,7 +975,7 @@ void shortcut_init(void)
 #endif
 
 	add_to_funcs(do_page_up, MMAIN|MHELP,
-			/* TRANSLATORS: Try to keep the next six strings at most 12 characters. */
+			/* TRANSLATORS: Try to keep the next four strings at most 10 characters. */
 			N_("Prev Page"), WHENHELP(prevpage_gist), TOGETHER);
 	add_to_funcs(do_page_down, MMAIN|MHELP,
 			N_("Next Page"), WHENHELP(nextpage_gist), TOGETHER);
@@ -975,6 +987,7 @@ void shortcut_init(void)
 
 #ifdef ENABLE_MULTIBUFFER
 	add_to_funcs(switch_to_prev_buffer, MMAIN,
+			/* TRANSLATORS: Try to keep these two strings at most 15 characters. */
 			N_("Prev File"), WHENHELP(prevfile_gist), TOGETHER);
 	add_to_funcs(switch_to_next_buffer, MMAIN,
 			N_("Next File"), WHENHELP(nextfile_gist), BLANKAFTER);
@@ -1162,6 +1175,9 @@ void shortcut_init(void)
 			N_("Suspend"), WHENHELP(suspend_gist), BLANKAFTER);
 #endif /* !NANO_TINY */
 
+	add_to_funcs(discard_buffer, MWRITEFILE,
+			N_("Discard buffer"), WHENHELP(discardbuffer_gist), BLANKAFTER);
+
 #ifdef ENABLE_BROWSER
 	/* The file browser is only available when not in restricted mode. */
 	if (!ISSET(RESTRICTED))
@@ -1190,9 +1206,6 @@ void shortcut_init(void)
 			N_("Bottom Row"), WHENHELP(browserbottomrow_gist), BLANKAFTER);
 #endif
 #endif /* ENABLE_BROWSER */
-
-	add_to_funcs(discard_buffer, MWRITEFILE,
-			N_("Discard buffer"), WHENHELP(discardbuffer_gist), BLANKAFTER);
 
 #ifdef ENABLE_LINTER
 	add_to_funcs(do_page_up, MLINTER,
@@ -1345,7 +1358,7 @@ void shortcut_init(void)
 	add_to_sclist(MMOST & ~MMAIN, "^B", 0, do_left, 0);
 	add_to_sclist(MMOST & ~MMAIN, "^F", 0, do_right, 0);
 #ifdef ENABLE_UTF8
-	if (using_utf8()) {
+	if (using_utf8) {
 		add_to_sclist(MMOST|MBROWSER|MHELP, "\xE2\x97\x82", KEY_LEFT, do_left, 0);
 		add_to_sclist(MMOST|MBROWSER|MHELP, "\xE2\x96\xb8", KEY_RIGHT, do_right, 0);
 		add_to_sclist(MSOME, "^\xE2\x97\x82", CONTROL_LEFT, to_prev_word, 0);
@@ -1375,7 +1388,7 @@ void shortcut_init(void)
 	add_to_sclist(MMOST, "Home", KEY_HOME, do_home, 0);
 	add_to_sclist(MMOST, "End", KEY_END, do_end, 0);
 #ifdef ENABLE_UTF8
-	if (using_utf8()) {
+	if (using_utf8) {
 		add_to_sclist(MMAIN|MBROWSER|MHELP, "\xE2\x96\xb4", KEY_UP, do_up, 0);
 		add_to_sclist(MMAIN|MBROWSER|MHELP, "\xE2\x96\xbe", KEY_DOWN, do_down, 0);
 		add_to_sclist(MMAIN|MBROWSER|MLINTER, "^\xE2\x96\xb4", CONTROL_UP, to_prev_block, 0);
@@ -1398,7 +1411,7 @@ void shortcut_init(void)
 #endif
 #ifndef NANO_TINY
 #ifdef ENABLE_UTF8
-	if (using_utf8()) {
+	if (using_utf8) {
 		add_to_sclist(MMAIN|MHELP, "M-\xE2\x96\xb4", ALT_UP, do_scroll_up, 0);
 		add_to_sclist(MMAIN|MHELP, "M-\xE2\x96\xbe", ALT_DOWN, do_scroll_down, 0);
 	} else
@@ -1435,9 +1448,12 @@ void shortcut_init(void)
 	add_to_sclist(MEXECUTE, "^J", 0, do_full_justify, 0);
 #endif
 #ifndef NANO_TINY
-	add_to_sclist(MMAIN, "^L", 0, do_cycle, 0);
-#endif
+	add_to_sclist(MMAIN, "^L", 0, do_center, 0);
+	add_to_sclist(MMAIN, "M-%", 0, do_cycle, 0);
+	add_to_sclist((MMOST|MBROWSER|MHELP|MYESNO)&~MMAIN, "^L", 0, full_refresh, 0);
+#else
 	add_to_sclist(MMOST|MBROWSER|MHELP|MYESNO, "^L", 0, full_refresh, 0);
+#endif
 
 #ifndef NANO_TINY
 	/* Group of "Appearance" toggles. */
@@ -1480,7 +1496,7 @@ void shortcut_init(void)
 	add_to_sclist(MWHEREIS|MREPLACE|MREPLACEWITH|MWHEREISFILE|MFINDINHELP|MEXECUTE, "^P", 0, get_older_item, 0);
 	add_to_sclist(MWHEREIS|MREPLACE|MREPLACEWITH|MWHEREISFILE|MFINDINHELP|MEXECUTE, "^N", 0, get_newer_item, 0);
 #ifdef ENABLE_UTF8
-	if (using_utf8()) {
+	if (using_utf8) {
 		add_to_sclist(MWHEREIS|MREPLACE|MREPLACEWITH|MWHEREISFILE|MFINDINHELP|MEXECUTE, "\xE2\x96\xb4", KEY_UP, get_older_item, 0);
 		add_to_sclist(MWHEREIS|MREPLACE|MREPLACEWITH|MWHEREISFILE|MFINDINHELP|MEXECUTE, "\xE2\x96\xbe", KEY_DOWN, get_newer_item, 0);
 	} else
@@ -1510,7 +1526,7 @@ void shortcut_init(void)
 	add_to_sclist(MBROWSER, "M-G", 0, goto_dir, 0);
 	add_to_sclist(MBROWSER, "^_", 0, goto_dir, 0);
 #endif
-	if (ISSET(SAVE_ON_EXIT) && !ISSET(PRESERVE))
+	if (!ISSET(PRESERVE))
 		add_to_sclist(MWRITEFILE, "^Q", 0, discard_buffer, 0);
 #ifndef NANO_TINY
 	add_to_sclist(MWRITEFILE, "M-D", 0, dos_format, 0);
@@ -1574,8 +1590,9 @@ void shortcut_init(void)
 	add_to_sclist((MMOST & ~MMAIN) | MYESNO, "", KEY_CANCEL, do_cancel, 0);
 	add_to_sclist(MMAIN, "", KEY_CENTER, do_center, 0);
 	add_to_sclist(MMAIN, "", KEY_SIC, do_insertfile, 0);
-	/* Catch and ignore bracketed paste marker keys. */
-	add_to_sclist(MMOST|MBROWSER|MHELP|MYESNO, "", BRACKETED_PASTE_MARKER, do_nothing, 0);
+	add_to_sclist(MMAIN, "", START_OF_PASTE, suck_up_input_and_paste_it, 0);
+	add_to_sclist(MMOST, "", START_OF_PASTE, do_nothing, 0);
+	add_to_sclist(MMOST, "", END_OF_PASTE, do_nothing, 0);
 #else
 	add_to_sclist(MMOST|MBROWSER|MHELP|MYESNO, "", KEY_FRESH, full_refresh, 0);
 #endif

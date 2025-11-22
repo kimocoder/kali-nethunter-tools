@@ -1,7 +1,7 @@
 /**************************************************************************
  *   rcfile.c  --  This file is part of GNU nano.                         *
  *                                                                        *
- *   Copyright (C) 2001-2011, 2013-2024 Free Software Foundation, Inc.    *
+ *   Copyright (C) 2001-2011, 2013-2025 Free Software Foundation, Inc.    *
  *   Copyright (C) 2014 Mike Frysinger                                    *
  *   Copyright (C) 2019 Brand Huntsman                                    *
  *   Copyright (C) 2014-2021 Benno Schulenberg                            *
@@ -17,7 +17,7 @@
  *   See the GNU General Public License for more details.                 *
  *                                                                        *
  *   You should have received a copy of the GNU General Public License    *
- *   along with this program.  If not, see http://www.gnu.org/licenses/.  *
+ *   along with this program.  If not, see https://gnu.org/licenses/.     *
  *                                                                        *
  **************************************************************************/
 
@@ -117,6 +117,7 @@ static const rcoption rcopts[] = {
 	{"trimblanks", TRIM_BLANKS},
 	{"unix", MAKE_IT_UNIX},
 	{"whitespace", 0},
+	{"whitespacedisplay", WHITESPACE_DISPLAY},
 	{"wordbounds", WORD_BOUNDS},
 	{"wordchars", 0},
 	{"zap", LET_THEM_ZAP},
@@ -755,10 +756,11 @@ void parse_binding(char *ptr, bool dobind)
 	keycopy = copy_of(keyptr);
 
 	/* Uppercase either the second or the first character of the key name. */
-	if (keycopy[0] == '^')
-		keycopy[1] = toupper((unsigned char)keycopy[1]);
-	else
-		keycopy[0] = toupper((unsigned char)keycopy[0]);
+	if (keycopy[0] == '^') {
+		if ('a' <= keycopy[1] && keycopy[1] <= 'z')
+			keycopy[1] &= 0x5F;
+	} else if ('a' <= keycopy[0] && keycopy[0] <= 'z')
+		keycopy[0] &= 0x5F;
 
 	/* Verify that the key name is not too short. */
 	if (keycopy[1] == '\0' || (keycopy[0] == 'M' && keycopy[2] == '\0')) {
@@ -1583,7 +1585,7 @@ void parse_rcfile(FILE *rcstream, bool just_syntax, bool intros_only)
 
 #ifdef ENABLE_UTF8
 		/* When in a UTF-8 locale, ignore arguments with invalid sequences. */
-		if (using_utf8() && mbstowcs(NULL, argument, 0) == (size_t)-1) {
+		if (using_utf8 && mbstowcs(NULL, argument, 0) == (size_t)-1) {
 			jot_error(N_("Argument is not a valid multibyte string"));
 			continue;
 		}

@@ -1,7 +1,7 @@
 /**************************************************************************
  *   prototypes.h  --  This file is part of GNU nano.                     *
  *                                                                        *
- *   Copyright (C) 1999-2011, 2013-2024 Free Software Foundation, Inc.    *
+ *   Copyright (C) 1999-2011, 2013-2025 Free Software Foundation, Inc.    *
  *                                                                        *
  *   GNU nano is free software: you can redistribute it and/or modify     *
  *   it under the terms of the GNU General Public License as published    *
@@ -14,7 +14,7 @@
  *   See the GNU General Public License for more details.                 *
  *                                                                        *
  *   You should have received a copy of the GNU General Public License    *
- *   along with this program.  If not, see http://www.gnu.org/licenses/.  *
+ *   along with this program.  If not, see https://gnu.org/licenses/.     *
  *                                                                        *
  **************************************************************************/
 
@@ -24,20 +24,25 @@
 
 #ifndef NANO_TINY
 extern volatile sig_atomic_t the_window_resized;
+extern volatile sig_atomic_t resized_for_browser;
 #endif
 
 extern bool on_a_vt;
+extern bool using_utf8;
 extern bool shifted_metas;
 
 extern bool meta_key;
 extern bool shift_held;
 extern bool mute_modifiers;
-extern bool bracketed_paste;
 
 extern bool we_are_running;
 extern bool more_than_one;
 extern bool report_size;
+
 extern bool ran_a_tool;
+extern char *foretext;
+
+extern int final_status;
 
 extern bool inhelp;
 extern char *title;
@@ -68,7 +73,6 @@ extern int controlup, controldown;
 extern int controlhome, controlend;
 #ifndef NANO_TINY
 extern int controldelete, controlshiftdelete;
-extern int shiftleft, shiftright;
 extern int shiftup, shiftdown;
 extern int shiftcontrolleft, shiftcontrolright;
 extern int shiftcontrolup, shiftcontroldown;
@@ -204,10 +208,6 @@ void to_last_file(void);
 #endif
 
 /* Most functions in chars.c. */
-#ifdef ENABLE_UTF8
-void utf8_init(void);
-bool using_utf8(void);
-#endif
 bool is_alpha_char(const char *c);
 bool is_blank_char(const char *c);
 bool is_cntrl_char(const char *c);
@@ -356,7 +356,7 @@ void load_history(void);
 void save_history(void);
 void load_poshistory(void);
 void update_poshistory(void);
-bool has_old_position(const char *file, ssize_t *line, ssize_t *column);
+void restore_cursor_position_if_any(void);
 #endif
 
 /* Most functions in move.c. */
@@ -440,6 +440,7 @@ void confirm_margin(void);
 #endif
 void unbound_key(int code);
 bool changes_something(functionptrtype f);
+void suck_up_input_and_paste_it(void);
 void inject(char *burst, size_t count);
 
 /* Most functions in prompt.c. */
@@ -484,9 +485,9 @@ void ask_for_and_do_replacements(void);
 #if !defined(NANO_TINY) || defined(ENABLE_SPELLER) || defined (ENABLE_LINTER) || defined (ENABLE_FORMATTER)
 void goto_line_posx(ssize_t line, size_t pos_x);
 #endif
-void goto_line_and_column(ssize_t line, ssize_t column, bool retain_answer,
-		bool interactive);
 void do_gotolinecolumn(void);
+void ask_for_line_and_column(char *provided);
+void goto_line_and_column(ssize_t line, ssize_t column, bool hugfloor);
 #ifndef NANO_TINY
 void do_find_bracket(void);
 void put_or_lift_anchor(void);

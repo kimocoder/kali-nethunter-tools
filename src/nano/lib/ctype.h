@@ -1,7 +1,7 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* A substitute for ISO C99 <ctype.h>, for platforms on which it is incomplete.
 
-   Copyright (C) 2009-2024 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -30,6 +30,19 @@
 #endif
 
 
+/* On Solaris 11 OmniOS, we cannot include <locale.h> until after <wchar.h> has
+   been entirely included.  That is because
+     - <locale.h> includes <xlocale.h>, which makes use of the mbstate_t type.
+     - <wchar.h> includes <iso/wchar_iso.h>, which includes <ctype.h> *before*
+       defining mbstate_t, WEOF, etc.  */
+#if defined __sun && defined _ISO_WCHAR_ISO_H && !defined WEOF
+/* We're in the middle of including <iso/wchar_iso.h>.
+   Include just the original <ctype.h>.  */
+
+#include_next <ctype.h>
+
+#else
+
 /* Include the original <ctype.h>.  */
 /* The include_next requires a split double-inclusion guard.  */
 #include_next <ctype.h>
@@ -37,14 +50,23 @@
 #ifndef _GL_CTYPE_H
 #define _GL_CTYPE_H
 
-/* This file uses GNULIB_POSIXCHECK, HAVE_RAW_DECL_*.  */
+/* This file uses _GL_ARG_NONNULL, GNULIB_POSIXCHECK, HAVE_RAW_DECL_*.  */
 #if !_GL_CONFIG_H_INCLUDED
  #error "Please include config.h first."
 #endif
 
+#if (0 || 0 || 0 \
+     || 0 || 0 || 0 \
+     || 0 || 0 || 0 \
+     || 0 || 0 || 0 \
+     || 0 || 0)
+/* Get locale_t.  */
+# include <locale.h>
+#endif
+
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
 /* C++ compatible function declaration macros.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -149,10 +171,15 @@
 # define _GL_EXTERN_C_FUNC
 #endif
 
-/* _GL_FUNCDECL_RPL (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_RPL (func, rettype, parameters, [attributes]);
    declares a replacement function, named rpl_func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_RPL (free, void, (void *ptr), ) _GL_ATTRIBUTE_NOTHROW;
      _GL_FUNCDECL_RPL (open, int, (const char *filename, int flags, ...),
                                   _GL_ARG_NONNULL ((1)));
 
@@ -161,24 +188,22 @@
    because
      [[...]] extern "C" <declaration>;
    is invalid syntax in C++.)
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_RPL invocation, at the end of the declaration.
  */
 #define _GL_FUNCDECL_RPL(func,rettype,parameters,...) \
   _GL_FUNCDECL_RPL_1 (rpl_##func, rettype, parameters, __VA_ARGS__)
 #define _GL_FUNCDECL_RPL_1(rpl_func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype rpl_func parameters
 
-/* _GL_FUNCDECL_SYS (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_SYS (func, rettype, parameters, [attributes]);
    declares the system function, named func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
-     _GL_FUNCDECL_SYS (open, int, (const char *filename, int flags, ...),
-                                  _GL_ARG_NONNULL ((1)));
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_SYS invocation, at the end of the declaration.
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_SYS (getumask, mode_t, (void), ) _GL_ATTRIBUTE_NOTHROW;
+     _GL_FUNCDECL_SYS (posix_openpt, int, (int flags), _GL_ATTRIBUTE_NODISCARD);
  */
 #define _GL_FUNCDECL_SYS(func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype func parameters
@@ -352,7 +377,7 @@
    _GL_CXXALIASWARN_1 (func, GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN_1(func,namespace) \
    _GL_CXXALIASWARN_2 (func, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN_2(func,namespace) \
@@ -380,7 +405,7 @@
                         GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN1_1(func,rettype,parameters_and_attributes,namespace) \
    _GL_CXXALIASWARN1_2 (func, rettype, parameters_and_attributes, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN1_2(func,rettype,parameters_and_attributes,namespace) \
@@ -398,9 +423,37 @@
 
 #endif /* _GL_CXXDEFS_H */
 
+/* The definition of _GL_ARG_NONNULL is copied here.  */
+/* A C macro for declaring that specific arguments must not be NULL.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
+
+   This program is free software: you can redistribute it and/or modify it
+   under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
+
+/* _GL_ARG_NONNULL((n,...,m)) tells the compiler and static analyzer tools
+   that the values passed as arguments n, ..., m must be non-NULL pointers.
+   n = 1 stands for the first argument, n = 2 for the second argument etc.  */
+#ifndef _GL_ARG_NONNULL
+# if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3) || defined __clang__
+#  define _GL_ARG_NONNULL(params) __attribute__ ((__nonnull__ params))
+# else
+#  define _GL_ARG_NONNULL(params)
+# endif
+#endif
+
 /* The definition of _GL_WARN_ON_USE is copied here.  */
 /* A C macro for emitting warnings if a function is used.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -553,6 +606,42 @@ _GL_WARN_EXTERN_C int _gl_warn_on_use
 # endif
 #endif
 
+/* Return non-zero if c is alphanumeric.  */
+#if 0
+# if !1
+_GL_FUNCDECL_SYS (isalnum_l, int, (int c, locale_t locale),
+                                  _GL_ARG_NONNULL ((2)));
+# endif
+_GL_CXXALIAS_SYS (isalnum_l, int, (int c, locale_t locale));
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (isalnum_l);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef isalnum_l
+# if HAVE_RAW_DECL_ISALNUM_L
+_GL_WARN_ON_USE (isalnum_l, "isalnum_l is unportable - "
+                 "use gnulib module isalnum_l for portability");
+# endif
+#endif
+
+/* Return non-zero if c is alphabetic.  */
+#if 0
+# if !1
+_GL_FUNCDECL_SYS (isalpha_l, int, (int c, locale_t locale),
+                                  _GL_ARG_NONNULL ((2)));
+# endif
+_GL_CXXALIAS_SYS (isalpha_l, int, (int c, locale_t locale));
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (isalpha_l);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef isalpha_l
+# if HAVE_RAW_DECL_ISALPHA_L
+_GL_WARN_ON_USE (isalpha_l, "isalpha_l is unportable - "
+                 "use gnulib module isalpha_l for portability");
+# endif
+#endif
+
 /* Return non-zero if c is a blank, i.e. a space or tab character.  */
 #if 1
 # if !1
@@ -566,5 +655,222 @@ _GL_WARN_ON_USE (isblank, "isblank is unportable - "
 # endif
 #endif
 
+/* Return non-zero if c is a blank, i.e. a space or tab character.  */
+#if 0
+# if !1
+_GL_FUNCDECL_SYS (isblank_l, int, (int c, locale_t locale),
+                                  _GL_ARG_NONNULL ((2)));
+# endif
+_GL_CXXALIAS_SYS (isblank_l, int, (int c, locale_t locale));
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (isblank_l);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef isblank_l
+# if HAVE_RAW_DECL_ISBLANK_L
+_GL_WARN_ON_USE (isblank_l, "isblank_l is unportable - "
+                 "use gnulib module isblank_l for portability");
+# endif
+#endif
+
+/* Return non-zero if c is a control character.  */
+#if 0
+# if !1
+_GL_FUNCDECL_SYS (iscntrl_l, int, (int c, locale_t locale),
+                                  _GL_ARG_NONNULL ((2)));
+# endif
+_GL_CXXALIAS_SYS (iscntrl_l, int, (int c, locale_t locale));
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (iscntrl_l);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef iscntrl_l
+# if HAVE_RAW_DECL_ISCNTRL_L
+_GL_WARN_ON_USE (iscntrl_l, "iscntrl_l is unportable - "
+                 "use gnulib module iscntrl_l for portability");
+# endif
+#endif
+
+/* Return non-zero if c is a digit.  */
+#if 0
+# if !1
+_GL_FUNCDECL_SYS (isdigit_l, int, (int c, locale_t locale),
+                                  _GL_ARG_NONNULL ((2)));
+# endif
+_GL_CXXALIAS_SYS (isdigit_l, int, (int c, locale_t locale));
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (isdigit_l);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef isdigit_l
+# if HAVE_RAW_DECL_ISDIGIT_L
+_GL_WARN_ON_USE (isdigit_l, "isdigit_l is unportable - "
+                 "use gnulib module isdigit_l for portability");
+# endif
+#endif
+
+/* Return non-zero if c is graphic.  */
+#if 0
+# if !1
+_GL_FUNCDECL_SYS (isgraph_l, int, (int c, locale_t locale),
+                                  _GL_ARG_NONNULL ((2)));
+# endif
+_GL_CXXALIAS_SYS (isgraph_l, int, (int c, locale_t locale));
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (isgraph_l);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef isgraph_l
+# if HAVE_RAW_DECL_ISGRAPH_L
+_GL_WARN_ON_USE (isgraph_l, "isgraph_l is unportable - "
+                 "use gnulib module isgraph_l for portability");
+# endif
+#endif
+
+/* Return non-zero if c is lowercase.  */
+#if 0
+# if !1
+_GL_FUNCDECL_SYS (islower_l, int, (int c, locale_t locale),
+                                  _GL_ARG_NONNULL ((2)));
+# endif
+_GL_CXXALIAS_SYS (islower_l, int, (int c, locale_t locale));
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (islower_l);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef islower_l
+# if HAVE_RAW_DECL_ISLOWER_L
+_GL_WARN_ON_USE (islower_l, "islower_l is unportable - "
+                 "use gnulib module islower_l for portability");
+# endif
+#endif
+
+/* Return non-zero if c is printable.  */
+#if 0
+# if !1
+_GL_FUNCDECL_SYS (isprint_l, int, (int c, locale_t locale),
+                                  _GL_ARG_NONNULL ((2)));
+# endif
+_GL_CXXALIAS_SYS (isprint_l, int, (int c, locale_t locale));
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (isprint_l);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef isprint_l
+# if HAVE_RAW_DECL_ISPRINT_L
+_GL_WARN_ON_USE (isprint_l, "isprint_l is unportable - "
+                 "use gnulib module isprint_l for portability");
+# endif
+#endif
+
+/* Return non-zero if c is a punctuation or symbol character.  */
+#if 0
+# if !1
+_GL_FUNCDECL_SYS (ispunct_l, int, (int c, locale_t locale),
+                                  _GL_ARG_NONNULL ((2)));
+# endif
+_GL_CXXALIAS_SYS (ispunct_l, int, (int c, locale_t locale));
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (ispunct_l);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef ispunct_l
+# if HAVE_RAW_DECL_ISPUNCT_L
+_GL_WARN_ON_USE (ispunct_l, "ispunct_l is unportable - "
+                 "use gnulib module ispunct_l for portability");
+# endif
+#endif
+
+/* Return non-zero if c is white-space.  */
+#if 0
+# if !1
+_GL_FUNCDECL_SYS (isspace_l, int, (int c, locale_t locale),
+                                  _GL_ARG_NONNULL ((2)));
+# endif
+_GL_CXXALIAS_SYS (isspace_l, int, (int c, locale_t locale));
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (isspace_l);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef isspace_l
+# if HAVE_RAW_DECL_ISSPACE_L
+_GL_WARN_ON_USE (isspace_l, "isspace_l is unportable - "
+                 "use gnulib module isspace_l for portability");
+# endif
+#endif
+
+/* Return non-zero if c is uppercase.  */
+#if 0
+# if !1
+_GL_FUNCDECL_SYS (isupper_l, int, (int c, locale_t locale),
+                                  _GL_ARG_NONNULL ((2)));
+# endif
+_GL_CXXALIAS_SYS (isupper_l, int, (int c, locale_t locale));
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (isupper_l);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef isupper_l
+# if HAVE_RAW_DECL_ISUPPER_L
+_GL_WARN_ON_USE (isupper_l, "isupper_l is unportable - "
+                 "use gnulib module isupper_l for portability");
+# endif
+#endif
+
+/* Return non-zero if c is a hexadecimal digit.  */
+#if 0
+# if !1
+_GL_FUNCDECL_SYS (isxdigit_l, int, (int c, locale_t locale),
+                                   _GL_ARG_NONNULL ((2)));
+# endif
+_GL_CXXALIAS_SYS (isxdigit_l, int, (int c, locale_t locale));
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (isxdigit_l);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef isxdigit_l
+# if HAVE_RAW_DECL_ISXDIGIT_L
+_GL_WARN_ON_USE (isxdigit_l, "isxdigit_l is unportable - "
+                 "use gnulib module isxdigit_l for portability");
+# endif
+#endif
+
+/* Map c to lowercase.  */
+#if 0
+# if !1
+_GL_FUNCDECL_SYS (tolower_l, int, (int c, locale_t locale),
+                                  _GL_ARG_NONNULL ((2)));
+# endif
+_GL_CXXALIAS_SYS (tolower_l, int, (int c, locale_t locale));
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (tolower_l);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef tolower_l
+# if HAVE_RAW_DECL_TOLOWER_L
+_GL_WARN_ON_USE (tolower_l, "tolower_l is unportable - "
+                 "use gnulib module tolower_l for portability");
+# endif
+#endif
+
+/* Map c to uppercase.  */
+#if 0
+# if !1
+_GL_FUNCDECL_SYS (toupper_l, int, (int c, locale_t locale),
+                                  _GL_ARG_NONNULL ((2)));
+# endif
+_GL_CXXALIAS_SYS (toupper_l, int, (int c, locale_t locale));
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (toupper_l);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef toupper_l
+# if HAVE_RAW_DECL_TOUPPER_L
+_GL_WARN_ON_USE (toupper_l, "toupper_l is unportable - "
+                 "use gnulib module toupper_l for portability");
+# endif
+#endif
+
 #endif /* _GL_CTYPE_H */
+#endif
 #endif /* _GL_CTYPE_H */

@@ -1,125 +1,129 @@
 rcfile.o: rcfile.c prototypes.h definitions.h ../config.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdbool.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdbool.h \
   ../lib/assert.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/assert.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/cdefs.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/versioning.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/api-level.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/get_device_api_level_inlines.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/ndk-version.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/assert.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/cdefs.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/versioning.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/api-level.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/get_device_api_level_inlines.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/ndk-version.h \
   ../lib/limits.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/limits.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/limits.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/limits.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/limits.h \
   ../lib/float.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/float.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/limits.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/posix_limits.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/param.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/endian.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/endian.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/float.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/limits.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/posix_limits.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/param.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/endian.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/endian.h \
   ../lib/stdint.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdint.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/stdint.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/wchar_limits.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdint.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/stdint.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/wchar_limits.h \
   ../lib/stddef.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stddef.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/__stddef_max_align_t.h \
-  ../lib/sys/types.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/types.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/types.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/types.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/types.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/int-ll64.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/bitsperlong.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/bitsperlong.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/posix_types.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/stddef.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/compiler_types.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/compiler.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/posix_types.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/posix_types.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/pthread_types.h \
-  ../lib/inttypes.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include/inttypes.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/inttypes.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/inttypes.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/param.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/param.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/param.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stddef.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/__stddef_max_align_t.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/param.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/param.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/param.h \
   ../lib/dirent.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/dirent.h \
-  ../lib/regex.h ../lib/signal.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/signal.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/sigcontext.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/sve_context.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/signal_types.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/signal.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/signal.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/signal.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/signal-defs.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/siginfo.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/siginfo.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/timespec.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/ucontext.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/user.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_signal_inlines.h \
-  ../lib/stdlib.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include/stdlib.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/stdlib.h \
-  ../lib/alloca.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/wait.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/wait.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/malloc.h \
-  ../lib/stdio.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/stdio.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdarg.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/seek_constants.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/struct_file.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/xlocale.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_stdlib_inlines.h \
-  ../lib/unistd.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/unistd.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/select.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/time.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/time_types.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/fcntl.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/getopt.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/ioctl.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/lockf.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/sysconf.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_unistd_inlines.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/swab.h \
-  ../lib/getopt-cdefs.h ../lib/getopt-pfx-core.h ../lib/getopt-core.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/dirent.h \
+  ../lib/sys/types.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/types.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/types.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/types.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/int-ll64.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/bitsperlong.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/bitsperlong.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/posix_types.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/stddef.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/compiler_types.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/compiler.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/posix_types.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/posix_types.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/pthread_types.h \
   ../lib/sys/stat.h ../lib/time.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/time.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/time.h \
   ../lib/sys/time.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/time.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/stat.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/stat.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_sys_stat_inlines.h \
-  /home/kimocoder/kali-nethunter-tools/out/aarch64-linux-android/ncurses/include/ncursesw/curses.h \
-  /home/kimocoder/kali-nethunter-tools/out/aarch64-linux-android/ncurses/include/ncursesw/ncurses_dll.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/time.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/time.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/time_types.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/select.h \
+  ../lib/signal.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/signal.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/sigcontext.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/signal_types.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/signal.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/signal.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/signal-defs.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/siginfo.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/siginfo.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/timespec.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/ucontext.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/user.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_signal_inlines.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/xlocale.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/stat.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/stat.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_sys_stat_inlines.h \
+  ../lib/regex.h ../lib/stdlib.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include/stdlib.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/stdlib.h \
+  ../lib/alloca.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/wait.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/wait.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/malloc.h \
+  ../lib/stdio.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/stdio.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdarg.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/seek_constants.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/struct_file.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_stdlib_inlines.h \
+  ../lib/unistd.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/unistd.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/fcntl.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/getopt.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/ioctl.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/lockf.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/sysconf.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_unistd_inlines.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/swab.h \
+  ../lib/getopt-cdefs.h ../lib/getopt-pfx-core.h ../lib/getopt-core.h \
+  ../lib/fcntl.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/fcntl.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/fadvise.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/falloc.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/fcntl.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/fcntl.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/fcntl.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/flock64.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/flock.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/openat2.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/uio.h \
+  /home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/ncurses/include/ncursesw/curses.h \
+  /home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/ncurses/include/ncursesw/ncurses_dll.h \
   ../lib/wchar.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/features.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include/wchar.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/wchar.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/mbstate_t.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/wctype.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/features.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include/wchar.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/wchar.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/mbstate_t.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/wctype.h \
   ../lib/string.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/string.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/strcasecmp.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/string.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/strcasecmp.h \
   ../lib/strings.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/strings.h \
-  /home/kimocoder/kali-nethunter-tools/out/aarch64-linux-android/ncurses/include/ncursesw/unctrl.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/strings.h \
+  /home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/ncurses/include/ncursesw/unctrl.h \
   ../lib/ctype.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/ctype.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/ctype_inlines.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/errno.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/errno.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/errno.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/errno.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/errno-base.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_errno_inlines.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/ctype.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/ctype_inlines.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/errno.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/errno.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/errno.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/errno.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/errno-base.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_errno_inlines.h \
   ../lib/glob.h ../lib/glob-libc.gl.h
 
 prototypes.h:
@@ -128,187 +132,189 @@ definitions.h:
 
 ../config.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdbool.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdbool.h:
 
 ../lib/assert.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/assert.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/assert.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/cdefs.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/cdefs.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/versioning.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/versioning.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/api-level.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/api-level.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/get_device_api_level_inlines.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/get_device_api_level_inlines.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/ndk-version.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/ndk-version.h:
 
 ../lib/limits.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/limits.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/limits.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/limits.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/limits.h:
 
 ../lib/float.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/float.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/float.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/limits.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/limits.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/posix_limits.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/posix_limits.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/param.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/param.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/endian.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/endian.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/endian.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/endian.h:
 
 ../lib/stdint.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdint.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdint.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/stdint.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/stdint.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/wchar_limits.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/wchar_limits.h:
 
 ../lib/stddef.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stddef.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stddef.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/__stddef_max_align_t.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/__stddef_max_align_t.h:
 
-../lib/sys/types.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/param.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/types.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/param.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/types.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/types.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/types.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/int-ll64.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/bitsperlong.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/bitsperlong.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/posix_types.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/stddef.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/compiler_types.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/compiler.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/posix_types.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/posix_types.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/pthread_types.h:
-
-../lib/inttypes.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include/inttypes.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/inttypes.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/inttypes.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/param.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/param.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/param.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/param.h:
 
 ../lib/dirent.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/dirent.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/dirent.h:
 
-../lib/regex.h:
+../lib/sys/types.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/types.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/types.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/types.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/int-ll64.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/bitsperlong.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/bitsperlong.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/posix_types.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/stddef.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/compiler_types.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/compiler.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/posix_types.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/posix_types.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/pthread_types.h:
+
+../lib/sys/stat.h:
+
+../lib/time.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/time.h:
+
+../lib/sys/time.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/time.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/time.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/time_types.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/select.h:
 
 ../lib/signal.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/signal.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/signal.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/sigcontext.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/sigcontext.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/sve_context.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/signal_types.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/signal_types.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/signal.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/signal.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/signal.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/signal.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/signal-defs.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/signal.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/siginfo.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/signal-defs.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/siginfo.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/siginfo.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/timespec.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/siginfo.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/ucontext.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/timespec.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/user.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/ucontext.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_signal_inlines.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/user.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/xlocale.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_signal_inlines.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/stat.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/stat.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_sys_stat_inlines.h:
+
+../lib/regex.h:
 
 ../lib/stdlib.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include/stdlib.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include/stdlib.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/stdlib.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/stdlib.h:
 
 ../lib/alloca.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/wait.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/wait.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/wait.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/wait.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/malloc.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/malloc.h:
 
 ../lib/stdio.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/stdio.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/stdio.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdarg.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdarg.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/seek_constants.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/seek_constants.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/struct_file.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/struct_file.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/xlocale.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_stdlib_inlines.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_stdlib_inlines.h:
 
 ../lib/unistd.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/unistd.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/unistd.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/select.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/fcntl.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/time.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/getopt.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/time_types.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/ioctl.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/fcntl.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/lockf.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/getopt.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/sysconf.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/ioctl.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_unistd_inlines.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/lockf.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/sysconf.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_unistd_inlines.h:
-
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/swab.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/swab.h:
 
 ../lib/getopt-cdefs.h:
 
@@ -316,67 +322,73 @@ definitions.h:
 
 ../lib/getopt-core.h:
 
-../lib/sys/stat.h:
+../lib/fcntl.h:
 
-../lib/time.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/fcntl.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/time.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/fadvise.h:
 
-../lib/sys/time.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/falloc.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/time.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/fcntl.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/stat.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/fcntl.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/stat.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/fcntl.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_sys_stat_inlines.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/flock64.h:
 
-/home/kimocoder/kali-nethunter-tools/out/aarch64-linux-android/ncurses/include/ncursesw/curses.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/flock.h:
 
-/home/kimocoder/kali-nethunter-tools/out/aarch64-linux-android/ncurses/include/ncursesw/ncurses_dll.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/openat2.h:
+
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/uio.h:
+
+/home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/ncurses/include/ncursesw/curses.h:
+
+/home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/ncurses/include/ncursesw/ncurses_dll.h:
 
 ../lib/wchar.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/features.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/features.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include/wchar.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/local/include/wchar.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/wchar.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/wchar.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/mbstate_t.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/mbstate_t.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/wctype.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/wctype.h:
 
 ../lib/string.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/string.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/string.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/strcasecmp.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/strcasecmp.h:
 
 ../lib/strings.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/strings.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/strings.h:
 
-/home/kimocoder/kali-nethunter-tools/out/aarch64-linux-android/ncurses/include/ncursesw/unctrl.h:
+/home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/ncurses/include/ncursesw/unctrl.h:
 
 ../lib/ctype.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/ctype.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/ctype.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/ctype_inlines.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/ctype_inlines.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/errno.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/errno.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/errno.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/errno.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/errno.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/errno.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/errno.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/errno.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/errno-base.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/errno-base.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_errno_inlines.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_errno_inlines.h:
 
 ../lib/glob.h:
 

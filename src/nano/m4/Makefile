@@ -85,8 +85,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-build_triplet = x86_64-pc-linux-gnu
-host_triplet = aarch64-unknown-linux-android
+build_triplet = x86_64-pc-linux-gnux32
+host_triplet = armv7a-unknown-linux-androideabi
 subdir = m4
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/00gnulib.m4 \
@@ -95,19 +95,18 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/00gnulib.m4 \
 	$(top_srcdir)/m4/ac_define_dir.m4 $(top_srcdir)/m4/alloca.m4 \
 	$(top_srcdir)/m4/assert_h.m4 \
 	$(top_srcdir)/m4/ax_check_compile_flag.m4 \
-	$(top_srcdir)/m4/btowc.m4 $(top_srcdir)/m4/builtin-expect.m4 \
-	$(top_srcdir)/m4/c-bool.m4 $(top_srcdir)/m4/c32rtomb.m4 \
-	$(top_srcdir)/m4/canonicalize.m4 \
+	$(top_srcdir)/m4/btowc.m4 $(top_srcdir)/m4/build-to-host.m4 \
+	$(top_srcdir)/m4/builtin-expect.m4 $(top_srcdir)/m4/c-bool.m4 \
+	$(top_srcdir)/m4/c32rtomb.m4 $(top_srcdir)/m4/canonicalize.m4 \
 	$(top_srcdir)/m4/chdir-long.m4 $(top_srcdir)/m4/clock_time.m4 \
 	$(top_srcdir)/m4/close.m4 $(top_srcdir)/m4/closedir.m4 \
 	$(top_srcdir)/m4/codeset.m4 $(top_srcdir)/m4/ctype_h.m4 \
 	$(top_srcdir)/m4/d-type.m4 $(top_srcdir)/m4/dirent_h.m4 \
 	$(top_srcdir)/m4/dirfd.m4 \
 	$(top_srcdir)/m4/double-slash-root.m4 $(top_srcdir)/m4/dup2.m4 \
-	$(top_srcdir)/m4/eealloc.m4 $(top_srcdir)/m4/errno_h.m4 \
-	$(top_srcdir)/m4/error.m4 $(top_srcdir)/m4/error_h.m4 \
-	$(top_srcdir)/m4/exponentd.m4 $(top_srcdir)/m4/exponentf.m4 \
-	$(top_srcdir)/m4/exponentl.m4 \
+	$(top_srcdir)/m4/errno_h.m4 $(top_srcdir)/m4/error.m4 \
+	$(top_srcdir)/m4/error_h.m4 $(top_srcdir)/m4/exponentd.m4 \
+	$(top_srcdir)/m4/exponentf.m4 $(top_srcdir)/m4/exponentl.m4 \
 	$(top_srcdir)/m4/extensions-aix.m4 \
 	$(top_srcdir)/m4/extensions.m4 \
 	$(top_srcdir)/m4/extern-inline.m4 $(top_srcdir)/m4/fchdir.m4 \
@@ -117,16 +116,18 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/00gnulib.m4 \
 	$(top_srcdir)/m4/fnmatch.m4 $(top_srcdir)/m4/fnmatch_h.m4 \
 	$(top_srcdir)/m4/fpieee.m4 $(top_srcdir)/m4/free.m4 \
 	$(top_srcdir)/m4/frexp.m4 $(top_srcdir)/m4/frexpl.m4 \
-	$(top_srcdir)/m4/fstat.m4 $(top_srcdir)/m4/fstatat.m4 \
-	$(top_srcdir)/m4/futimens.m4 $(top_srcdir)/m4/getcwd.m4 \
-	$(top_srcdir)/m4/getdelim.m4 $(top_srcdir)/m4/getdtablesize.m4 \
-	$(top_srcdir)/m4/getline.m4 $(top_srcdir)/m4/getlogin.m4 \
-	$(top_srcdir)/m4/getlogin_r.m4 $(top_srcdir)/m4/getopt.m4 \
-	$(top_srcdir)/m4/getprogname.m4 $(top_srcdir)/m4/getrandom.m4 \
-	$(top_srcdir)/m4/gettext.m4 $(top_srcdir)/m4/gettime.m4 \
+	$(top_srcdir)/m4/fseterr.m4 $(top_srcdir)/m4/fstat.m4 \
+	$(top_srcdir)/m4/fstatat.m4 $(top_srcdir)/m4/futimens.m4 \
+	$(top_srcdir)/m4/getcwd.m4 $(top_srcdir)/m4/getdelim.m4 \
+	$(top_srcdir)/m4/getdtablesize.m4 $(top_srcdir)/m4/getline.m4 \
+	$(top_srcdir)/m4/getlogin.m4 $(top_srcdir)/m4/getlogin_r.m4 \
+	$(top_srcdir)/m4/getopt.m4 $(top_srcdir)/m4/getprogname.m4 \
+	$(top_srcdir)/m4/getrandom.m4 $(top_srcdir)/m4/gettext.m4 \
+	$(top_srcdir)/m4/gettext_h.m4 $(top_srcdir)/m4/gettime.m4 \
 	$(top_srcdir)/m4/gettimeofday.m4 $(top_srcdir)/m4/glob.m4 \
 	$(top_srcdir)/m4/glob_h.m4 $(top_srcdir)/m4/gnulib-common.m4 \
 	$(top_srcdir)/m4/gnulib-comp.m4 \
+	$(top_srcdir)/m4/gnulib-i18n.m4 \
 	$(top_srcdir)/m4/host-cpu-c-abi.m4 $(top_srcdir)/m4/iconv.m4 \
 	$(top_srcdir)/m4/include_next.m4 $(top_srcdir)/m4/inline.m4 \
 	$(top_srcdir)/m4/intlmacosx.m4 $(top_srcdir)/m4/intmax_t.m4 \
@@ -146,7 +147,8 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/00gnulib.m4 \
 	$(top_srcdir)/m4/locale_h.m4 $(top_srcdir)/m4/localeconv.m4 \
 	$(top_srcdir)/m4/lock.m4 $(top_srcdir)/m4/lstat.m4 \
 	$(top_srcdir)/m4/malloc.m4 $(top_srcdir)/m4/malloca.m4 \
-	$(top_srcdir)/m4/math_h.m4 $(top_srcdir)/m4/mbrtoc32.m4 \
+	$(top_srcdir)/m4/math_h.m4 $(top_srcdir)/m4/mbchar.m4 \
+	$(top_srcdir)/m4/mbiter.m4 $(top_srcdir)/m4/mbrtoc32.m4 \
 	$(top_srcdir)/m4/mbrtowc.m4 $(top_srcdir)/m4/mbsinit.m4 \
 	$(top_srcdir)/m4/mbsrtowcs.m4 $(top_srcdir)/m4/mbstate_t.m4 \
 	$(top_srcdir)/m4/mbtowc.m4 $(top_srcdir)/m4/memchr.m4 \
@@ -161,8 +163,8 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/00gnulib.m4 \
 	$(top_srcdir)/m4/once.m4 $(top_srcdir)/m4/open-cloexec.m4 \
 	$(top_srcdir)/m4/open-slash.m4 $(top_srcdir)/m4/open.m4 \
 	$(top_srcdir)/m4/openat.m4 $(top_srcdir)/m4/opendir.m4 \
-	$(top_srcdir)/m4/pathmax.m4 $(top_srcdir)/m4/pipe.m4 \
-	$(top_srcdir)/m4/po.m4 $(top_srcdir)/m4/printf-frexp.m4 \
+	$(top_srcdir)/m4/pathmax.m4 $(top_srcdir)/m4/po.m4 \
+	$(top_srcdir)/m4/printf-frexp.m4 \
 	$(top_srcdir)/m4/printf-frexpl.m4 $(top_srcdir)/m4/printf.m4 \
 	$(top_srcdir)/m4/progtest.m4 $(top_srcdir)/m4/pthread-once.m4 \
 	$(top_srcdir)/m4/pthread-spin.m4 $(top_srcdir)/m4/pthread_h.m4 \
@@ -178,13 +180,15 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/00gnulib.m4 \
 	$(top_srcdir)/m4/snprintf-posix.m4 \
 	$(top_srcdir)/m4/snprintf.m4 $(top_srcdir)/m4/ssize_t.m4 \
 	$(top_srcdir)/m4/stat-time.m4 $(top_srcdir)/m4/stat.m4 \
-	$(top_srcdir)/m4/stdarg.m4 $(top_srcdir)/m4/stddef_h.m4 \
-	$(top_srcdir)/m4/stdint.m4 $(top_srcdir)/m4/stdint_h.m4 \
-	$(top_srcdir)/m4/stdio_h.m4 $(top_srcdir)/m4/stdlib_h.m4 \
-	$(top_srcdir)/m4/strcase.m4 $(top_srcdir)/m4/strcasestr.m4 \
-	$(top_srcdir)/m4/strdup.m4 $(top_srcdir)/m4/strerror.m4 \
-	$(top_srcdir)/m4/string_h.m4 $(top_srcdir)/m4/strings_h.m4 \
-	$(top_srcdir)/m4/strnlen.m4 $(top_srcdir)/m4/sys_cdefs_h.m4 \
+	$(top_srcdir)/m4/stdarg.m4 $(top_srcdir)/m4/stdckdint_h.m4 \
+	$(top_srcdir)/m4/stddef_h.m4 $(top_srcdir)/m4/stdint.m4 \
+	$(top_srcdir)/m4/stdint_h.m4 $(top_srcdir)/m4/stdio_h.m4 \
+	$(top_srcdir)/m4/stdlib_h.m4 $(top_srcdir)/m4/strcasecmp.m4 \
+	$(top_srcdir)/m4/strcasestr.m4 $(top_srcdir)/m4/strdup.m4 \
+	$(top_srcdir)/m4/strerror.m4 $(top_srcdir)/m4/string_h.m4 \
+	$(top_srcdir)/m4/stringeq.m4 $(top_srcdir)/m4/strings_h.m4 \
+	$(top_srcdir)/m4/strncasecmp.m4 $(top_srcdir)/m4/strnlen.m4 \
+	$(top_srcdir)/m4/sys_cdefs_h.m4 \
 	$(top_srcdir)/m4/sys_random_h.m4 \
 	$(top_srcdir)/m4/sys_socket_h.m4 \
 	$(top_srcdir)/m4/sys_stat_h.m4 $(top_srcdir)/m4/sys_time_h.m4 \
@@ -193,7 +197,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/00gnulib.m4 \
 	$(top_srcdir)/m4/time_h.m4 $(top_srcdir)/m4/timespec.m4 \
 	$(top_srcdir)/m4/uchar_h.m4 $(top_srcdir)/m4/unicase_h.m4 \
 	$(top_srcdir)/m4/unictype_h.m4 $(top_srcdir)/m4/uninorm_h.m4 \
-	$(top_srcdir)/m4/unistd-safer.m4 $(top_srcdir)/m4/unistd_h.m4 \
+	$(top_srcdir)/m4/unistd_h.m4 $(top_srcdir)/m4/unitypes_h.m4 \
 	$(top_srcdir)/m4/utime.m4 $(top_srcdir)/m4/utime_h.m4 \
 	$(top_srcdir)/m4/utimens.m4 $(top_srcdir)/m4/utimes.m4 \
 	$(top_srcdir)/m4/vasnprintf.m4 $(top_srcdir)/m4/visibility.m4 \
@@ -240,31 +244,32 @@ ALLOCA_H = alloca.h
 AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 1
 APPLE_UNIVERSAL_BUILD = 0
-AR = /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
+AR = /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
 ARFLAGS = cr
 ASSERT_H = assert.h
 AUTOCONF = ${SHELL} '/home/kimocoder/kali-nethunter-tools/src/nano/missing' autoconf
 AUTOHEADER = ${SHELL} '/home/kimocoder/kali-nethunter-tools/src/nano/missing' autoheader
 AUTOMAKE = ${SHELL} '/home/kimocoder/kali-nethunter-tools/src/nano/missing' automake-1.16
 AWK = gawk
-BITSIZEOF_PTRDIFF_T = 64
-BITSIZEOF_SIG_ATOMIC_T = 32
-BITSIZEOF_SIZE_T = 64
+BITSIZEOF_PTRDIFF_T = 
+BITSIZEOF_SIG_ATOMIC_T = 
+BITSIZEOF_SIZE_T = 
 BITSIZEOF_WCHAR_T = 32
-BITSIZEOF_WINT_T = 32
+BITSIZEOF_WINT_T = 
 CAN_PRINT_STACK_TRACE = 0
-CC = /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang
+CC = /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang
 CCDEPMODE = depmode=gcc3
-CFLAGS = --sysroot=/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -O2 -D_GNU_SOURCE -fno-emulated-tls -I/home/kimocoder/kali-nethunter-tools/out/aarch64-linux-android/ncurses/include -I/home/kimocoder/kali-nethunter-tools/out/aarch64-linux-android/ncurses/include/ncursesw -Wall
+CFLAGS = --sysroot=/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -O2 -D_GNU_SOURCE -fno-emulated-tls -I/home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/ncurses/include -I/home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/ncurses/include/ncursesw -Wall
 CFLAG_VISIBILITY = -fvisibility=hidden
 CLOCK_TIME_LIB = 
-CPP = /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang -E
+CPP = /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang -E
 CPPFLAGS = -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600  
 CSCOPE = cscope
 CTAGS = ctags
 CURSES_LIB = -lncursesw  
 CXX_HAS_CHAR8_TYPE = 0
 CXX_HAS_UCHAR_TYPES = 0
+CXX_HAVE_UCHAR_H = 1
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
@@ -273,12 +278,6 @@ ECHO_C =
 ECHO_N = -n
 ECHO_T = 
 EGREP = /usr/bin/grep -E
-EMULTIHOP_HIDDEN = 
-EMULTIHOP_VALUE = 
-ENOLINK_HIDDEN = 
-ENOLINK_VALUE = 
-EOVERFLOW_HIDDEN = 
-EOVERFLOW_VALUE = 
 ERRNO_H = 
 ETAGS = etags
 EXEEXT = 
@@ -291,7 +290,7 @@ GETRANDOM_LIB =
 GETTEXT_MACRO_VERSION = 0.20
 GLOB_H = glob.h
 GL_CFLAG_ALLOW_WARNINGS = -Wno-error
-GL_CFLAG_GNULIB_WARNINGS =  -Wno-cast-qual -Wno-conversion -Wno-float-equal -Wno-sign-compare -Wno-undef -Wno-unused-function -Wno-unused-parameter -Wno-float-conversion -Wimplicit-fallthrough -Wno-pedantic -Wno-tautological-constant-out-of-range-compare -Wno-sign-conversion -Wno-type-limits
+GL_CFLAG_GNULIB_WARNINGS =  -Wno-cast-qual -Wno-conversion -Wno-float-equal -Wno-sign-compare -Wno-undef -Wno-unused-function -Wno-unused-parameter -Wno-float-conversion -Wimplicit-fallthrough -Wno-pedantic -Wno-tautological-constant-out-of-range-compare -Wno-sign-conversion -Wno-type-limits -Wno-unused-const-variable
 GL_GNULIB_ABORT_DEBUG = 0
 GL_GNULIB_ACCESS = 0
 GL_GNULIB_ACOSF = 0
@@ -326,7 +325,7 @@ GL_GNULIB_C32SWIDTH = 0
 GL_GNULIB_C32TOB = 0
 GL_GNULIB_C32TOLOWER = 1
 GL_GNULIB_C32TOUPPER = 0
-GL_GNULIB_C32WIDTH = 0
+GL_GNULIB_C32WIDTH = 1
 GL_GNULIB_C32_APPLY_MAPPING = 0
 GL_GNULIB_C32_APPLY_TYPE_TEST = 1
 GL_GNULIB_C32_GET_MAPPING = 0
@@ -414,6 +413,7 @@ GL_GNULIB_FPURGE = 0
 GL_GNULIB_FPUTC = 1
 GL_GNULIB_FPUTS = 1
 GL_GNULIB_FREAD = 1
+GL_GNULIB_FREELOCALE = 0
 GL_GNULIB_FREE_POSIX = 1
 GL_GNULIB_FREOPEN = 0
 GL_GNULIB_FREXP = 1
@@ -442,6 +442,8 @@ GL_GNULIB_GETGROUPS = 0
 GL_GNULIB_GETHOSTNAME = 0
 GL_GNULIB_GETLINE = 1
 GL_GNULIB_GETLOADAVG = 0
+GL_GNULIB_GETLOCALENAME_L = 0
+GL_GNULIB_GETLOCALENAME_L_UNSAFE = 0
 GL_GNULIB_GETLOGIN = 0
 GL_GNULIB_GETLOGIN_R = 1
 GL_GNULIB_GETOPT_POSIX = 1
@@ -468,19 +470,31 @@ GL_GNULIB_ILOGBF = 0
 GL_GNULIB_ILOGBL = 0
 GL_GNULIB_IMAXABS = 0
 GL_GNULIB_IMAXDIV = 0
+GL_GNULIB_ISALNUM_L = 0
+GL_GNULIB_ISALPHA_L = 0
 GL_GNULIB_ISATTY = 0
 GL_GNULIB_ISBLANK = 1
+GL_GNULIB_ISBLANK_L = 0
+GL_GNULIB_ISCNTRL_L = 0
+GL_GNULIB_ISDIGIT_L = 0
 GL_GNULIB_ISFINITE = 0
+GL_GNULIB_ISGRAPH_L = 0
 GL_GNULIB_ISINF = 0
+GL_GNULIB_ISLOWER_L = 0
 GL_GNULIB_ISNAN = 0
 GL_GNULIB_ISNAND = 0
 GL_GNULIB_ISNANF = 0
 GL_GNULIB_ISNANL = 0
+GL_GNULIB_ISPRINT_L = 0
+GL_GNULIB_ISPUNCT_L = 0
+GL_GNULIB_ISSPACE_L = 0
+GL_GNULIB_ISUPPER_L = 0
 GL_GNULIB_ISWBLANK = 1
 GL_GNULIB_ISWCTYPE = 1
 GL_GNULIB_ISWDIGIT = 1
 GL_GNULIB_ISWPUNCT = 1
 GL_GNULIB_ISWXDIGIT = 1
+GL_GNULIB_ISXDIGIT_L = 0
 GL_GNULIB_LCHMOD = 0
 GL_GNULIB_LCHOWN = 0
 GL_GNULIB_LDEXP = 0
@@ -511,7 +525,7 @@ GL_GNULIB_LOGP1F = 0
 GL_GNULIB_LOGP1L = 0
 GL_GNULIB_LSEEK = 0
 GL_GNULIB_LSTAT = 1
-GL_GNULIB_MALLOC_GNU = 0
+GL_GNULIB_MALLOC_GNU = 1
 GL_GNULIB_MALLOC_POSIX = 1
 GL_GNULIB_MBRLEN = 0
 GL_GNULIB_MBRTOC16 = 0
@@ -524,7 +538,7 @@ GL_GNULIB_MBSCSPN = 0
 GL_GNULIB_MBSINIT = 1
 GL_GNULIB_MBSLEN = 0
 GL_GNULIB_MBSNCASECMP = 0
-GL_GNULIB_MBSNLEN = 0
+GL_GNULIB_MBSNLEN = 1
 GL_GNULIB_MBSNRTOC32S = 0
 GL_GNULIB_MBSNRTOWCS = 0
 GL_GNULIB_MBSPBRK = 0
@@ -539,6 +553,8 @@ GL_GNULIB_MBSTOC32S = 0
 GL_GNULIB_MBSTOK_R = 0
 GL_GNULIB_MBSTOWCS = 0
 GL_GNULIB_MBSZERO = 1
+GL_GNULIB_MBS_ENDSWITH = 0
+GL_GNULIB_MBS_STARTSWITH = 0
 GL_GNULIB_MBTOWC = 1
 GL_GNULIB_MDA_ACCESS = 1
 GL_GNULIB_MDA_CHDIR = 1
@@ -609,6 +625,7 @@ GL_GNULIB_MODF = 0
 GL_GNULIB_MODFF = 0
 GL_GNULIB_MODFL = 0
 GL_GNULIB_NANOSLEEP = 0
+GL_GNULIB_NEWLOCALE = 0
 GL_GNULIB_NL_LANGINFO = 1
 GL_GNULIB_NONBLOCKING = 0
 GL_GNULIB_OBSTACK_PRINTF = 0
@@ -616,11 +633,12 @@ GL_GNULIB_OBSTACK_PRINTF_POSIX = 0
 GL_GNULIB_OBSTACK_ZPRINTF = 0
 GL_GNULIB_OPEN = 1
 GL_GNULIB_OPENAT = 1
+GL_GNULIB_OPENAT2 = 0
 GL_GNULIB_OPENDIR = 1
 GL_GNULIB_OVERRIDES_STRUCT_STAT = 0
 GL_GNULIB_PCLOSE = 0
 GL_GNULIB_PERROR = 0
-GL_GNULIB_PIPE = 1
+GL_GNULIB_PIPE = 0
 GL_GNULIB_PIPE2 = 0
 GL_GNULIB_POPEN = 0
 GL_GNULIB_POSIX_MEMALIGN = 0
@@ -656,7 +674,6 @@ GL_GNULIB_READDIR = 1
 GL_GNULIB_READLINK = 1
 GL_GNULIB_READLINKAT = 0
 GL_GNULIB_REALLOCARRAY = 0
-GL_GNULIB_REALLOC_GNU = 0
 GL_GNULIB_REALLOC_POSIX = 1
 GL_GNULIB_REALPATH = 1
 GL_GNULIB_REMAINDER = 0
@@ -710,13 +727,19 @@ GL_GNULIB_STDIO_H_NONBLOCKING = 0
 GL_GNULIB_STDIO_H_SIGPIPE = 0
 GL_GNULIB_STPCPY = 0
 GL_GNULIB_STPNCPY = 0
+GL_GNULIB_STRCASECMP = 1
+GL_GNULIB_STRCASECMP_L = 0
 GL_GNULIB_STRCASESTR = 1
 GL_GNULIB_STRCHRNUL = 0
 GL_GNULIB_STRDUP = 1
 GL_GNULIB_STRERROR = 1
 GL_GNULIB_STRERRORNAME_NP = 0
+GL_GNULIB_STRERROR_L = 0
 GL_GNULIB_STRERROR_R = 0
 GL_GNULIB_STRFTIME = 0
+GL_GNULIB_STRINGEQ = 1
+GL_GNULIB_STRNCASECMP = 1
+GL_GNULIB_STRNCASECMP_L = 0
 GL_GNULIB_STRNCAT = 0
 GL_GNULIB_STRNDUP = 0
 GL_GNULIB_STRNLEN = 1
@@ -736,6 +759,8 @@ GL_GNULIB_STRTOUL = 0
 GL_GNULIB_STRTOULL = 0
 GL_GNULIB_STRTOUMAX = 0
 GL_GNULIB_STRVERSCMP = 0
+GL_GNULIB_STR_ENDSWITH = 0
+GL_GNULIB_STR_STARTSWITH = 0
 GL_GNULIB_SYMLINK = 0
 GL_GNULIB_SYMLINKAT = 0
 GL_GNULIB_SYSTEM_POSIX = 0
@@ -750,12 +775,14 @@ GL_GNULIB_TIMESPEC_GETRES = 0
 GL_GNULIB_TIME_R = 0
 GL_GNULIB_TIME_RZ = 0
 GL_GNULIB_TMPFILE = 0
+GL_GNULIB_TOLOWER_L = 0
 GL_GNULIB_TOTALORDER = 0
 GL_GNULIB_TOTALORDERF = 0
 GL_GNULIB_TOTALORDERL = 0
 GL_GNULIB_TOTALORDERMAG = 0
 GL_GNULIB_TOTALORDERMAGF = 0
 GL_GNULIB_TOTALORDERMAGL = 0
+GL_GNULIB_TOUPPER_L = 0
 GL_GNULIB_TOWCTRANS = 0
 GL_GNULIB_TRUNC = 0
 GL_GNULIB_TRUNCATE = 0
@@ -867,6 +894,7 @@ GL_GNULIB_UNICTYPE_PROPERTY_LINE_SEPARATOR_DLL_VARIABLE = LIBUNISTRING_DLL_VARIA
 GL_GNULIB_UNICTYPE_PROPERTY_LOGICAL_ORDER_EXCEPTION_DLL_VARIABLE = LIBUNISTRING_DLL_VARIABLE
 GL_GNULIB_UNICTYPE_PROPERTY_LOWERCASE_DLL_VARIABLE = LIBUNISTRING_DLL_VARIABLE
 GL_GNULIB_UNICTYPE_PROPERTY_MATH_DLL_VARIABLE = LIBUNISTRING_DLL_VARIABLE
+GL_GNULIB_UNICTYPE_PROPERTY_MODIFIER_COMBINING_MARK_DLL_VARIABLE = LIBUNISTRING_DLL_VARIABLE
 GL_GNULIB_UNICTYPE_PROPERTY_NON_BREAK_DLL_VARIABLE = LIBUNISTRING_DLL_VARIABLE
 GL_GNULIB_UNICTYPE_PROPERTY_NOT_A_CHARACTER_DLL_VARIABLE = LIBUNISTRING_DLL_VARIABLE
 GL_GNULIB_UNICTYPE_PROPERTY_NUMERIC_DLL_VARIABLE = LIBUNISTRING_DLL_VARIABLE
@@ -980,6 +1008,9 @@ GNULIBHEADERS_OVERRIDE_CHAR16_T = 0
 GNULIBHEADERS_OVERRIDE_CHAR32_T = 0
 GNULIBHEADERS_OVERRIDE_CHAR8_T = 1
 GNULIBHEADERS_OVERRIDE_WINT_T = 0
+GNULIB_LOCALEDIR = ${datarootdir}/locale
+GNULIB_LOCALEDIR_c = "/home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/nano/share/locale"
+GNULIB_LOCALEDIR_c_make = \"$(GNULIB_LOCALEDIR)\"
 GREP = /usr/bin/grep
 HARD_LOCALE_LIB = 
 HAVE_ACOSF = 1
@@ -993,9 +1024,11 @@ HAVE_ATAN2F = 1
 HAVE_ATANF = 1
 HAVE_ATANL = 1
 HAVE_ATOLL = 1
+HAVE_BLKCNT_T = 1
+HAVE_BLKSIZE_T = 1
 HAVE_BTOWC = 1
 HAVE_C32RTOMB = 1
-HAVE_C99_STDINT_H = 0
+HAVE_C99_STDINT_H = 1
 HAVE_CANONICALIZE_FILE_NAME = 0
 HAVE_CBRT = 1
 HAVE_CBRTF = 1
@@ -1003,30 +1036,27 @@ HAVE_CBRTL = 1
 HAVE_CHOWN = 1
 HAVE_CLOSEDIR = 1
 HAVE_COPYSIGN = 1
+HAVE_COPYSIGNF = 1
 HAVE_COPYSIGNL = 1
 HAVE_COPY_FILE_RANGE = 1
 HAVE_COSF = 1
 HAVE_COSHF = 1
 HAVE_COSL = 1
 HAVE_CRTDEFS_H = 0
+HAVE_CXX_STDCKDINT_H = 0
+HAVE_C_STDCKDINT_H = 0
+HAVE_C_UNREACHABLE = 0
 HAVE_DECL_ACOSL = 1
 HAVE_DECL_ASINL = 1
 HAVE_DECL_ATANL = 1
-HAVE_DECL_CBRTF = 1
-HAVE_DECL_CBRTL = 1
 HAVE_DECL_CEILF = 1
 HAVE_DECL_CEILL = 1
-HAVE_DECL_COPYSIGNF = 1
 HAVE_DECL_COSL = 1
 HAVE_DECL_DIRFD = 1
 HAVE_DECL_ECVT = 0
 HAVE_DECL_ENVIRON = 1
 HAVE_DECL_EXECVPE = 1
-HAVE_DECL_EXP2 = 1
-HAVE_DECL_EXP2F = 1
-HAVE_DECL_EXP2L = 1
 HAVE_DECL_EXPL = 1
-HAVE_DECL_EXPM1L = 1
 HAVE_DECL_FCHDIR = 1
 HAVE_DECL_FCLOSEALL = 0
 HAVE_DECL_FCVT = 0
@@ -1054,22 +1084,14 @@ HAVE_DECL_INITSTATE = 1
 HAVE_DECL_LDEXPL = 1
 HAVE_DECL_LOCALTIME_R = 1
 HAVE_DECL_LOG10L = 1
-HAVE_DECL_LOG2 = 1
-HAVE_DECL_LOG2F = 1
-HAVE_DECL_LOG2L = 1
 HAVE_DECL_LOGB = 1
 HAVE_DECL_LOGL = 1
+HAVE_DECL_MEMEQ = 0
 HAVE_DECL_MEMMEM = 1
 HAVE_DECL_MEMRCHR = 1
 HAVE_DECL_OBSTACK_PRINTF = 1
 HAVE_DECL_PROGRAM_INVOCATION_NAME = 0
 HAVE_DECL_PUTW = 0
-HAVE_DECL_REMAINDER = 1
-HAVE_DECL_REMAINDERL = 1
-HAVE_DECL_RINTF = 1
-HAVE_DECL_ROUND = 1
-HAVE_DECL_ROUNDF = 1
-HAVE_DECL_ROUNDL = 1
 HAVE_DECL_SETENV = 1
 HAVE_DECL_SETHOSTNAME = 1
 HAVE_DECL_SETSTATE = 1
@@ -1077,6 +1099,7 @@ HAVE_DECL_SINL = 1
 HAVE_DECL_SNPRINTF = 1
 HAVE_DECL_SQRTL = 1
 HAVE_DECL_STRDUP = 1
+HAVE_DECL_STREQ = 0
 HAVE_DECL_STRERROR_R = 1
 HAVE_DECL_STRNCASECMP = 1
 HAVE_DECL_STRNDUP = 1
@@ -1094,7 +1117,6 @@ HAVE_DECL_TTYNAME_R = 1
 HAVE_DECL_UNSETENV = 1
 HAVE_DECL_VSNPRINTF = 1
 HAVE_DECL_WCSDUP = 1
-HAVE_DECL_WCTOB = 1
 HAVE_DECL_WCWIDTH = 1
 HAVE_DIRENT_H = 1
 HAVE_DPRINTF = 1
@@ -1105,11 +1127,15 @@ HAVE_ERROR_AT_LINE = 0
 HAVE_ERROR_H = 1
 HAVE_EUIDACCESS = 1
 HAVE_EXECVPE = 1
+HAVE_EXP2 = 1
+HAVE_EXP2F = 1
+HAVE_EXP2L = 1
 HAVE_EXPF = 1
 HAVE_EXPL = 1
 HAVE_EXPLICIT_BZERO = 1
 HAVE_EXPM1 = 1
 HAVE_EXPM1F = 1
+HAVE_EXPM1L = 1
 HAVE_FABSF = 1
 HAVE_FABSL = 1
 HAVE_FACCESSAT = 1
@@ -1142,6 +1168,7 @@ HAVE_GETDTABLESIZE = 0
 HAVE_GETENTROPY = 1
 HAVE_GETGROUPS = 1
 HAVE_GETHOSTNAME = 1
+HAVE_GETLOCALENAME_L = 1
 HAVE_GETLOGIN = 1
 HAVE_GETOPT_H = 1
 HAVE_GETPAGESIZE = 1
@@ -1169,28 +1196,43 @@ HAVE_IMAXDIV = 1
 HAVE_IMAXDIV_T = 1
 HAVE_INITSTATE = 1
 HAVE_INTTYPES_H = 1
+HAVE_ISALNUM_L = 1
+HAVE_ISALPHA_L = 1
 HAVE_ISBLANK = 1
+HAVE_ISBLANK_L = 1
+HAVE_ISCNTRL_L = 1
+HAVE_ISDIGIT_L = 1
+HAVE_ISGRAPH_L = 1
+HAVE_ISLOWER_L = 1
 HAVE_ISNAND = 1
 HAVE_ISNANF = 1
 HAVE_ISNANL = 1
+HAVE_ISPRINT_L = 1
+HAVE_ISPUNCT_L = 1
+HAVE_ISSPACE_L = 1
+HAVE_ISUPPER_L = 1
 HAVE_ISWBLANK = 1
 HAVE_ISWCNTRL = 1
+HAVE_ISXDIGIT_L = 1
+HAVE_LANGINFO_ABALTMON = 0
 HAVE_LANGINFO_ALTMON = 0
 HAVE_LANGINFO_CODESET = 1
 HAVE_LANGINFO_ERA = 1
 HAVE_LANGINFO_H = 1
-HAVE_LANGINFO_T_FMT_AMPM = 1
-HAVE_LANGINFO_YESEXPR = 1
 HAVE_LCHMOD = 1
 HAVE_LCHOWN = 1
 HAVE_LDEXPF = 1
 HAVE_LINK = 1
 HAVE_LINKAT = 1
+HAVE_LOCALE_T = 1
 HAVE_LOG10F = 1
 HAVE_LOG10L = 1
 HAVE_LOG1P = 1
 HAVE_LOG1PF = 1
 HAVE_LOG1PL = 1
+HAVE_LOG2 = 1
+HAVE_LOG2F = 1
+HAVE_LOG2L = 1
 HAVE_LOGBF = 1
 HAVE_LOGBL = 1
 HAVE_LOGF = 1
@@ -1229,6 +1271,7 @@ HAVE_NEWLOCALE = 1
 HAVE_NL_LANGINFO = 0
 HAVE_OFF64_T = 1
 HAVE_OPENAT = 1
+HAVE_OPENAT2 = 0
 HAVE_OPENDIR = 1
 HAVE_OS_H = 0
 HAVE_PCLOSE = 1
@@ -1305,7 +1348,6 @@ HAVE_PWRITE = 1
 HAVE_QSORT_R = 1
 HAVE_RAISE = 1
 HAVE_RANDOM = 1
-HAVE_RANDOM_H = 1
 HAVE_RANDOM_R = 1
 HAVE_RAWMEMCHR = 0
 HAVE_READDIR = 1
@@ -1315,12 +1357,17 @@ HAVE_REALLOCARRAY = 1
 HAVE_REALPATH = 1
 HAVE_REMAINDER = 1
 HAVE_REMAINDERF = 1
+HAVE_REMAINDERL = 1
 HAVE_RENAMEAT = 1
 HAVE_REWINDDIR = 1
 HAVE_RINT = 1
+HAVE_RINTF = 1
 HAVE_RINTL = 1
+HAVE_ROUND = 1
+HAVE_ROUNDF = 1
+HAVE_ROUNDL = 1
 HAVE_RPMATCH = 1
-HAVE_SAME_LONG_DOUBLE_AS_DOUBLE = 0
+HAVE_SAME_LONG_DOUBLE_AS_DOUBLE = 1
 HAVE_SCANDIR = 1
 HAVE_SCHED_H = 1
 HAVE_SCHED_YIELD = 1
@@ -1340,9 +1387,9 @@ HAVE_SIGACTION = 1
 HAVE_SIGDESCR_NP = 1
 HAVE_SIGHANDLER_T = 1
 HAVE_SIGINFO_T = 1
-HAVE_SIGNED_SIG_ATOMIC_T = 1
-HAVE_SIGNED_WCHAR_T = 0
-HAVE_SIGNED_WINT_T = 0
+HAVE_SIGNED_SIG_ATOMIC_T = 
+HAVE_SIGNED_WCHAR_T = 
+HAVE_SIGNED_WINT_T = 
 HAVE_SIGSET_T = 1
 HAVE_SINF = 1
 HAVE_SINHF = 1
@@ -1350,15 +1397,20 @@ HAVE_SINL = 1
 HAVE_SLEEP = 1
 HAVE_SQRTF = 1
 HAVE_SQRTL = 1
+HAVE_STDCKDINT_H = 0
 HAVE_STDINT_H = 1
 HAVE_STPCPY = 1
 HAVE_STPNCPY = 1
 HAVE_STR2SIG = 1
 HAVE_STRCASECMP = 1
+HAVE_STRCASECMP_L = 1
 HAVE_STRCASESTR = 1
 HAVE_STRCHRNUL = 1
 HAVE_STRERRORNAME_NP = 1
+HAVE_STRERROR_L = 1
 HAVE_STRINGS_H = 1
+HAVE_STRNCASECMP = 1
+HAVE_STRNCASECMP_L = 1
 HAVE_STRPBRK = 1
 HAVE_STRPTIME = 1
 HAVE_STRSEP = 1
@@ -1391,13 +1443,16 @@ HAVE_TIMEGM = 1
 HAVE_TIMESPEC_GET = 1
 HAVE_TIMESPEC_GETRES = 1
 HAVE_TIMEZONE_T = 0
+HAVE_TOLOWER_L = 1
 HAVE_TOTALORDER = 1
 HAVE_TOTALORDERF = 1
 HAVE_TOTALORDERL = 1
 HAVE_TOTALORDERMAG = 1
 HAVE_TOTALORDERMAGF = 1
 HAVE_TOTALORDERMAGL = 1
+HAVE_TOUPPER_L = 1
 HAVE_TYPE_VOLATILE_SIG_ATOMIC_T = 1
+HAVE_TZALLOC = 0
 HAVE_UCHAR_H = 1
 HAVE_UNISTD_H = 1
 HAVE_UNISTRING_WOE32DLL_H = 0
@@ -1438,9 +1493,11 @@ HAVE_WCSSTR = 1
 HAVE_WCSTOK = 1
 HAVE_WCSWIDTH = 1
 HAVE_WCSXFRM = 1
+HAVE_WCTOB = 1
 HAVE_WCTRANS_T = 1
 HAVE_WCTYPE_H = 1
 HAVE_WCTYPE_T = 1
+HAVE_WINDOWS_LOCALE_T = 0
 HAVE_WINSOCK2_H = 0
 HAVE_WINT_T = 1
 HAVE_WMEMCHR = 1
@@ -1450,6 +1507,8 @@ HAVE_WMEMMOVE = 1
 HAVE_WMEMPCPY = 0
 HAVE_WMEMSET = 1
 HAVE_WORKING_C32RTOMB = 1
+HAVE_WORKING_CXX_STDCKDINT_H = 0
+HAVE_WORKING_C_STDCKDINT_H = 0
 HAVE_WORKING_MBRTOC32 = 1
 HAVE_XLOCALE_H = 1
 HAVE__EXIT = 1
@@ -1464,7 +1523,7 @@ INT32_MAX_LT_INTMAX_MAX = 1
 INT64_MAX_EQ_LONG_MAX = defined _LP64
 INTLLIBS = 
 INTL_MACOSX_LIBS = 
-LDFLAGS = --sysroot=/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot -Wl,-z,max-page-size=16384 -static -L/home/kimocoder/kali-nethunter-tools/out/aarch64-linux-android/ncurses/lib
+LDFLAGS = --sysroot=/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot -Wl,-z,max-page-size=16384 -static -L/home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/ncurses/lib
 LIBGNU_LIBDEPS = 
 LIBGNU_LTLIBDEPS = 
 LIBICONV = -liconv
@@ -1536,6 +1595,7 @@ NEXT_AS_FIRST_DIRECTIVE_PTHREAD_H = <pthread.h>
 NEXT_AS_FIRST_DIRECTIVE_SCHED_H = <sched.h>
 NEXT_AS_FIRST_DIRECTIVE_SIGNAL_H = <signal.h>
 NEXT_AS_FIRST_DIRECTIVE_STDARG_H = 
+NEXT_AS_FIRST_DIRECTIVE_STDCKDINT_H = <stdckdint.h>
 NEXT_AS_FIRST_DIRECTIVE_STDDEF_H = <stddef.h>
 NEXT_AS_FIRST_DIRECTIVE_STDINT_H = <stdint.h>
 NEXT_AS_FIRST_DIRECTIVE_STDIO_H = <stdio.h>
@@ -1571,6 +1631,7 @@ NEXT_PTHREAD_H = <pthread.h>
 NEXT_SCHED_H = <sched.h>
 NEXT_SIGNAL_H = <signal.h>
 NEXT_STDARG_H = <stdarg.h>
+NEXT_STDCKDINT_H = <stdckdint.h>
 NEXT_STDDEF_H = <stddef.h>
 NEXT_STDINT_H = <stdint.h>
 NEXT_STDIO_H = <stdio.h>
@@ -1593,12 +1654,12 @@ OBJEXT = o
 PACKAGE = nano
 PACKAGE_BUGREPORT = nano-devel@gnu.org
 PACKAGE_NAME = GNU nano
-PACKAGE_STRING = GNU nano 8.2
+PACKAGE_STRING = GNU nano 8.7
 PACKAGE_TARNAME = nano
 PACKAGE_URL = https://www.gnu.org/software/nano/
-PACKAGE_VERSION = 8.2
+PACKAGE_VERSION = 8.7
 PATH_SEPARATOR = :
-PKGDATADIR = /home/kimocoder/kali-nethunter-tools/out/aarch64-linux-android/nano/share/nano
+PKGDATADIR = /home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/nano/share/nano
 PKG_CONFIG = /usr/bin/pkg-config
 PKG_CONFIG_LIBDIR = 
 PKG_CONFIG_PATH = 
@@ -1607,8 +1668,9 @@ PRAGMA_COLUMNS =
 PRAGMA_SYSTEM_HEADER = #pragma GCC system_header
 PRIPTR_PREFIX = __PRIPTR_PREFIX
 PTHREAD_H_DEFINES_STRUCT_TIMESPEC = 0
-PTRDIFF_T_SUFFIX = l
-RANLIB = /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ranlib
+PTHREAD_ONCE_LIB = 
+PTRDIFF_T_SUFFIX = 
+RANLIB = /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ranlib
 REPLACE_ABORT = 0
 REPLACE_ACCESS = 0
 REPLACE_ACOSF = 0
@@ -1705,6 +1767,8 @@ REPLACE_GETENTROPY = 0
 REPLACE_GETGROUPS = 0
 REPLACE_GETLINE = 1
 REPLACE_GETLOADAVG = 0
+REPLACE_GETLOCALENAME_L = 0
+REPLACE_GETLOGIN = 0
 REPLACE_GETLOGIN_R = 1
 REPLACE_GETPAGESIZE = 0
 REPLACE_GETPASS = 0
@@ -1748,6 +1812,7 @@ REPLACE_LINKAT = 0
 REPLACE_LOCALECONV = 1
 REPLACE_LOCALTIME = 0
 REPLACE_LOCALTIME_R = 0
+REPLACE_LOCALTIME_RZ = 0
 REPLACE_LOG = 0
 REPLACE_LOG10 = 0
 REPLACE_LOG10F = 0
@@ -1765,8 +1830,8 @@ REPLACE_LOGF = 0
 REPLACE_LOGL = 0
 REPLACE_LSEEK = 0
 REPLACE_LSTAT = 0
-REPLACE_MALLOC_FOR_MALLOC_GNU = 0
-REPLACE_MALLOC_FOR_MALLOC_POSIX = 0
+REPLACE_MALLOC_FOR_MALLOC_GNU = 1
+REPLACE_MALLOC_FOR_MALLOC_POSIX = 1
 REPLACE_MBRLEN = 0
 REPLACE_MBRTOC16 = 0
 REPLACE_MBRTOC32 = 1
@@ -1791,6 +1856,7 @@ REPLACE_MKOSTEMP = 0
 REPLACE_MKOSTEMPS = 0
 REPLACE_MKSTEMP = 0
 REPLACE_MKTIME = 0
+REPLACE_MKTIME_Z = 0
 REPLACE_MODF = 0
 REPLACE_MODFF = 0
 REPLACE_MODFL = 0
@@ -1800,8 +1866,8 @@ REPLACE_NEWLOCALE = 0
 REPLACE_NL_LANGINFO = 1
 REPLACE_NULL = 0
 REPLACE_OBSTACK_PRINTF = 0
-REPLACE_OPEN = 0
-REPLACE_OPENAT = 0
+REPLACE_OPEN = 1
+REPLACE_OPENAT = 1
 REPLACE_OPENDIR = 0
 REPLACE_PERROR = 0
 REPLACE_PIPE2 = 0
@@ -1876,8 +1942,7 @@ REPLACE_READDIR = 0
 REPLACE_READLINK = 0
 REPLACE_READLINKAT = 0
 REPLACE_REALLOCARRAY = 0
-REPLACE_REALLOC_FOR_REALLOC_GNU = 0
-REPLACE_REALLOC_FOR_REALLOC_POSIX = 0
+REPLACE_REALLOC_FOR_REALLOC_POSIX = 1
 REPLACE_REALPATH = 1
 REPLACE_REMAINDER = 0
 REPLACE_REMAINDERF = 0
@@ -1910,13 +1975,18 @@ REPLACE_STDIO_READ_FUNCS = 0
 REPLACE_STDIO_WRITE_FUNCS = 0
 REPLACE_STPCPY = 0
 REPLACE_STPNCPY = 0
+REPLACE_STRCASECMP = 0
+REPLACE_STRCASECMP_L = 0
 REPLACE_STRCASESTR = 1
 REPLACE_STRCHRNUL = 0
 REPLACE_STRDUP = 0
 REPLACE_STRERROR = 1
 REPLACE_STRERRORNAME_NP = 0
+REPLACE_STRERROR_L = 0
 REPLACE_STRERROR_R = 0
 REPLACE_STRFTIME = 0
+REPLACE_STRNCASECMP = 0
+REPLACE_STRNCASECMP_L = 0
 REPLACE_STRNCAT = 0
 REPLACE_STRNDUP = 0
 REPLACE_STRNLEN = 1
@@ -1972,6 +2042,7 @@ REPLACE_VSPRINTF = 0
 REPLACE_WCRTOMB = 1
 REPLACE_WCSCMP = 0
 REPLACE_WCSFTIME = 0
+REPLACE_WCSNCAT = 0
 REPLACE_WCSNCMP = 0
 REPLACE_WCSNRTOMBS = 0
 REPLACE_WCSRTOMBS = 0
@@ -1993,14 +2064,14 @@ SETLOCALE_NULL_LIB =
 SET_MAKE = 
 SHELL = /bin/bash
 SIG_ATOMIC_T_SUFFIX = 
-SIZE_T_SUFFIX = ul
+SIZE_T_SUFFIX = 
 SMALL_WCHAR_T = 0
 STDARG_H = 
 STDCKDINT_H = stdckdint.h
 STDDEF_H = stddef.h
 STDDEF_NOT_IDEMPOTENT = 0
 STDINT_H = stdint.h
-STRIP = /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
+STRIP = /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
 SYS_TIME_H_DEFINES_STRUCT_TIMESPEC = 0
 TIME_H_DEFINES_STRUCT_TIMESPEC = 1
 TIME_H_DEFINES_TIME_UTC = 1
@@ -2012,13 +2083,13 @@ UNISTD_H_HAVE_SYS_RANDOM_H = 1
 UNISTD_H_HAVE_WINSOCK2_H = 0
 UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS = 0
 USE_NLS = no
-VERSION = 8.2
-WCHAR_T_SUFFIX = u
+VERSION = 8.7
+WCHAR_T_SUFFIX = 
 WINDOWS_64_BIT_OFF_T = 0
 WINDOWS_64_BIT_ST_SIZE = 0
 WINDOWS_STAT_INODES = 0
 WINDOWS_STAT_TIMESPEC = 0
-WINT_T_SUFFIX = u
+WINT_T_SUFFIX = 
 XGETTEXT = /usr/bin/xgettext
 XGETTEXT_015 = /usr/bin/xgettext
 XGETTEXT_EXTRA_OPTIONS =  --flag=error:3:c-format --flag=error_at_line:5:c-format
@@ -2033,10 +2104,10 @@ am__quote =
 am__tar = $${TAR-tar} chof - "$$tardir"
 am__untar = $${TAR-tar} xf -
 bindir = ${exec_prefix}/bin
-build = x86_64-pc-linux-gnu
+build = x86_64-pc-linux-gnux32
 build_alias = 
 build_cpu = x86_64
-build_os = linux-gnu
+build_os = linux-gnux32
 build_vendor = pc
 builddir = .
 datadir = ${datarootdir}
@@ -2044,17 +2115,23 @@ datarootdir = ${prefix}/share
 docdir = ${datarootdir}/doc/${PACKAGE_TARNAME}
 dvidir = ${docdir}
 exec_prefix = ${prefix}
-gl_LIBOBJDEPS =  ./$(DEPDIR)/asnprintf.Po ./$(DEPDIR)/fnmatch.Po ./$(DEPDIR)/frexp.Po ./$(DEPDIR)/frexpl.Po ./$(DEPDIR)/mbsrtoc32s-state.Po ./$(DEPDIR)/mbsrtowcs-state.Po ./$(DEPDIR)/printf-args.Po ./$(DEPDIR)/printf-parse.Po ./$(DEPDIR)/snprintf.Po ./$(DEPDIR)/strcasestr.Po ./$(DEPDIR)/vasnprintf.Po ./$(DEPDIR)/vsnprintf.Po
-gl_LIBOBJS =  asnprintf.o fnmatch.o frexp.o frexpl.o mbsrtoc32s-state.o mbsrtowcs-state.o printf-args.o printf-parse.o snprintf.o strcasestr.o vasnprintf.o vsnprintf.o
-gl_LTLIBOBJS =  asnprintf.lo fnmatch.lo frexp.lo frexpl.lo mbsrtoc32s-state.lo mbsrtowcs-state.lo printf-args.lo printf-parse.lo snprintf.lo strcasestr.lo vasnprintf.lo vsnprintf.lo
+gl_LIBOBJDEPS =  $(DEPDIR)/asnprintf.Po $(DEPDIR)/fnmatch.Po $(DEPDIR)/frexp.Po $(DEPDIR)/frexpl.Po $(DEPDIR)/malloc.Po $(DEPDIR)/mbsrtoc32s-state.Po $(DEPDIR)/mbsrtowcs-state.Po $(DEPDIR)/printf-args.Po $(DEPDIR)/printf-parse.Po $(DEPDIR)/snprintf.Po $(DEPDIR)/strcasestr.Po $(DEPDIR)/vasnprintf.Po $(DEPDIR)/vsnprintf.Po
+gl_LIBOBJS =  asnprintf.o fnmatch.o frexp.o frexpl.o malloc.o mbsrtoc32s-state.o mbsrtowcs-state.o printf-args.o printf-parse.o snprintf.o strcasestr.o vasnprintf.o vsnprintf.o
+gl_LTLIBOBJS =  asnprintf.lo fnmatch.lo frexp.lo frexpl.lo malloc.lo mbsrtoc32s-state.lo mbsrtowcs-state.lo printf-args.lo printf-parse.lo snprintf.lo strcasestr.lo vasnprintf.lo vsnprintf.lo
+gl_libgnu_LIBOBJDEPS =  $(DEPDIR)/libgnu_a-asnprintf.Po $(DEPDIR)/libgnu_a-fnmatch.Po $(DEPDIR)/libgnu_a-frexp.Po $(DEPDIR)/libgnu_a-frexpl.Po $(DEPDIR)/libgnu_a-malloc.Po $(DEPDIR)/libgnu_a-mbsrtoc32s-state.Po $(DEPDIR)/libgnu_a-mbsrtowcs-state.Po $(DEPDIR)/libgnu_a-printf-args.Po $(DEPDIR)/libgnu_a-printf-parse.Po $(DEPDIR)/libgnu_a-snprintf.Po $(DEPDIR)/libgnu_a-strcasestr.Po $(DEPDIR)/libgnu_a-vasnprintf.Po $(DEPDIR)/libgnu_a-vsnprintf.Po
+gl_libgnu_LIBOBJS =  libgnu_a-asnprintf.o libgnu_a-fnmatch.o libgnu_a-frexp.o libgnu_a-frexpl.o libgnu_a-malloc.o libgnu_a-mbsrtoc32s-state.o libgnu_a-mbsrtowcs-state.o libgnu_a-printf-args.o libgnu_a-printf-parse.o libgnu_a-snprintf.o libgnu_a-strcasestr.o libgnu_a-vasnprintf.o libgnu_a-vsnprintf.o
+gl_libgnu_LTLIBOBJS =  libgnu_la-asnprintf.lo libgnu_la-fnmatch.lo libgnu_la-frexp.lo libgnu_la-frexpl.lo libgnu_la-malloc.lo libgnu_la-mbsrtoc32s-state.lo libgnu_la-mbsrtowcs-state.lo libgnu_la-printf-args.lo libgnu_la-printf-parse.lo libgnu_la-snprintf.lo libgnu_la-strcasestr.lo libgnu_la-vasnprintf.lo libgnu_la-vsnprintf.lo
 gltests_LIBOBJDEPS = 
 gltests_LIBOBJS = 
 gltests_LTLIBOBJS = 
 gltests_WITNESS = IN_NANO_GNULIB_TESTS
-host = aarch64-unknown-linux-android
-host_alias = aarch64-linux-android
-host_cpu = aarch64
-host_os = linux-android
+gltests_libgnu_LIBOBJDEPS = 
+gltests_libgnu_LIBOBJS = 
+gltests_libgnu_LTLIBOBJS = 
+host = armv7a-unknown-linux-androideabi
+host_alias = armv7a-linux-androideabi
+host_cpu = armv7a
+host_os = linux-androideabi
 host_vendor = unknown
 htmldir = ${docdir}
 includedir = ${prefix}/include
@@ -2068,7 +2145,7 @@ mandir = ${datarootdir}/man
 mkdir_p = $(MKDIR_P)
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /home/kimocoder/kali-nethunter-tools/out/aarch64-linux-android/nano
+prefix = /home/kimocoder/kali-nethunter-tools/out/armv7a-linux-androideabi/nano
 program_transform_name = s,x,x,
 psdir = ${docdir}
 runstatedir = ${localstatedir}/run

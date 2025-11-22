@@ -1,6 +1,6 @@
 /* Provide file descriptor control.
 
-   Copyright (C) 2009-2024 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -375,12 +375,6 @@ fcntl (int fd, int action, /* arg */...)
           #endif
           #ifdef F_NOTIFY                        /* Linux */
           case F_NOTIFY:
-          #endif
-          #ifdef F_OPLKACK                       /* IRIX */
-          case F_OPLKACK:
-          #endif
-          #ifdef F_OPLKREG                       /* IRIX */
-          case F_OPLKREG:
           #endif
           #ifdef F_RDAHEAD                       /* macOS */
           case F_RDAHEAD:

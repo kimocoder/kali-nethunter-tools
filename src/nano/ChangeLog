@@ -1,3 +1,184 @@
+Changes between v8.6 and v8.7:
+------------------------------
+
+Benno Schulenberg (17):
+      build: avoid a warning when configured with --disable-multibuffer
+      bump version numbers and add a news item for the 8.7 release
+      display: regenerate the screen after a resize during a spell check
+      display: regenerate the screen only before and after waiting for input
+      display: upon resize, redraw the subwindows only when fully initialized
+      docs: add example of copy-to-clipboard-with-OSC52 to the sample nanorc
+      docs: mention that `execute` can pipe buffer or region to the command
+      gnulib: update to its current upstream state
+      moving: prevent a negative relative jump from going beyond top of buffer
+      new feature: execute a command without capturing the output
+      startup: register the handler for SIGWINCH much earlier
+      text: when blanking a line due to --autoindent, keep the mark in sync
+      tweaks: improve a few comments, drop one, and unwrap some lines
+      tweaks: improve the punctuation of one item in the sample nanorc
+      tweaks: replace a remaining double dash with a true emdash
+      tweaks: reshuffle some #ifdefs, and rename a function
+      tweaks: unwrap three lines, for esthetics
+
+
+Changes between v8.5 and v8.6:
+------------------------------
+
+Benno Schulenberg (22):
+      browser: let a refresh also reread the file list, like it used to
+      browser: redo the layout only when an actual resize occurred
+      browser: redo the layout when the window _might_ have resized
+      bump version numbers and add a news item for the 8.6 release
+      completion: don't stop looking for candidates one byte too early
+      display: when resizing, redraw the bottom bars also when in file browser
+      docs: document the ++/-- prefix feature for the `gotoline` function
+      gnulib: update to its current upstream state
+      history: do not forget anchors when line number is given on command line
+      new feature: interpret a line number prefixed with ++ or -- as relative
+      rcfile: accept also {}} in a string bind, for symmetry with {{}
+      syntax: po: colorize also the %b and %B format specifiers
+      tweaks: normalize the indentation after the previous change
+      tweaks: put two related checks together, like they are elsewhere
+      tweaks: remove a check for a symbol that never gets defined
+      tweaks: rename a parameter, and invert its logic
+      tweaks: reshuffle a condition to a better place, like it is elsewhere
+      tweaks: reshuffle a few lines, for density and to elide an 'else'
+      tweaks: reshuffle some lines, to group things better
+      tweaks: split the goto function into an interactive and command-line one
+      tweaks: swap two symbolic menu names, for giggles
+      tweaks: use a direct parameter instead of an intermediary boolean
+
+
+Changes between v8.4 and v8.5:
+------------------------------
+
+Benno Schulenberg (44):
+      anchor: change the aspect of any anchor to a dagger (†)
+      bindings: always bind ^Q in the WriteOut menu, not only for --saveonexit
+      bindings: do not list ^L twice (in main help text and help lines)
+      bindings: let ^L just center the cursor, not cycle it -- let M-% cycle it
+      bindings: lowercase an ASCII character in a locale-proof manner
+      build: fix compilation for config with --enable-tiny --enable-histories
+      build: fix compilation when configured with --disable-histories
+      build: fix compilation when configured with --disable-utf8
+      build: swap two linker arguments, to enable compilation on Cygwin
+      bump version numbers and add a news item for the 8.5 release
+      docs: add a suggested key combo for wiping all anchors to sample nanorc
+      docs: in cheatsheet, equalize the spacing in three consecutive blocks
+      docs: mention that --positionlog also saves the positions of anchors
+      docs: reword the descriptions of --operatingdir and 'set operatingdir'
+      feedback: change the appearance of anchors when they will be saved
+      feedback: change the level of a certain message, to show it is special
+      feedback: report the setting and removing of an anchor just once
+      feedback: show in mini bar the presence of an anchor on the cursor line
+      feedback: suppress "Jumped to anchor" when line numbers are active
+      feedback: suppress "Removed anchor" when the mini bar is hidden
+      gnulib: pull in the fix for a cross-compilation failure
+      gnulib: update to its current upstream state
+      history: always save the last cursor position, also for line=1,column=1
+      history: always save the positions of any anchors
+      history: reverse the order in the file-positions list, to latest first
+      menus: reshuffle an item, to avoid truncating its help-line label
+      moving: make cycling (M-%) independent from centering (^L)
+      new feature: exit with an error status (2) for ^X^Q and ^O^Q
+      new feature: save and restore anchors when the first line has an anchor
+      options: accept --whitespacedisplay and 'set whitespacedisplay'
+      syntax: default: show hard spaces with a lightgrey background
+      syntaxes: add a license line to files that were created by Mike Frysinger
+      syntaxes: use character classes instead of range expressions
+      tweaks: avoid using toupper() and tolower() where easily possible
+      tweaks: elide an auxiliary variable that is no longer needed
+      tweaks: elide the unneeded passing around of three parameters
+      tweaks: elide the unneeded use of an auxiliary function
+      tweaks: in the browser, implement M-\ and M-/ in a slightly denser way
+      tweaks: properly tag some keywords in texi doc, instead of using quotes
+      tweaks: random unimportant edits here and there
+      tweaks: rename 'use_utf8' to 'using_utf8', and make it a global variable
+      tweaks: shorten a URL, and update it to use https
+      tweaks: use reallocations, instead of new allocations plus frees
+      tweaks: use the correct modifier, to avoid a warning on 32-bit machines
+
+Peter Michaux (1):
+      build: add the 'm4/host-cpu-c-abi.m4' file to .gitignore
+
+
+Changes between v8.3 and v8.4:
+------------------------------
+
+Benno Schulenberg (40):
+      bump version numbers and add a news item for the 8.4 release
+      copyright: update the years for the FSF
+      docs: add a suggestion to the FAQ on how to configure nano for git
+      docs: change two interface colors in the sample nanorc
+      docs: improve the description of the `constantshow` bindable function
+      docs: in the FAQ, replace an old item with an item about Byte Order Marks
+      docs: replace a word that is better not used in the plural
+      docs: use proper emdashes instead of double hyphens: "--" => "\(em"
+      execute: retain what the user typed before a tool was invoked
+      feedback: warn when the cursor sits on a Byte Order Mark (BOM)
+      gnulib: update to its current upstream state
+      input: adjust file browser and help viewer for changed bracketed pastes
+      input: implement bracketed pastes in a different manner
+      input: make bracketed paste more robust against loss of closing sequence
+      input: remove a special-case workaround
+      input: remove single-keycode detection from the bracketed-paste routine
+      input: robustness is good, but dropping a key code is not a good idea
+      input: wait a bit for "~" when bracketed-paste sequence is incomplete
+      prompt: accept tabs in an external paste as literal tabs
+      prompt: beep when an external paste contains a command code
+      syntax: groff: highlight the zeroeth macro argument too
+      syntax: man: highlight some escapes, like \& and \(em, specially
+      syntax: po: colorize also a 'msgctxt' line, and the 'c++-format' flag
+      syntax: po: colorize also format specifiers like "%.6f"
+      syntax: po: colorize also format specifiers like "%<PRIu64>"
+      syntax: po: colorize also Python's "%(name)x" format specifiers
+      syntax: po: colorize also the %llu and %hhi format specifiers
+      syntax: po: colorize also the Python-specific conversion specifier "%r"
+      tweaks: add a translator hint for the three changed file-writing prompts
+      tweaks: add missing closing quotes, as reported by `mandoc -T lint ...`
+      tweaks: avoid running tolower() on an out-of-range value
+      tweaks: change the man-page markup of options that take an argument
+      tweaks: condense a fragment of code
+      tweaks: consistently use "\fR" for switching back to normal, roman font
+      tweaks: prevent some color keywords from getting hyphenated in man page
+      tweaks: prevent some more keywords from getting hyphenated
+      tweaks: remove an unwanted newline from a debugging message
+      tweaks: remove three redundant pairs of parentheses from a nanorc regex
+      tweaks: remove two commented-out lines and two unused variables
+      tweaks: swap two fragments of code, to allow unwrapping a line
+
+Brand Huntsman (1):
+      files: improve the wording of the normal file-writing prompts
+
+
+Changes between v8.2 and v8.3:
+------------------------------
+
+Benno Schulenberg (16):
+      build: fix a compilation error with gcc-15
+      bump version numbers and add a news item for the 8.3 release
+      docs: add Shift+PgUp/PgDown to the FAQ item about urxvt modified keys
+      docs: clarify the possible effects of a misuse of braced function names
+      docs: put a space after "|" and before "{enter}" in the sample nanorc
+      gnulib: update to its current upstream state
+      syntax: groff: correct the mistaken .rof extension to .roff
+      syntax: groff: recognize also the .mom extension
+      syntax: makefile: colorize also multiple targets
+      syntax: markdown: accept also digit 0 in a list marker
+      syntax: spec: colorize all canonical architecture names
+      tweaks: add a small clarifying comment
+      tweaks: add a translator hint
+      tweaks: adjust another translator hint, and add two more
+      tweaks: adjust a translator hint, and add another one
+      tweaks: drop six unneeded casts
+
+LIU Hao (1):
+      syntax: asm: add end-of-word anchors to the keywords
+
+Lukáš Zaoral (1):
+      memory: avoid a leak when linter aborts after producing parsable output
+
+
 Changes between v8.1 and v8.2:
 ------------------------------
 

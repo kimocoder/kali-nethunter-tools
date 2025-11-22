@@ -1,57 +1,57 @@
 libgnu_a-strerror-override.o: strerror-override.c ../config.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdbool.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdbool.h \
   assert.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/assert.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/cdefs.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/versioning.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/api-level.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/get_device_api_level_inlines.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/ndk-version.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/assert.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/cdefs.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/versioning.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/api-level.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/get_device_api_level_inlines.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/ndk-version.h \
   strerror-override.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/errno.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/errno.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/errno.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/errno.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/errno-base.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_errno_inlines.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/errno.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/errno.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/errno.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/errno.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/errno-base.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_errno_inlines.h \
   stddef.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stddef.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/__stddef_max_align_t.h
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stddef.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/__stddef_max_align_t.h
 
 ../config.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdbool.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdbool.h:
 
 assert.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/assert.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/assert.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/cdefs.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/cdefs.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/versioning.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/versioning.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/api-level.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/api-level.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/get_device_api_level_inlines.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/get_device_api_level_inlines.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/ndk-version.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/ndk-version.h:
 
 strerror-override.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/errno.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/errno.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/errno.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/linux/errno.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/errno.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/arm-linux-androideabi/asm/errno.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/errno.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/errno.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/errno-base.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/asm-generic/errno-base.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_errno_inlines.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/legacy_errno_inlines.h:
 
 stddef.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stddef.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stddef.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/__stddef_max_align_t.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/__stddef_max_align_t.h:

@@ -1,7 +1,7 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* A GNU-like <math.h>.
 
-   Copyright (C) 2002-2003, 2007-2024 Free Software Foundation, Inc.
+   Copyright (C) 2002-2003, 2007-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -77,7 +77,7 @@ _GL_INLINE_HEADER_BEGIN
 
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
 /* C++ compatible function declaration macros.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -182,10 +182,15 @@ _GL_INLINE_HEADER_BEGIN
 # define _GL_EXTERN_C_FUNC
 #endif
 
-/* _GL_FUNCDECL_RPL (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_RPL (func, rettype, parameters, [attributes]);
    declares a replacement function, named rpl_func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_RPL (free, void, (void *ptr), ) _GL_ATTRIBUTE_NOTHROW;
      _GL_FUNCDECL_RPL (open, int, (const char *filename, int flags, ...),
                                   _GL_ARG_NONNULL ((1)));
 
@@ -194,24 +199,22 @@ _GL_INLINE_HEADER_BEGIN
    because
      [[...]] extern "C" <declaration>;
    is invalid syntax in C++.)
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_RPL invocation, at the end of the declaration.
  */
 #define _GL_FUNCDECL_RPL(func,rettype,parameters,...) \
   _GL_FUNCDECL_RPL_1 (rpl_##func, rettype, parameters, __VA_ARGS__)
 #define _GL_FUNCDECL_RPL_1(rpl_func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype rpl_func parameters
 
-/* _GL_FUNCDECL_SYS (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_SYS (func, rettype, parameters, [attributes]);
    declares the system function, named func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
-     _GL_FUNCDECL_SYS (open, int, (const char *filename, int flags, ...),
-                                  _GL_ARG_NONNULL ((1)));
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_SYS invocation, at the end of the declaration.
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_SYS (getumask, mode_t, (void), ) _GL_ATTRIBUTE_NOTHROW;
+     _GL_FUNCDECL_SYS (posix_openpt, int, (int flags), _GL_ATTRIBUTE_NODISCARD);
  */
 #define _GL_FUNCDECL_SYS(func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype func parameters
@@ -385,7 +388,7 @@ _GL_INLINE_HEADER_BEGIN
    _GL_CXXALIASWARN_1 (func, GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN_1(func,namespace) \
    _GL_CXXALIASWARN_2 (func, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN_2(func,namespace) \
@@ -413,7 +416,7 @@ _GL_INLINE_HEADER_BEGIN
                         GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN1_1(func,rettype,parameters_and_attributes,namespace) \
    _GL_CXXALIASWARN1_2 (func, rettype, parameters_and_attributes, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN1_2(func,rettype,parameters_and_attributes,namespace) \
@@ -433,7 +436,7 @@ _GL_INLINE_HEADER_BEGIN
 
 /* The definition of _GL_ARG_NONNULL is copied here.  */
 /* A C macro for declaring that specific arguments must not be NULL.
-   Copyright (C) 2009-2024 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -461,7 +464,7 @@ _GL_INLINE_HEADER_BEGIN
 
 /* The definition of _GL_WARN_ON_USE is copied here.  */
 /* A C macro for emitting warnings if a function is used.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -785,8 +788,8 @@ _NaN ()
 
 #if !(defined FP_ILOGB0 && defined FP_ILOGBNAN)
  /* Ensure FP_ILOGB0 and FP_ILOGBNAN are defined.  */
-# if defined __NetBSD__ || defined __sgi
-  /* NetBSD, IRIX 6.5: match what ilogb() does */
+# if defined __NetBSD__
+  /* NetBSD: match what ilogb() does */
 #  define FP_ILOGB0   (- 2147483647 - 1) /* INT_MIN */
 #  define FP_ILOGBNAN (- 2147483647 - 1) /* INT_MIN */
 # elif defined _AIX
@@ -811,12 +814,12 @@ _NaN ()
 #   undef acosf
 #   define acosf rpl_acosf
 #  endif
-_GL_FUNCDECL_RPL (acosf, float, (float x));
+_GL_FUNCDECL_RPL (acosf, float, (float x), );
 _GL_CXXALIAS_RPL (acosf, float, (float x));
 # else
 #  if !1
 #   undef acosf
-_GL_FUNCDECL_SYS (acosf, float, (float x));
+_GL_FUNCDECL_SYS (acosf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (acosf, float, (float x));
 # endif
@@ -832,7 +835,7 @@ _GL_WARN_ON_USE (acosf, "acosf is unportable - "
 #if 0
 # if !1 || !1
 #  undef acosl
-_GL_FUNCDECL_SYS (acosl, long double, (long double x));
+_GL_FUNCDECL_SYS (acosl, long double, (long double x), );
 # endif
 _GL_CXXALIAS_SYS (acosl, long double, (long double x));
 # if __GLIBC__ >= 2
@@ -853,12 +856,12 @@ _GL_WARN_ON_USE (acosl, "acosl is unportable - "
 #   undef asinf
 #   define asinf rpl_asinf
 #  endif
-_GL_FUNCDECL_RPL (asinf, float, (float x));
+_GL_FUNCDECL_RPL (asinf, float, (float x), );
 _GL_CXXALIAS_RPL (asinf, float, (float x));
 # else
 #  if !1
 #   undef asinf
-_GL_FUNCDECL_SYS (asinf, float, (float x));
+_GL_FUNCDECL_SYS (asinf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (asinf, float, (float x));
 # endif
@@ -874,7 +877,7 @@ _GL_WARN_ON_USE (asinf, "asinf is unportable - "
 #if 0
 # if !1 || !1
 #  undef asinl
-_GL_FUNCDECL_SYS (asinl, long double, (long double x));
+_GL_FUNCDECL_SYS (asinl, long double, (long double x), );
 # endif
 _GL_CXXALIAS_SYS (asinl, long double, (long double x));
 # if __GLIBC__ >= 2
@@ -895,12 +898,12 @@ _GL_WARN_ON_USE (asinl, "asinl is unportable - "
 #   undef atanf
 #   define atanf rpl_atanf
 #  endif
-_GL_FUNCDECL_RPL (atanf, float, (float x));
+_GL_FUNCDECL_RPL (atanf, float, (float x), );
 _GL_CXXALIAS_RPL (atanf, float, (float x));
 # else
 #  if !1
 #   undef atanf
-_GL_FUNCDECL_SYS (atanf, float, (float x));
+_GL_FUNCDECL_SYS (atanf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (atanf, float, (float x));
 # endif
@@ -916,7 +919,7 @@ _GL_WARN_ON_USE (atanf, "atanf is unportable - "
 #if 0
 # if !1 || !1
 #  undef atanl
-_GL_FUNCDECL_SYS (atanl, long double, (long double x));
+_GL_FUNCDECL_SYS (atanl, long double, (long double x), );
 # endif
 _GL_CXXALIAS_SYS (atanl, long double, (long double x));
 # if __GLIBC__ >= 2
@@ -937,12 +940,12 @@ _GL_WARN_ON_USE (atanl, "atanl is unportable - "
 #   undef atan2f
 #   define atan2f rpl_atan2f
 #  endif
-_GL_FUNCDECL_RPL (atan2f, float, (float y, float x));
+_GL_FUNCDECL_RPL (atan2f, float, (float y, float x), );
 _GL_CXXALIAS_RPL (atan2f, float, (float y, float x));
 # else
 #  if !1
 #   undef atan2f
-_GL_FUNCDECL_SYS (atan2f, float, (float y, float x));
+_GL_FUNCDECL_SYS (atan2f, float, (float y, float x), );
 #  endif
 _GL_CXXALIAS_SYS (atan2f, float, (float y, float x));
 # endif
@@ -962,11 +965,11 @@ _GL_WARN_ON_USE (atan2f, "atan2f is unportable - "
 #   undef cbrtf
 #   define cbrtf rpl_cbrtf
 #  endif
-_GL_FUNCDECL_RPL (cbrtf, float, (float x));
+_GL_FUNCDECL_RPL (cbrtf, float, (float x), );
 _GL_CXXALIAS_RPL (cbrtf, float, (float x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (cbrtf, float, (float x));
+_GL_FUNCDECL_SYS (cbrtf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (cbrtf, float, (float x));
 # endif
@@ -981,7 +984,7 @@ _GL_WARN_ON_USE (cbrtf, "cbrtf is unportable - "
 
 #if 0
 # if !1
-_GL_FUNCDECL_SYS (cbrt, double, (double x));
+_GL_FUNCDECL_SYS (cbrt, double, (double x), );
 # endif
 _GL_CXXALIAS_SYS (cbrt, double, (double x));
 # if __GLIBC__ >= 2
@@ -1001,11 +1004,11 @@ _GL_WARN_ON_USE (cbrt, "cbrt is unportable - "
 #   undef cbrtl
 #   define cbrtl rpl_cbrtl
 #  endif
-_GL_FUNCDECL_RPL (cbrtl, long double, (long double x));
+_GL_FUNCDECL_RPL (cbrtl, long double, (long double x), );
 _GL_CXXALIAS_RPL (cbrtl, long double, (long double x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (cbrtl, long double, (long double x));
+_GL_FUNCDECL_SYS (cbrtl, long double, (long double x), );
 #  endif
 _GL_CXXALIAS_SYS (cbrtl, long double, (long double x));
 # endif
@@ -1027,12 +1030,12 @@ _GL_WARN_ON_USE (cbrtl, "cbrtl is unportable - "
 #   undef ceilf
 #   define ceilf rpl_ceilf
 #  endif
-_GL_FUNCDECL_RPL (ceilf, float, (float x));
+_GL_FUNCDECL_RPL (ceilf, float, (float x), );
 _GL_CXXALIAS_RPL (ceilf, float, (float x));
 # else
 #  if !1
 #   undef ceilf
-_GL_FUNCDECL_SYS (ceilf, float, (float x));
+_GL_FUNCDECL_SYS (ceilf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (ceilf, float, (float x));
 # endif
@@ -1051,7 +1054,7 @@ _GL_WARN_ON_USE (ceilf, "ceilf is unportable - "
 #   undef ceil
 #   define ceil rpl_ceil
 #  endif
-_GL_FUNCDECL_RPL (ceil, double, (double x));
+_GL_FUNCDECL_RPL (ceil, double, (double x), );
 _GL_CXXALIAS_RPL (ceil, double, (double x));
 # else
 _GL_CXXALIAS_SYS (ceil, double, (double x));
@@ -1067,12 +1070,12 @@ _GL_CXXALIASWARN1 (ceil, double, (double x));
 #   undef ceill
 #   define ceill rpl_ceill
 #  endif
-_GL_FUNCDECL_RPL (ceill, long double, (long double x));
+_GL_FUNCDECL_RPL (ceill, long double, (long double x), );
 _GL_CXXALIAS_RPL (ceill, long double, (long double x));
 # else
 #  if !1
 #   undef ceill
-_GL_FUNCDECL_SYS (ceill, long double, (long double x));
+_GL_FUNCDECL_SYS (ceill, long double, (long double x), );
 #  endif
 _GL_CXXALIAS_SYS (ceill, long double, (long double x));
 # endif
@@ -1091,7 +1094,7 @@ _GL_WARN_ON_USE (ceill, "ceill is unportable - "
 #if 0
 # if !1
 #  undef copysignf
-_GL_FUNCDECL_SYS (copysignf, float, (float x, float y));
+_GL_FUNCDECL_SYS (copysignf, float, (float x, float y), );
 # endif
 _GL_CXXALIAS_SYS (copysignf, float, (float x, float y));
 _GL_CXXALIASWARN (copysignf);
@@ -1105,7 +1108,7 @@ _GL_WARN_ON_USE (copysignf, "copysignf is unportable - "
 
 #if 0
 # if !1
-_GL_FUNCDECL_SYS (copysign, double, (double x, double y));
+_GL_FUNCDECL_SYS (copysign, double, (double x, double y), );
 # endif
 _GL_CXXALIAS_SYS (copysign, double, (double x, double y));
 # if __GLIBC__ >= 2
@@ -1121,7 +1124,7 @@ _GL_WARN_ON_USE (copysign, "copysign is unportable - "
 
 #if 0
 # if !1
-_GL_FUNCDECL_SYS (copysignl, long double, (long double x, long double y));
+_GL_FUNCDECL_SYS (copysignl, long double, (long double x, long double y), );
 # endif
 _GL_CXXALIAS_SYS (copysignl, long double, (long double x, long double y));
 # if __GLIBC__ >= 2
@@ -1142,12 +1145,12 @@ _GL_WARN_ON_USE (copysign, "copysignl is unportable - "
 #   undef cosf
 #   define cosf rpl_cosf
 #  endif
-_GL_FUNCDECL_RPL (cosf, float, (float x));
+_GL_FUNCDECL_RPL (cosf, float, (float x), );
 _GL_CXXALIAS_RPL (cosf, float, (float x));
 # else
 #  if !1
 #   undef cosf
-_GL_FUNCDECL_SYS (cosf, float, (float x));
+_GL_FUNCDECL_SYS (cosf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (cosf, float, (float x));
 # endif
@@ -1163,7 +1166,7 @@ _GL_WARN_ON_USE (cosf, "cosf is unportable - "
 #if 0
 # if !1 || !1
 #  undef cosl
-_GL_FUNCDECL_SYS (cosl, long double, (long double x));
+_GL_FUNCDECL_SYS (cosl, long double, (long double x), );
 # endif
 _GL_CXXALIAS_SYS (cosl, long double, (long double x));
 # if __GLIBC__ >= 2
@@ -1184,12 +1187,12 @@ _GL_WARN_ON_USE (cosl, "cosl is unportable - "
 #   undef coshf
 #   define coshf rpl_coshf
 #  endif
-_GL_FUNCDECL_RPL (coshf, float, (float x));
+_GL_FUNCDECL_RPL (coshf, float, (float x), );
 _GL_CXXALIAS_RPL (coshf, float, (float x));
 # else
 #  if !1
 #   undef coshf
-_GL_FUNCDECL_SYS (coshf, float, (float x));
+_GL_FUNCDECL_SYS (coshf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (coshf, float, (float x));
 # endif
@@ -1209,12 +1212,12 @@ _GL_WARN_ON_USE (coshf, "coshf is unportable - "
 #   undef expf
 #   define expf rpl_expf
 #  endif
-_GL_FUNCDECL_RPL (expf, float, (float x));
+_GL_FUNCDECL_RPL (expf, float, (float x), );
 _GL_CXXALIAS_RPL (expf, float, (float x));
 # else
 #  if !1
 #   undef expf
-_GL_FUNCDECL_SYS (expf, float, (float x));
+_GL_FUNCDECL_SYS (expf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (expf, float, (float x));
 # endif
@@ -1233,12 +1236,12 @@ _GL_WARN_ON_USE (expf, "expf is unportable - "
 #   undef expl
 #   define expl rpl_expl
 #  endif
-_GL_FUNCDECL_RPL (expl, long double, (long double x));
+_GL_FUNCDECL_RPL (expl, long double, (long double x), );
 _GL_CXXALIAS_RPL (expl, long double, (long double x));
 # else
 #  if !1 || !1
 #   undef expl
-_GL_FUNCDECL_SYS (expl, long double, (long double x));
+_GL_FUNCDECL_SYS (expl, long double, (long double x), );
 #  endif
 _GL_CXXALIAS_SYS (expl, long double, (long double x));
 # endif
@@ -1256,7 +1259,7 @@ _GL_WARN_ON_USE (expl, "expl is unportable - "
 
 #if 0
 # if !1
-_GL_FUNCDECL_SYS (exp2f, float, (float x));
+_GL_FUNCDECL_SYS (exp2f, float, (float x), );
 # endif
 _GL_CXXALIAS_SYS (exp2f, float, (float x));
 _GL_CXXALIASWARN (exp2f);
@@ -1274,11 +1277,11 @@ _GL_WARN_ON_USE (exp2f, "exp2f is unportable - "
 #   undef exp2
 #   define exp2 rpl_exp2
 #  endif
-_GL_FUNCDECL_RPL (exp2, double, (double x));
+_GL_FUNCDECL_RPL (exp2, double, (double x), );
 _GL_CXXALIAS_RPL (exp2, double, (double x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (exp2, double, (double x));
+_GL_FUNCDECL_SYS (exp2, double, (double x), );
 #  endif
 _GL_CXXALIAS_SYS (exp2, double, (double x));
 # endif
@@ -1299,12 +1302,12 @@ _GL_WARN_ON_USE (exp2, "exp2 is unportable - "
 #   undef exp2l
 #   define exp2l rpl_exp2l
 #  endif
-_GL_FUNCDECL_RPL (exp2l, long double, (long double x));
+_GL_FUNCDECL_RPL (exp2l, long double, (long double x), );
 _GL_CXXALIAS_RPL (exp2l, long double, (long double x));
 # else
 #  if !1
 #   undef exp2l
-_GL_FUNCDECL_SYS (exp2l, long double, (long double x));
+_GL_FUNCDECL_SYS (exp2l, long double, (long double x), );
 #  endif
 _GL_CXXALIAS_SYS (exp2l, long double, (long double x));
 # endif
@@ -1326,11 +1329,11 @@ _GL_WARN_ON_USE (exp2l, "exp2l is unportable - "
 #   undef expm1f
 #   define expm1f rpl_expm1f
 #  endif
-_GL_FUNCDECL_RPL (expm1f, float, (float x));
+_GL_FUNCDECL_RPL (expm1f, float, (float x), );
 _GL_CXXALIAS_RPL (expm1f, float, (float x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (expm1f, float, (float x));
+_GL_FUNCDECL_SYS (expm1f, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (expm1f, float, (float x));
 # endif
@@ -1349,11 +1352,11 @@ _GL_WARN_ON_USE (expm1f, "expm1f is unportable - "
 #   undef expm1
 #   define expm1 rpl_expm1
 #  endif
-_GL_FUNCDECL_RPL (expm1, double, (double x));
+_GL_FUNCDECL_RPL (expm1, double, (double x), );
 _GL_CXXALIAS_RPL (expm1, double, (double x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (expm1, double, (double x));
+_GL_FUNCDECL_SYS (expm1, double, (double x), );
 #  endif
 _GL_CXXALIAS_SYS (expm1, double, (double x));
 # endif
@@ -1374,13 +1377,13 @@ _GL_WARN_ON_USE (expm1, "expm1 is unportable - "
 #   undef expm1l
 #   define expm1l rpl_expm1l
 #  endif
-_GL_FUNCDECL_RPL (expm1l, long double, (long double x));
+_GL_FUNCDECL_RPL (expm1l, long double, (long double x), );
 _GL_CXXALIAS_RPL (expm1l, long double, (long double x));
 # else
 #  if !1
 #   undef expm1l
 #   if !(defined __cplusplus && defined _AIX)
-_GL_FUNCDECL_SYS (expm1l, long double, (long double x));
+_GL_FUNCDECL_SYS (expm1l, long double, (long double x), );
 #   endif
 #  endif
 _GL_CXXALIAS_SYS (expm1l, long double, (long double x));
@@ -1400,7 +1403,7 @@ _GL_WARN_ON_USE (expm1l, "expm1l is unportable - "
 #if 0
 # if !1
 #  undef fabsf
-_GL_FUNCDECL_SYS (fabsf, float, (float x));
+_GL_FUNCDECL_SYS (fabsf, float, (float x), );
 # endif
 _GL_CXXALIAS_SYS (fabsf, float, (float x));
 # if __GLIBC__ >= 2
@@ -1420,12 +1423,12 @@ _GL_WARN_ON_USE (fabsf, "fabsf is unportable - "
 #   undef fabsl
 #   define fabsl rpl_fabsl
 #  endif
-_GL_FUNCDECL_RPL (fabsl, long double, (long double x));
+_GL_FUNCDECL_RPL (fabsl, long double, (long double x), );
 _GL_CXXALIAS_RPL (fabsl, long double, (long double x));
 # else
 #  if !1
 #   undef fabsl
-_GL_FUNCDECL_SYS (fabsl, long double, (long double x));
+_GL_FUNCDECL_SYS (fabsl, long double, (long double x), );
 #  endif
 _GL_CXXALIAS_SYS (fabsl, long double, (long double x));
 # endif
@@ -1447,12 +1450,12 @@ _GL_WARN_ON_USE (fabsl, "fabsl is unportable - "
 #   undef floorf
 #   define floorf rpl_floorf
 #  endif
-_GL_FUNCDECL_RPL (floorf, float, (float x));
+_GL_FUNCDECL_RPL (floorf, float, (float x), );
 _GL_CXXALIAS_RPL (floorf, float, (float x));
 # else
 #  if !1
 #   undef floorf
-_GL_FUNCDECL_SYS (floorf, float, (float x));
+_GL_FUNCDECL_SYS (floorf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (floorf, float, (float x));
 # endif
@@ -1471,7 +1474,7 @@ _GL_WARN_ON_USE (floorf, "floorf is unportable - "
 #   undef floor
 #   define floor rpl_floor
 #  endif
-_GL_FUNCDECL_RPL (floor, double, (double x));
+_GL_FUNCDECL_RPL (floor, double, (double x), );
 _GL_CXXALIAS_RPL (floor, double, (double x));
 # else
 _GL_CXXALIAS_SYS (floor, double, (double x));
@@ -1487,12 +1490,12 @@ _GL_CXXALIASWARN1 (floor, double, (double x));
 #   undef floorl
 #   define floorl rpl_floorl
 #  endif
-_GL_FUNCDECL_RPL (floorl, long double, (long double x));
+_GL_FUNCDECL_RPL (floorl, long double, (long double x), );
 _GL_CXXALIAS_RPL (floorl, long double, (long double x));
 # else
 #  if !1
 #   undef floorl
-_GL_FUNCDECL_SYS (floorl, long double, (long double x));
+_GL_FUNCDECL_SYS (floorl, long double, (long double x), );
 #  endif
 _GL_CXXALIAS_SYS (floorl, long double, (long double x));
 # endif
@@ -1514,12 +1517,12 @@ _GL_WARN_ON_USE (floorl, "floorl is unportable - "
 #   undef fmaf
 #   define fmaf rpl_fmaf
 #  endif
-_GL_FUNCDECL_RPL (fmaf, float, (float x, float y, float z));
+_GL_FUNCDECL_RPL (fmaf, float, (float x, float y, float z), );
 _GL_CXXALIAS_RPL (fmaf, float, (float x, float y, float z));
 # else
 #  if !1
 #   undef fmaf
-_GL_FUNCDECL_SYS (fmaf, float, (float x, float y, float z));
+_GL_FUNCDECL_SYS (fmaf, float, (float x, float y, float z), );
 #  endif
 _GL_CXXALIAS_SYS (fmaf, float, (float x, float y, float z));
 # endif
@@ -1538,12 +1541,12 @@ _GL_WARN_ON_USE (fmaf, "fmaf is unportable - "
 #   undef fma
 #   define fma rpl_fma
 #  endif
-_GL_FUNCDECL_RPL (fma, double, (double x, double y, double z));
+_GL_FUNCDECL_RPL (fma, double, (double x, double y, double z), );
 _GL_CXXALIAS_RPL (fma, double, (double x, double y, double z));
 # else
 #  if !1
 #   undef fma
-_GL_FUNCDECL_SYS (fma, double, (double x, double y, double z));
+_GL_FUNCDECL_SYS (fma, double, (double x, double y, double z), );
 #  endif
 _GL_CXXALIAS_SYS (fma, double, (double x, double y, double z));
 # endif
@@ -1565,7 +1568,7 @@ _GL_WARN_ON_USE (fma, "fma is unportable - "
 #   define fmal rpl_fmal
 #  endif
 _GL_FUNCDECL_RPL (fmal, long double,
-                  (long double x, long double y, long double z));
+                  (long double x, long double y, long double z), );
 _GL_CXXALIAS_RPL (fmal, long double,
                   (long double x, long double y, long double z));
 # else
@@ -1573,7 +1576,7 @@ _GL_CXXALIAS_RPL (fmal, long double,
 #   undef fmal
 #   if !(defined __cplusplus && defined _AIX)
 _GL_FUNCDECL_SYS (fmal, long double,
-                  (long double x, long double y, long double z));
+                  (long double x, long double y, long double z), );
 #   endif
 #  endif
 _GL_CXXALIAS_SYS (fmal, long double,
@@ -1597,12 +1600,12 @@ _GL_WARN_ON_USE (fmal, "fmal is unportable - "
 #   undef fmodf
 #   define fmodf rpl_fmodf
 #  endif
-_GL_FUNCDECL_RPL (fmodf, float, (float x, float y));
+_GL_FUNCDECL_RPL (fmodf, float, (float x, float y), );
 _GL_CXXALIAS_RPL (fmodf, float, (float x, float y));
 # else
 #  if !1
 #   undef fmodf
-_GL_FUNCDECL_SYS (fmodf, float, (float x, float y));
+_GL_FUNCDECL_SYS (fmodf, float, (float x, float y), );
 #  endif
 _GL_CXXALIAS_SYS (fmodf, float, (float x, float y));
 # endif
@@ -1621,7 +1624,7 @@ _GL_WARN_ON_USE (fmodf, "fmodf is unportable - "
 #   undef fmod
 #   define fmod rpl_fmod
 #  endif
-_GL_FUNCDECL_RPL (fmod, double, (double x, double y));
+_GL_FUNCDECL_RPL (fmod, double, (double x, double y), );
 _GL_CXXALIAS_RPL (fmod, double, (double x, double y));
 # else
 _GL_CXXALIAS_SYS (fmod, double, (double x, double y));
@@ -1643,12 +1646,12 @@ _GL_WARN_ON_USE (fmod, "fmod has portability problems - "
 #   undef fmodl
 #   define fmodl rpl_fmodl
 #  endif
-_GL_FUNCDECL_RPL (fmodl, long double, (long double x, long double y));
+_GL_FUNCDECL_RPL (fmodl, long double, (long double x, long double y), );
 _GL_CXXALIAS_RPL (fmodl, long double, (long double x, long double y));
 # else
 #  if !1
 #   undef fmodl
-_GL_FUNCDECL_SYS (fmodl, long double, (long double x, long double y));
+_GL_FUNCDECL_SYS (fmodl, long double, (long double x, long double y), );
 #  endif
 _GL_CXXALIAS_SYS (fmodl, long double, (long double x, long double y));
 # endif
@@ -1771,11 +1774,11 @@ _GL_WARN_ON_USE (frexpl, "frexpl is unportable - "
 #   undef hypotf
 #   define hypotf rpl_hypotf
 #  endif
-_GL_FUNCDECL_RPL (hypotf, float, (float x, float y));
+_GL_FUNCDECL_RPL (hypotf, float, (float x, float y), );
 _GL_CXXALIAS_RPL (hypotf, float, (float x, float y));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (hypotf, float, (float x, float y));
+_GL_FUNCDECL_SYS (hypotf, float, (float x, float y), );
 #  endif
 _GL_CXXALIAS_SYS (hypotf, float, (float x, float y));
 # endif
@@ -1797,7 +1800,7 @@ _GL_WARN_ON_USE (hypotf, "hypotf is unportable - "
 #   undef hypot
 #   define hypot rpl_hypot
 #  endif
-_GL_FUNCDECL_RPL (hypot, double, (double x, double y));
+_GL_FUNCDECL_RPL (hypot, double, (double x, double y), );
 _GL_CXXALIAS_RPL (hypot, double, (double x, double y));
 # else
 _GL_CXXALIAS_SYS (hypot, double, (double x, double y));
@@ -1820,11 +1823,11 @@ _GL_WARN_ON_USE (hypotf, "hypot has portability problems - "
 #   undef hypotl
 #   define hypotl rpl_hypotl
 #  endif
-_GL_FUNCDECL_RPL (hypotl, long double, (long double x, long double y));
+_GL_FUNCDECL_RPL (hypotl, long double, (long double x, long double y), );
 _GL_CXXALIAS_RPL (hypotl, long double, (long double x, long double y));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (hypotl, long double, (long double x, long double y));
+_GL_FUNCDECL_SYS (hypotl, long double, (long double x, long double y), );
 #  endif
 _GL_CXXALIAS_SYS (hypotl, long double, (long double x, long double y));
 # endif
@@ -1846,11 +1849,11 @@ _GL_WARN_ON_USE (hypotl, "hypotl is unportable - "
 #   undef ilogbf
 #   define ilogbf rpl_ilogbf
 #  endif
-_GL_FUNCDECL_RPL (ilogbf, int, (float x));
+_GL_FUNCDECL_RPL (ilogbf, int, (float x), );
 _GL_CXXALIAS_RPL (ilogbf, int, (float x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (ilogbf, int, (float x));
+_GL_FUNCDECL_SYS (ilogbf, int, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (ilogbf, int, (float x));
 # endif
@@ -1869,11 +1872,11 @@ _GL_WARN_ON_USE (ilogbf, "ilogbf is unportable - "
 #   undef ilogb
 #   define ilogb rpl_ilogb
 #  endif
-_GL_FUNCDECL_RPL (ilogb, int, (double x));
+_GL_FUNCDECL_RPL (ilogb, int, (double x), );
 _GL_CXXALIAS_RPL (ilogb, int, (double x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (ilogb, int, (double x));
+_GL_FUNCDECL_SYS (ilogb, int, (double x), );
 #  endif
 _GL_CXXALIAS_SYS (ilogb, int, (double x));
 # endif
@@ -1894,12 +1897,12 @@ _GL_WARN_ON_USE (ilogb, "ilogb is unportable - "
 #   undef ilogbl
 #   define ilogbl rpl_ilogbl
 #  endif
-_GL_FUNCDECL_RPL (ilogbl, int, (long double x));
+_GL_FUNCDECL_RPL (ilogbl, int, (long double x), );
 _GL_CXXALIAS_RPL (ilogbl, int, (long double x));
 # else
 #  if !1
 #   undef ilogbl
-_GL_FUNCDECL_SYS (ilogbl, int, (long double x));
+_GL_FUNCDECL_SYS (ilogbl, int, (long double x), );
 #  endif
 _GL_CXXALIAS_SYS (ilogbl, int, (long double x));
 # endif
@@ -1968,7 +1971,7 @@ _GL_CXXALIASWARN (jn);
 #if 0
 # if !1
 #  undef ldexpf
-_GL_FUNCDECL_SYS (ldexpf, float, (float x, int exp));
+_GL_FUNCDECL_SYS (ldexpf, float, (float x, int exp), );
 # endif
 _GL_CXXALIAS_SYS (ldexpf, float, (float x, int exp));
 # if __GLIBC__ >= 2
@@ -1989,7 +1992,7 @@ _GL_WARN_ON_USE (ldexpf, "ldexpf is unportable - "
 #   undef ldexp
 #   define ldexp rpl_ldexp
 #  endif
-_GL_FUNCDECL_RPL (ldexp, double, (double x, int exp));
+_GL_FUNCDECL_RPL (ldexp, double, (double x, int exp), );
 _GL_CXXALIAS_RPL (ldexp, double, (double x, int exp));
 # else
 /* Assume ldexp is always declared.  */
@@ -2011,11 +2014,11 @@ _GL_WARN_ON_USE (ldexp, "ldexp is unportable - "
 #  undef ldexpl
 #  define ldexpl rpl_ldexpl
 # endif
-_GL_FUNCDECL_RPL (ldexpl, long double, (long double x, int exp));
+_GL_FUNCDECL_RPL (ldexpl, long double, (long double x, int exp), );
 _GL_CXXALIAS_RPL (ldexpl, long double, (long double x, int exp));
 #else
 # if !1
-_GL_FUNCDECL_SYS (ldexpl, long double, (long double x, int exp));
+_GL_FUNCDECL_SYS (ldexpl, long double, (long double x, int exp), );
 # endif
 # if 0
 _GL_CXXALIAS_SYS (ldexpl, long double, (long double x, int exp));
@@ -2041,12 +2044,12 @@ _GL_WARN_ON_USE (ldexpl, "ldexpl is unportable - "
 #   undef logf
 #   define logf rpl_logf
 #  endif
-_GL_FUNCDECL_RPL (logf, float, (float x));
+_GL_FUNCDECL_RPL (logf, float, (float x), );
 _GL_CXXALIAS_RPL (logf, float, (float x));
 # else
 #  if !1
 #   undef logf
-_GL_FUNCDECL_SYS (logf, float, (float x));
+_GL_FUNCDECL_SYS (logf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (logf, float, (float x));
 # endif
@@ -2065,7 +2068,7 @@ _GL_WARN_ON_USE (logf, "logf is unportable - "
 #   undef log
 #   define log rpl_log
 #  endif
-_GL_FUNCDECL_RPL (log, double, (double x));
+_GL_FUNCDECL_RPL (log, double, (double x), );
 _GL_CXXALIAS_RPL (log, double, (double x));
 # else
 _GL_CXXALIAS_SYS (log, double, (double x));
@@ -2087,12 +2090,12 @@ _GL_WARN_ON_USE (log, "log has portability problems - "
 #   undef logl
 #   define logl rpl_logl
 #  endif
-_GL_FUNCDECL_RPL (logl, long double, (long double x));
+_GL_FUNCDECL_RPL (logl, long double, (long double x), );
 _GL_CXXALIAS_RPL (logl, long double, (long double x));
 # else
 #  if !1 || !1
 #   undef logl
-_GL_FUNCDECL_SYS (logl, long double, (long double x));
+_GL_FUNCDECL_SYS (logl, long double, (long double x), );
 #  endif
 _GL_CXXALIAS_SYS (logl, long double, (long double x));
 # endif
@@ -2114,12 +2117,12 @@ _GL_WARN_ON_USE (logl, "logl is unportable - "
 #   undef log10f
 #   define log10f rpl_log10f
 #  endif
-_GL_FUNCDECL_RPL (log10f, float, (float x));
+_GL_FUNCDECL_RPL (log10f, float, (float x), );
 _GL_CXXALIAS_RPL (log10f, float, (float x));
 # else
 #  if !1
 #   undef log10f
-_GL_FUNCDECL_SYS (log10f, float, (float x));
+_GL_FUNCDECL_SYS (log10f, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (log10f, float, (float x));
 # endif
@@ -2138,7 +2141,7 @@ _GL_WARN_ON_USE (log10f, "log10f is unportable - "
 #   undef log10
 #   define log10 rpl_log10
 #  endif
-_GL_FUNCDECL_RPL (log10, double, (double x));
+_GL_FUNCDECL_RPL (log10, double, (double x), );
 _GL_CXXALIAS_RPL (log10, double, (double x));
 # else
 _GL_CXXALIAS_SYS (log10, double, (double x));
@@ -2160,12 +2163,12 @@ _GL_WARN_ON_USE (log10, "log10 has portability problems - "
 #   undef log10l
 #   define log10l rpl_log10l
 #  endif
-_GL_FUNCDECL_RPL (log10l, long double, (long double x));
+_GL_FUNCDECL_RPL (log10l, long double, (long double x), );
 _GL_CXXALIAS_RPL (log10l, long double, (long double x));
 # else
 #  if !1 || !1
 #   undef log10l
-_GL_FUNCDECL_SYS (log10l, long double, (long double x));
+_GL_FUNCDECL_SYS (log10l, long double, (long double x), );
 #  endif
 _GL_CXXALIAS_SYS (log10l, long double, (long double x));
 # endif
@@ -2187,11 +2190,11 @@ _GL_WARN_ON_USE (log10l, "log10l is unportable - "
 #   undef log1pf
 #   define log1pf rpl_log1pf
 #  endif
-_GL_FUNCDECL_RPL (log1pf, float, (float x));
+_GL_FUNCDECL_RPL (log1pf, float, (float x), );
 _GL_CXXALIAS_RPL (log1pf, float, (float x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (log1pf, float, (float x));
+_GL_FUNCDECL_SYS (log1pf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (log1pf, float, (float x));
 # endif
@@ -2210,11 +2213,11 @@ _GL_WARN_ON_USE (log1pf, "log1pf is unportable - "
 #   undef log1p
 #   define log1p rpl_log1p
 #  endif
-_GL_FUNCDECL_RPL (log1p, double, (double x));
+_GL_FUNCDECL_RPL (log1p, double, (double x), );
 _GL_CXXALIAS_RPL (log1p, double, (double x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (log1p, double, (double x));
+_GL_FUNCDECL_SYS (log1p, double, (double x), );
 #  endif
 _GL_CXXALIAS_SYS (log1p, double, (double x));
 # endif
@@ -2235,11 +2238,11 @@ _GL_WARN_ON_USE (log1p, "log1p has portability problems - "
 #   undef log1pl
 #   define log1pl rpl_log1pl
 #  endif
-_GL_FUNCDECL_RPL (log1pl, long double, (long double x));
+_GL_FUNCDECL_RPL (log1pl, long double, (long double x), );
 _GL_CXXALIAS_RPL (log1pl, long double, (long double x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (log1pl, long double, (long double x));
+_GL_FUNCDECL_SYS (log1pl, long double, (long double x), );
 #  endif
 _GL_CXXALIAS_SYS (log1pl, long double, (long double x));
 # endif
@@ -2261,12 +2264,12 @@ _GL_WARN_ON_USE (log1pl, "log1pl has portability problems - "
 #   undef log2f
 #   define log2f rpl_log2f
 #  endif
-_GL_FUNCDECL_RPL (log2f, float, (float x));
+_GL_FUNCDECL_RPL (log2f, float, (float x), );
 _GL_CXXALIAS_RPL (log2f, float, (float x));
 # else
 #  if !1
 #   undef log2f
-_GL_FUNCDECL_SYS (log2f, float, (float x));
+_GL_FUNCDECL_SYS (log2f, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (log2f, float, (float x));
 # endif
@@ -2287,12 +2290,12 @@ _GL_WARN_ON_USE (log2f, "log2f is unportable - "
 #   undef log2
 #   define log2 rpl_log2
 #  endif
-_GL_FUNCDECL_RPL (log2, double, (double x));
+_GL_FUNCDECL_RPL (log2, double, (double x), );
 _GL_CXXALIAS_RPL (log2, double, (double x));
 # else
 #  if !1
 #   undef log2
-_GL_FUNCDECL_SYS (log2, double, (double x));
+_GL_FUNCDECL_SYS (log2, double, (double x), );
 #  endif
 _GL_CXXALIAS_SYS (log2, double, (double x));
 # endif
@@ -2313,11 +2316,11 @@ _GL_WARN_ON_USE (log2, "log2 is unportable - "
 #   undef log2l
 #   define log2l rpl_log2l
 #  endif
-_GL_FUNCDECL_RPL (log2l, long double, (long double x));
+_GL_FUNCDECL_RPL (log2l, long double, (long double x), );
 _GL_CXXALIAS_RPL (log2l, long double, (long double x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (log2l, long double, (long double x));
+_GL_FUNCDECL_SYS (log2l, long double, (long double x), );
 #  endif
 _GL_CXXALIAS_SYS (log2l, long double, (long double x));
 # endif
@@ -2339,11 +2342,11 @@ _GL_WARN_ON_USE (log2l, "log2l is unportable - "
 #   undef logbf
 #   define logbf rpl_logbf
 #  endif
-_GL_FUNCDECL_RPL (logbf, float, (float x));
+_GL_FUNCDECL_RPL (logbf, float, (float x), );
 _GL_CXXALIAS_RPL (logbf, float, (float x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (logbf, float, (float x));
+_GL_FUNCDECL_SYS (logbf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (logbf, float, (float x));
 # endif
@@ -2362,11 +2365,11 @@ _GL_WARN_ON_USE (logbf, "logbf is unportable - "
 #   undef logb
 #   define logb rpl_logb
 #  endif
-_GL_FUNCDECL_RPL (logb, double, (double x));
+_GL_FUNCDECL_RPL (logb, double, (double x), );
 _GL_CXXALIAS_RPL (logb, double, (double x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (logb, double, (double x));
+_GL_FUNCDECL_SYS (logb, double, (double x), );
 #  endif
 _GL_CXXALIAS_SYS (logb, double, (double x));
 # endif
@@ -2387,11 +2390,11 @@ _GL_WARN_ON_USE (logb, "logb is unportable - "
 #   undef logbl
 #   define logbl rpl_logbl
 #  endif
-_GL_FUNCDECL_RPL (logbl, long double, (long double x));
+_GL_FUNCDECL_RPL (logbl, long double, (long double x), );
 _GL_CXXALIAS_RPL (logbl, long double, (long double x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (logbl, long double, (long double x));
+_GL_FUNCDECL_SYS (logbl, long double, (long double x), );
 #  endif
 _GL_CXXALIAS_SYS (logbl, long double, (long double x));
 # endif
@@ -2409,7 +2412,7 @@ _GL_WARN_ON_USE (logbl, "logbl is unportable - "
 
 #if 0
 # if !1
-_GL_FUNCDECL_SYS (logp1f, float, (float x));
+_GL_FUNCDECL_SYS (logp1f, float, (float x), );
 # endif
 _GL_CXXALIAS_SYS (logp1f, float, (float x));
 # if __GLIBC__ >= 2
@@ -2425,7 +2428,7 @@ _GL_WARN_ON_USE (logp1f, "logp1f is unportable - "
 
 #if 0
 # if !1
-_GL_FUNCDECL_SYS (logp1, double, (double x));
+_GL_FUNCDECL_SYS (logp1, double, (double x), );
 # endif
 _GL_CXXALIAS_SYS (logp1, double, (double x));
 # if __GLIBC__ >= 2
@@ -2441,7 +2444,7 @@ _GL_WARN_ON_USE (logp1, "logp1 is unportable - "
 
 #if 0
 # if !1
-_GL_FUNCDECL_SYS (logp1l, long double, (long double x));
+_GL_FUNCDECL_SYS (logp1l, long double, (long double x), );
 # endif
 _GL_CXXALIAS_SYS (logp1l, long double, (long double x));
 # if __GLIBC__ >= 2
@@ -2535,7 +2538,7 @@ _GL_WARN_ON_USE (modfl, "modfl is unportable - "
 #if 0
 # if !1
 #  undef powf
-_GL_FUNCDECL_SYS (powf, float, (float x, float y));
+_GL_FUNCDECL_SYS (powf, float, (float x, float y), );
 # endif
 _GL_CXXALIAS_SYS (powf, float, (float x, float y));
 _GL_CXXALIASWARN (powf);
@@ -2554,11 +2557,11 @@ _GL_WARN_ON_USE (powf, "powf is unportable - "
 #   undef remainderf
 #   define remainderf rpl_remainderf
 #  endif
-_GL_FUNCDECL_RPL (remainderf, float, (float x, float y));
+_GL_FUNCDECL_RPL (remainderf, float, (float x, float y), );
 _GL_CXXALIAS_RPL (remainderf, float, (float x, float y));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (remainderf, float, (float x, float y));
+_GL_FUNCDECL_SYS (remainderf, float, (float x, float y), );
 #  endif
 _GL_CXXALIAS_SYS (remainderf, float, (float x, float y));
 # endif
@@ -2577,11 +2580,11 @@ _GL_WARN_ON_USE (remainderf, "remainderf is unportable - "
 #   undef remainder
 #   define remainder rpl_remainder
 #  endif
-_GL_FUNCDECL_RPL (remainder, double, (double x, double y));
+_GL_FUNCDECL_RPL (remainder, double, (double x, double y), );
 _GL_CXXALIAS_RPL (remainder, double, (double x, double y));
 # else
-#  if !1 || !1
-_GL_FUNCDECL_SYS (remainder, double, (double x, double y));
+#  if !1
+_GL_FUNCDECL_SYS (remainder, double, (double x, double y), );
 #  endif
 _GL_CXXALIAS_SYS (remainder, double, (double x, double y));
 # endif
@@ -2602,13 +2605,13 @@ _GL_WARN_ON_USE (remainder, "remainder is unportable - "
 #   undef remainderl
 #   define remainderl rpl_remainderl
 #  endif
-_GL_FUNCDECL_RPL (remainderl, long double, (long double x, long double y));
+_GL_FUNCDECL_RPL (remainderl, long double, (long double x, long double y), );
 _GL_CXXALIAS_RPL (remainderl, long double, (long double x, long double y));
 # else
 #  if !1
 #   undef remainderl
 #   if !(defined __cplusplus && defined _AIX)
-_GL_FUNCDECL_SYS (remainderl, long double, (long double x, long double y));
+_GL_FUNCDECL_SYS (remainderl, long double, (long double x, long double y), );
 #   endif
 #  endif
 _GL_CXXALIAS_SYS (remainderl, long double, (long double x, long double y));
@@ -2627,7 +2630,7 @@ _GL_WARN_ON_USE (remainderl, "remainderl is unportable - "
 
 #if 0
 # if !1
-_GL_FUNCDECL_SYS (rintf, float, (float x));
+_GL_FUNCDECL_SYS (rintf, float, (float x), );
 # endif
 _GL_CXXALIAS_SYS (rintf, float, (float x));
 _GL_CXXALIASWARN (rintf);
@@ -2641,7 +2644,7 @@ _GL_WARN_ON_USE (rintf, "rintf is unportable - "
 
 #if 0
 # if !1
-_GL_FUNCDECL_SYS (rint, double, (double x));
+_GL_FUNCDECL_SYS (rint, double, (double x), );
 # endif
 _GL_CXXALIAS_SYS (rint, double, (double x));
 # if __GLIBC__ >= 2
@@ -2661,11 +2664,11 @@ _GL_WARN_ON_USE (rint, "rint is unportable - "
 #   undef rintl
 #   define rintl rpl_rintl
 #  endif
-_GL_FUNCDECL_RPL (rintl, long double, (long double x));
+_GL_FUNCDECL_RPL (rintl, long double, (long double x), );
 _GL_CXXALIAS_RPL (rintl, long double, (long double x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (rintl, long double, (long double x));
+_GL_FUNCDECL_SYS (rintl, long double, (long double x), );
 #  endif
 _GL_CXXALIAS_SYS (rintl, long double, (long double x));
 # endif
@@ -2687,11 +2690,11 @@ _GL_WARN_ON_USE (rintl, "rintl is unportable - "
 #   undef roundf
 #   define roundf rpl_roundf
 #  endif
-_GL_FUNCDECL_RPL (roundf, float, (float x));
+_GL_FUNCDECL_RPL (roundf, float, (float x), );
 _GL_CXXALIAS_RPL (roundf, float, (float x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (roundf, float, (float x));
+_GL_FUNCDECL_SYS (roundf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (roundf, float, (float x));
 # endif
@@ -2710,11 +2713,11 @@ _GL_WARN_ON_USE (roundf, "roundf is unportable - "
 #   undef round
 #   define round rpl_round
 #  endif
-_GL_FUNCDECL_RPL (round, double, (double x));
+_GL_FUNCDECL_RPL (round, double, (double x), );
 _GL_CXXALIAS_RPL (round, double, (double x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (round, double, (double x));
+_GL_FUNCDECL_SYS (round, double, (double x), );
 #  endif
 _GL_CXXALIAS_SYS (round, double, (double x));
 # endif
@@ -2735,13 +2738,13 @@ _GL_WARN_ON_USE (round, "round is unportable - "
 #   undef roundl
 #   define roundl rpl_roundl
 #  endif
-_GL_FUNCDECL_RPL (roundl, long double, (long double x));
+_GL_FUNCDECL_RPL (roundl, long double, (long double x), );
 _GL_CXXALIAS_RPL (roundl, long double, (long double x));
 # else
 #  if !1
 #   undef roundl
 #   if !(defined __cplusplus && defined _AIX)
-_GL_FUNCDECL_SYS (roundl, long double, (long double x));
+_GL_FUNCDECL_SYS (roundl, long double, (long double x), );
 #   endif
 #  endif
 _GL_CXXALIAS_SYS (roundl, long double, (long double x));
@@ -2764,12 +2767,12 @@ _GL_WARN_ON_USE (roundl, "roundl is unportable - "
 #   undef sinf
 #   define sinf rpl_sinf
 #  endif
-_GL_FUNCDECL_RPL (sinf, float, (float x));
+_GL_FUNCDECL_RPL (sinf, float, (float x), );
 _GL_CXXALIAS_RPL (sinf, float, (float x));
 # else
 #  if !1
 #   undef sinf
-_GL_FUNCDECL_SYS (sinf, float, (float x));
+_GL_FUNCDECL_SYS (sinf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (sinf, float, (float x));
 # endif
@@ -2785,7 +2788,7 @@ _GL_WARN_ON_USE (sinf, "sinf is unportable - "
 #if 0
 # if !1 || !1
 #  undef sinl
-_GL_FUNCDECL_SYS (sinl, long double, (long double x));
+_GL_FUNCDECL_SYS (sinl, long double, (long double x), );
 # endif
 _GL_CXXALIAS_SYS (sinl, long double, (long double x));
 # if __GLIBC__ >= 2
@@ -2806,12 +2809,12 @@ _GL_WARN_ON_USE (sinl, "sinl is unportable - "
 #   undef sinhf
 #   define sinhf rpl_sinhf
 #  endif
-_GL_FUNCDECL_RPL (sinhf, float, (float x));
+_GL_FUNCDECL_RPL (sinhf, float, (float x), );
 _GL_CXXALIAS_RPL (sinhf, float, (float x));
 # else
 #  if !1
 #   undef sinhf
-_GL_FUNCDECL_SYS (sinhf, float, (float x));
+_GL_FUNCDECL_SYS (sinhf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (sinhf, float, (float x));
 # endif
@@ -2831,12 +2834,12 @@ _GL_WARN_ON_USE (sinhf, "sinhf is unportable - "
 #   undef sqrtf
 #   define sqrtf rpl_sqrtf
 #  endif
-_GL_FUNCDECL_RPL (sqrtf, float, (float x));
+_GL_FUNCDECL_RPL (sqrtf, float, (float x), );
 _GL_CXXALIAS_RPL (sqrtf, float, (float x));
 # else
 #  if !1
 #   undef sqrtf
-_GL_FUNCDECL_SYS (sqrtf, float, (float x));
+_GL_FUNCDECL_SYS (sqrtf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (sqrtf, float, (float x));
 # endif
@@ -2855,12 +2858,12 @@ _GL_WARN_ON_USE (sqrtf, "sqrtf is unportable - "
 #   undef sqrtl
 #   define sqrtl rpl_sqrtl
 #  endif
-_GL_FUNCDECL_RPL (sqrtl, long double, (long double x));
+_GL_FUNCDECL_RPL (sqrtl, long double, (long double x), );
 _GL_CXXALIAS_RPL (sqrtl, long double, (long double x));
 # else
 #  if !1 || !1
 #   undef sqrtl
-_GL_FUNCDECL_SYS (sqrtl, long double, (long double x));
+_GL_FUNCDECL_SYS (sqrtl, long double, (long double x), );
 #  endif
 _GL_CXXALIAS_SYS (sqrtl, long double, (long double x));
 # endif
@@ -2882,12 +2885,12 @@ _GL_WARN_ON_USE (sqrtl, "sqrtl is unportable - "
 #   undef tanf
 #   define tanf rpl_tanf
 #  endif
-_GL_FUNCDECL_RPL (tanf, float, (float x));
+_GL_FUNCDECL_RPL (tanf, float, (float x), );
 _GL_CXXALIAS_RPL (tanf, float, (float x));
 # else
 #  if !1
 #   undef tanf
-_GL_FUNCDECL_SYS (tanf, float, (float x));
+_GL_FUNCDECL_SYS (tanf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (tanf, float, (float x));
 # endif
@@ -2903,7 +2906,7 @@ _GL_WARN_ON_USE (tanf, "tanf is unportable - "
 #if 0
 # if !1 || !1
 #  undef tanl
-_GL_FUNCDECL_SYS (tanl, long double, (long double x));
+_GL_FUNCDECL_SYS (tanl, long double, (long double x), );
 # endif
 _GL_CXXALIAS_SYS (tanl, long double, (long double x));
 # if __GLIBC__ >= 2
@@ -2924,12 +2927,12 @@ _GL_WARN_ON_USE (tanl, "tanl is unportable - "
 #   undef tanhf
 #   define tanhf rpl_tanhf
 #  endif
-_GL_FUNCDECL_RPL (tanhf, float, (float x));
+_GL_FUNCDECL_RPL (tanhf, float, (float x), );
 _GL_CXXALIAS_RPL (tanhf, float, (float x));
 # else
 #  if !1
 #   undef tanhf
-_GL_FUNCDECL_SYS (tanhf, float, (float x));
+_GL_FUNCDECL_SYS (tanhf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (tanhf, float, (float x));
 # endif
@@ -2949,11 +2952,11 @@ _GL_WARN_ON_USE (tanhf, "tanhf is unportable - "
 #   undef truncf
 #   define truncf rpl_truncf
 #  endif
-_GL_FUNCDECL_RPL (truncf, float, (float x));
+_GL_FUNCDECL_RPL (truncf, float, (float x), );
 _GL_CXXALIAS_RPL (truncf, float, (float x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (truncf, float, (float x));
+_GL_FUNCDECL_SYS (truncf, float, (float x), );
 #  endif
 _GL_CXXALIAS_SYS (truncf, float, (float x));
 # endif
@@ -2972,11 +2975,11 @@ _GL_WARN_ON_USE (truncf, "truncf is unportable - "
 #   undef trunc
 #   define trunc rpl_trunc
 #  endif
-_GL_FUNCDECL_RPL (trunc, double, (double x));
+_GL_FUNCDECL_RPL (trunc, double, (double x), );
 _GL_CXXALIAS_RPL (trunc, double, (double x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (trunc, double, (double x));
+_GL_FUNCDECL_SYS (trunc, double, (double x), );
 #  endif
 _GL_CXXALIAS_SYS (trunc, double, (double x));
 # endif
@@ -2997,11 +3000,11 @@ _GL_WARN_ON_USE (trunc, "trunc is unportable - "
 #   undef truncl
 #   define truncl rpl_truncl
 #  endif
-_GL_FUNCDECL_RPL (truncl, long double, (long double x));
+_GL_FUNCDECL_RPL (truncl, long double, (long double x), );
 _GL_CXXALIAS_RPL (truncl, long double, (long double x));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (truncl, long double, (long double x));
+_GL_FUNCDECL_SYS (truncl, long double, (long double x), );
 #  endif
 _GL_CXXALIAS_SYS (truncl, long double, (long double x));
 # endif
@@ -3143,9 +3146,9 @@ _GL_WARN_REAL_FLOATING_DECL (isinf);
 #if 0
 /* Test for NaN for 'float' numbers.  */
 # if 1
-#  if defined __sun || defined __sgi
-/* Solaris and IRIX have isnanf() and declare it in <ieeefp.h>.  We cannot
-   define isnanf as a macro, because that would conflict with <ieeefp.h>.  */
+#  if defined __sun
+/* Solaris has isnanf() and declares it in <ieeefp.h>.  We cannot define isnanf
+   as a macro, because that would conflict with <ieeefp.h>.  */
 _GL_EXTERN_C int isnanf (float x);
 #  else
 /* The original <math.h> included above provides a declaration of isnan macro
@@ -3173,9 +3176,9 @@ _GL_EXTERN_C int isnanf (float x);
    This function is a gnulib extension, unlike isnan() which applied only
    to 'double' numbers earlier but now is a type-generic macro.  */
 # if 1
-#  if defined __sun || defined __sgi
-/* Solaris and IRIX have isnand() and declare it in <ieeefp.h>.  We cannot
-   define isnand as a macro, because that would conflict with <ieeefp.h>.  */
+#  if defined __sun
+/* Solaris has isnand() and declares it in <ieeefp.h>.  We cannot define isnand
+   as a macro, because that would conflict with <ieeefp.h>.  */
 _GL_EXTERN_C int isnand (double x);
 #  else
 /* The original <math.h> included above provides a declaration of isnan
@@ -3352,7 +3355,7 @@ _GL_EXTERN_C int gl_signbitl (long double arg);
 #  if defined signbit || defined GNULIB_NAMESPACE
 _GL_MATH_CXX_REAL_FLOATING_DECL_1 (signbit)
 #   undef signbit
-#   if __GNUC__ >= 6 || (defined __clang__ && !((defined __APPLE__ && defined __MACH__) || defined __FreeBSD__ || defined __OpenBSD__ || defined _AIX || (defined _WIN32 && !defined __CYGWIN__)))
+#   if __cplusplus >= 201103L || __GNUC__ >= 6 || (defined __clang__ && !((defined __APPLE__ && defined __MACH__) || defined __FreeBSD__ || defined __OpenBSD__ || defined _AIX || (defined _WIN32 && !defined __CYGWIN__)))
   /* This platform's <cmath> possibly defines signbit through a set of inline
      functions.  */
 _GL_MATH_CXX_REAL_FLOATING_DECL_2 (signbit, rpl_signbit, bool)
@@ -3378,11 +3381,11 @@ _GL_WARN_REAL_FLOATING_DECL (signbit);
 #   undef getpayloadf
 #   define getpayloadf rpl_getpayloadf
 #  endif
-_GL_FUNCDECL_RPL (getpayloadf, float, (const float *));
+_GL_FUNCDECL_RPL (getpayloadf, float, (const float *), );
 _GL_CXXALIAS_RPL (getpayloadf, float, (const float *));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (getpayloadf, float, (const float *));
+_GL_FUNCDECL_SYS (getpayloadf, float, (const float *), );
 #  endif
 _GL_CXXALIAS_SYS (getpayloadf, float, (const float *));
 # endif
@@ -3401,11 +3404,11 @@ _GL_WARN_ON_USE (getpayloadf, "getpayloadf is unportable - "
 #   undef getpayload
 #   define getpayload rpl_getpayload
 #  endif
-_GL_FUNCDECL_RPL (getpayload, double, (const double *));
+_GL_FUNCDECL_RPL (getpayload, double, (const double *), );
 _GL_CXXALIAS_RPL (getpayload, double, (const double *));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (getpayload, double, (const double *));
+_GL_FUNCDECL_SYS (getpayload, double, (const double *), );
 #  endif
 _GL_CXXALIAS_SYS (getpayload, double, (const double *));
 # endif
@@ -3424,11 +3427,11 @@ _GL_WARN_ON_USE (getpayload, "getpayload is unportable - "
 #   undef getpayloadl
 #   define getpayloadl rpl_getpayloadl
 #  endif
-_GL_FUNCDECL_RPL (getpayloadl, long double, (const long double *));
+_GL_FUNCDECL_RPL (getpayloadl, long double, (const long double *), );
 _GL_CXXALIAS_RPL (getpayloadl, long double, (const long double *));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (getpayloadl, long double, (const long double *));
+_GL_FUNCDECL_SYS (getpayloadl, long double, (const long double *), );
 #  endif
 _GL_CXXALIAS_SYS (getpayloadl, long double, (const long double *));
 # endif
@@ -3444,7 +3447,7 @@ _GL_WARN_ON_USE (getpayloadl, "getpayloadl is unportable - "
 
 #if 0
 # if !1
-_GL_FUNCDECL_SYS (setpayloadf, int, (float *, float));
+_GL_FUNCDECL_SYS (setpayloadf, int, (float *, float), );
 # endif
 _GL_CXXALIAS_SYS (setpayloadf, int, (float *, float));
 _GL_CXXALIASWARN (setpayloadf);
@@ -3458,7 +3461,7 @@ _GL_WARN_ON_USE (setpayloadf, "setpayloadf is unportable - "
 
 #if 0
 # if !1
-_GL_FUNCDECL_SYS (setpayload, int, (double *, double));
+_GL_FUNCDECL_SYS (setpayload, int, (double *, double), );
 # endif
 _GL_CXXALIAS_SYS (setpayload, int, (double *, double));
 _GL_CXXALIASWARN (setpayload);
@@ -3472,7 +3475,7 @@ _GL_WARN_ON_USE (setpayload, "setpayload is unportable - "
 
 #if 0
 # if !1
-_GL_FUNCDECL_SYS (setpayloadl, int, (long double *, long double));
+_GL_FUNCDECL_SYS (setpayloadl, int, (long double *, long double), );
 # endif
 _GL_CXXALIAS_SYS (setpayloadl, int, (long double *, long double));
 _GL_CXXALIASWARN (setpayloadl);
@@ -3487,7 +3490,7 @@ _GL_WARN_ON_USE (setpayloadl, "setpayloadl is unportable - "
 
 #if 0
 # if !1
-_GL_FUNCDECL_SYS (setpayloadsigf, int, (float *, float));
+_GL_FUNCDECL_SYS (setpayloadsigf, int, (float *, float), );
 # endif
 _GL_CXXALIAS_SYS (setpayloadsigf, int, (float *, float));
 _GL_CXXALIASWARN (setpayloadsigf);
@@ -3501,7 +3504,7 @@ _GL_WARN_ON_USE (setpayloadsigf, "setpayloadsigf is unportable - "
 
 #if 0
 # if !1
-_GL_FUNCDECL_SYS (setpayloadsig, int, (double *, double));
+_GL_FUNCDECL_SYS (setpayloadsig, int, (double *, double), );
 # endif
 _GL_CXXALIAS_SYS (setpayloadsig, int, (double *, double));
 _GL_CXXALIASWARN (setpayloadsig);
@@ -3515,7 +3518,7 @@ _GL_WARN_ON_USE (setpayloadsig, "setpayloadsig is unportable - "
 
 #if 0
 # if !1
-_GL_FUNCDECL_SYS (setpayloadsigl, int, (long double *, long double));
+_GL_FUNCDECL_SYS (setpayloadsigl, int, (long double *, long double), );
 # endif
 _GL_CXXALIAS_SYS (setpayloadsigl, int, (long double *, long double));
 _GL_CXXALIASWARN (setpayloadsigl);
@@ -3534,11 +3537,11 @@ _GL_WARN_ON_USE (setpayloadsigl, "setpayloadsigl is unportable - "
 #   undef totalorderf
 #   define totalorderf rpl_totalorderf
 #  endif
-_GL_FUNCDECL_RPL (totalorderf, int, (float const *, float const *));
+_GL_FUNCDECL_RPL (totalorderf, int, (float const *, float const *), );
 _GL_CXXALIAS_RPL (totalorderf, int, (float const *, float const *));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (totalorderf, int, (float const *, float const *));
+_GL_FUNCDECL_SYS (totalorderf, int, (float const *, float const *), );
 #  endif
 _GL_CXXALIAS_SYS (totalorderf, int, (float const *, float const *));
 # endif
@@ -3557,11 +3560,11 @@ _GL_WARN_ON_USE (totalorderf, "totalorderf is unportable - "
 #   undef totalorder
 #   define totalorder rpl_totalorder
 #  endif
-_GL_FUNCDECL_RPL (totalorder, int, (double const *, double const *));
+_GL_FUNCDECL_RPL (totalorder, int, (double const *, double const *), );
 _GL_CXXALIAS_RPL (totalorder, int, (double const *, double const *));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (totalorder, int, (double const *, double const *));
+_GL_FUNCDECL_SYS (totalorder, int, (double const *, double const *), );
 #  endif
 _GL_CXXALIAS_SYS (totalorder, int, (double const *, double const *));
 # endif
@@ -3583,13 +3586,13 @@ _GL_WARN_ON_USE (totalorder, "totalorder is unportable - "
 #   define totalorderl rpl_totalorderl
 #  endif
 _GL_FUNCDECL_RPL (totalorderl, int,
-                  (long double const *, long double const *));
+                  (long double const *, long double const *), );
 _GL_CXXALIAS_RPL (totalorderl, int,
                   (long double const *, long double const *));
 # else
 #  if !1
 _GL_FUNCDECL_SYS (totalorderl, int,
-                  (long double const *, long double const *));
+                  (long double const *, long double const *), );
 #  endif
 _GL_CXXALIAS_SYS (totalorderl, int,
                   (long double const *, long double const *));
@@ -3610,11 +3613,11 @@ _GL_WARN_ON_USE (totalorderl, "totalorderl is unportable - "
 #   undef totalordermagf
 #   define totalordermagf rpl_totalordermagf
 #  endif
-_GL_FUNCDECL_RPL (totalordermagf, int, (float const *, float const *));
+_GL_FUNCDECL_RPL (totalordermagf, int, (float const *, float const *), );
 _GL_CXXALIAS_RPL (totalordermagf, int, (float const *, float const *));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (totalordermagf, int, (float const *, float const *));
+_GL_FUNCDECL_SYS (totalordermagf, int, (float const *, float const *), );
 #  endif
 _GL_CXXALIAS_SYS (totalordermagf, int, (float const *, float const *));
 # endif
@@ -3635,11 +3638,11 @@ _GL_WARN_ON_USE (totalordermagf, "totalordermagf is unportable - "
 #   undef totalordermag
 #   define totalordermag rpl_totalordermag
 #  endif
-_GL_FUNCDECL_RPL (totalordermag, int, (double const *, double const *));
+_GL_FUNCDECL_RPL (totalordermag, int, (double const *, double const *), );
 _GL_CXXALIAS_RPL (totalordermag, int, (double const *, double const *));
 # else
 #  if !1
-_GL_FUNCDECL_SYS (totalordermag, int, (double const *, double const *));
+_GL_FUNCDECL_SYS (totalordermag, int, (double const *, double const *), );
 #  endif
 _GL_CXXALIAS_SYS (totalordermag, int, (double const *, double const *));
 # endif
@@ -3661,13 +3664,13 @@ _GL_WARN_ON_USE (totalordermag, "totalordermag is unportable - "
 #   define totalordermagl rpl_totalordermagl
 #  endif
 _GL_FUNCDECL_RPL (totalordermagl, int,
-                  (long double const *, long double const *));
+                  (long double const *, long double const *), );
 _GL_CXXALIAS_RPL (totalordermagl, int,
                   (long double const *, long double const *));
 # else
 #  if !1
 _GL_FUNCDECL_SYS (totalordermagl, int,
-                  (long double const *, long double const *));
+                  (long double const *, long double const *), );
 #  endif
 _GL_CXXALIAS_SYS (totalordermagl, int,
                   (long double const *, long double const *));

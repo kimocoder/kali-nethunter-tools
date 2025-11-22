@@ -1,41 +1,41 @@
 libgnu_a-getopt1.o: getopt1.c ../config.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdbool.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdbool.h \
   assert.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/assert.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/cdefs.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/versioning.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/api-level.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/get_device_api_level_inlines.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/ndk-version.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/assert.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/cdefs.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/versioning.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/api-level.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/get_device_api_level_inlines.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/ndk-version.h \
   getopt.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/getopt.h \
-  /home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/getopt.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/getopt.h \
+  /root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/getopt.h \
   getopt-cdefs.h getopt-pfx-core.h getopt-core.h getopt-pfx-ext.h \
   getopt-ext.h getopt_int.h
 
 ../config.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdbool.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/stdbool.h:
 
 assert.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/assert.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/assert.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/cdefs.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/sys/cdefs.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/versioning.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/versioning.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/api-level.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/api-level.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/get_device_api_level_inlines.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/get_device_api_level_inlines.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/ndk-version.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/ndk-version.h:
 
 getopt.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/getopt.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/getopt.h:
 
-/home/kimocoder/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/getopt.h:
+/root/.android-ndk/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/getopt.h:
 
 getopt-cdefs.h:
 

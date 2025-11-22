@@ -1,6 +1,6 @@
 /* Determine a canonical name for the current locale's character encoding.
 
-   Copyright (C) 2000-2006, 2008-2024 Free Software Foundation, Inc.
+   Copyright (C) 2000-2006, 2008-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -279,45 +279,6 @@ static const struct table_entry alias_table[] =
     { "utf8",      "UTF-8" }
 #   define alias_table_defined
 #  endif
-#  if defined __sgi                                         /* IRIX */
-    { "ISO8859-1",  "ISO-8859-1" },
-    { "ISO8859-15", "ISO-8859-15" },
-    { "ISO8859-2",  "ISO-8859-2" },
-    { "ISO8859-5",  "ISO-8859-5" },
-    { "ISO8859-7",  "ISO-8859-7" },
-    { "ISO8859-9",  "ISO-8859-9" },
-    { "eucCN",      "GB2312" },
-    { "eucJP",      "EUC-JP" },
-    { "eucKR",      "EUC-KR" },
-    { "eucTW",      "EUC-TW" }
-#   define alias_table_defined
-#  endif
-#  if defined __osf__                                       /* OSF/1 */
-  /*{ "GBK",        "GBK" },*/
-    { "ISO8859-1",  "ISO-8859-1" },
-    { "ISO8859-15", "ISO-8859-15" },
-    { "ISO8859-2",  "ISO-8859-2" },
-    { "ISO8859-4",  "ISO-8859-4" },
-    { "ISO8859-5",  "ISO-8859-5" },
-    { "ISO8859-7",  "ISO-8859-7" },
-    { "ISO8859-8",  "ISO-8859-8" },
-    { "ISO8859-9",  "ISO-8859-9" },
-    { "KSC5601",    "CP949" },
-    { "SJIS",       "SHIFT_JIS" },
-    { "TACTIS",     "TIS-620" },
-  /*{ "UTF-8",      "UTF-8" },*/
-    { "big5",       "BIG5" },
-    { "cp850",      "CP850" },
-    { "dechanyu",   "DEC-HANYU" },
-    { "dechanzi",   "GB2312" },
-    { "deckanji",   "DEC-KANJI" },
-    { "deckorean",  "EUC-KR" },
-    { "eucJP",      "EUC-JP" },
-    { "eucKR",      "EUC-KR" },
-    { "eucTW",      "EUC-TW" },
-    { "sdeckanji",  "EUC-JP" }
-#   define alias_table_defined
-#  endif
 #  if defined __sun                                         /* Solaris */
     { "5601",        "EUC-KR" },
     { "646",         "ASCII" },
@@ -380,7 +341,7 @@ static const struct table_entry alias_table[] =
 #  if defined OS2                                           /* OS/2 */
     /* The list of encodings is taken from "List of OS/2 Codepages"
        by Alex Taylor:
-       <http://altsan.org/os2/toolkits/uls/index.html#codepages>.
+       <https://altsan.org/os2/toolkits/uls/index.html#codepages>.
        See also "__convcp() of kLIBC":
        <https://github.com/bitwiseworks/libc/blob/master/src/emx/src/lib/locale/__convcp.c>.  */
     { "CP1004",        "CP1252" },
@@ -850,7 +811,7 @@ locale_charset (void)
   /* Cygwin < 1.7 does not have locales.  nl_langinfo (CODESET) always
      returns "US-ASCII".  Return the suffix of the locale name from the
      environment variables (if present) or the codepage as a number.  */
-  if (codeset != NULL && strcmp (codeset, "US-ASCII") == 0)
+  if (codeset != NULL && streq (codeset, "US-ASCII"))
     {
       const char *locale;
       static char resultbuf[2 + 10 + 1];
@@ -939,8 +900,9 @@ locale_charset (void)
       sprintf (buf, "CP%u", GetACP ());
     }
   /* For a locale name such as "French_France.65001", in Windows 10,
-     setlocale now returns "French_France.utf8" instead.  */
-  if (strcmp (buf + 2, "65001") == 0 || strcmp (buf + 2, "utf8") == 0)
+     setlocale now returns "French_France.utf8" instead, or in the UTF-8
+     environment (with modern system settings) "fr_FR.UTF-8".  */
+  if (streq (buf + 2, "65001") || streq (buf + 2, "utf8") || streq (buf + 2, "UTF-8"))
     codeset = "UTF-8";
   else
     {
@@ -990,7 +952,7 @@ locale_charset (void)
         }
 
       /* For the POSIX locale, don't use the system's codepage.  */
-      if (strcmp (locale, "C") == 0 || strcmp (locale, "POSIX") == 0)
+      if (streq (locale, "C") || streq (locale, "POSIX"))
         codeset = "";
     }
 
@@ -1022,7 +984,7 @@ locale_charset (void)
        Speed up the common case and slow down the less common cases by
        testing for this case first.  */
 #  if defined __OpenBSD__ || (defined __APPLE__ && defined __MACH__) || defined __sun || defined __CYGWIN__
-    if (strcmp (codeset, "UTF-8") == 0)
+    if (streq (codeset, "UTF-8"))
       goto done_table_lookup;
     else
 #  endif
@@ -1151,7 +1113,7 @@ locale_charset (void)
 #ifdef DARWIN7
   /* Mac OS X sets MB_CUR_MAX to 1 when LC_ALL=C, and "UTF-8"
      (the default codeset) does not work when MB_CUR_MAX is 1.  */
-  if (strcmp (codeset, "UTF-8") == 0 && MB_CUR_MAX_L (uselocale (NULL)) <= 1)
+  if (streq (codeset, "UTF-8") && MB_CUR_MAX_L (uselocale (NULL)) <= 1)
     codeset = "ASCII";
 #endif
 

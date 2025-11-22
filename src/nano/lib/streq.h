@@ -1,5 +1,5 @@
 /* Optimized string comparison.
-   Copyright (C) 2001-2002, 2007, 2009-2024 Free Software Foundation, Inc.
+   Copyright (C) 2001-2002, 2007, 2009-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 
-/* STREQ_OPT allows to optimize string comparison with a small literal string.
+/* STREQ_OPT optimizes string comparison with a small literal string.
      STREQ_OPT (s, "EUC-KR", 'E', 'U', 'C', '-', 'K', 'R', 0, 0, 0)
    is semantically equivalent to
      strcmp (s, "EUC-KR") == 0
@@ -39,7 +39,7 @@ extern "C" {
 static inline int
 streq9 (const char *s1, const char *s2)
 {
-  return strcmp (s1 + 9, s2 + 9) == 0;
+  return streq (s1 + 9, s2 + 9);
 }
 
 static inline int

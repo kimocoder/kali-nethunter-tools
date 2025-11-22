@@ -1,6 +1,6 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* A POSIX <locale.h>.
-   Copyright (C) 2007-2024 Free Software Foundation, Inc.
+   Copyright (C) 2007-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -60,7 +60,7 @@
 
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
 /* C++ compatible function declaration macros.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -165,10 +165,15 @@
 # define _GL_EXTERN_C_FUNC
 #endif
 
-/* _GL_FUNCDECL_RPL (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_RPL (func, rettype, parameters, [attributes]);
    declares a replacement function, named rpl_func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_RPL (free, void, (void *ptr), ) _GL_ATTRIBUTE_NOTHROW;
      _GL_FUNCDECL_RPL (open, int, (const char *filename, int flags, ...),
                                   _GL_ARG_NONNULL ((1)));
 
@@ -177,24 +182,22 @@
    because
      [[...]] extern "C" <declaration>;
    is invalid syntax in C++.)
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_RPL invocation, at the end of the declaration.
  */
 #define _GL_FUNCDECL_RPL(func,rettype,parameters,...) \
   _GL_FUNCDECL_RPL_1 (rpl_##func, rettype, parameters, __VA_ARGS__)
 #define _GL_FUNCDECL_RPL_1(rpl_func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype rpl_func parameters
 
-/* _GL_FUNCDECL_SYS (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_SYS (func, rettype, parameters, [attributes]);
    declares the system function, named func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
-     _GL_FUNCDECL_SYS (open, int, (const char *filename, int flags, ...),
-                                  _GL_ARG_NONNULL ((1)));
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_SYS invocation, at the end of the declaration.
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_SYS (getumask, mode_t, (void), ) _GL_ATTRIBUTE_NOTHROW;
+     _GL_FUNCDECL_SYS (posix_openpt, int, (int flags), _GL_ATTRIBUTE_NODISCARD);
  */
 #define _GL_FUNCDECL_SYS(func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype func parameters
@@ -368,7 +371,7 @@
    _GL_CXXALIASWARN_1 (func, GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN_1(func,namespace) \
    _GL_CXXALIASWARN_2 (func, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN_2(func,namespace) \
@@ -396,7 +399,7 @@
                         GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN1_1(func,rettype,parameters_and_attributes,namespace) \
    _GL_CXXALIASWARN1_2 (func, rettype, parameters_and_attributes, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN1_2(func,rettype,parameters_and_attributes,namespace) \
@@ -416,7 +419,7 @@
 
 /* The definition of _GL_ARG_NONNULL is copied here.  */
 /* A C macro for declaring that specific arguments must not be NULL.
-   Copyright (C) 2009-2024 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -444,7 +447,7 @@
 
 /* The definition of _GL_WARN_ON_USE is copied here.  */
 /* A C macro for emitting warnings if a function is used.
-   Copyright (C) 2010-2024 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -603,6 +606,85 @@ _GL_WARN_EXTERN_C int _gl_warn_on_use
 # define LC_MESSAGES 1729
 #endif
 
+#if !1
+# if !defined GNULIB_defined_locale_t
+/* The values of the POSIX-standardized LC_* macros are:
+
+                  LC_COLLATE LC_CTYPE LC_MESSAGES LC_MONETARY LC_NUMERIC LC_TIME
+
+   glibc, Solaris,     3        0           5         4            1        2
+   Android
+   macOS, *BSD         1        2           6         3            4        5
+   native Windows      1        2        1729         3            4        5
+
+   We map these to the log2(LC_*_MASK) values, chosen to be compatible with
+   later releases of the same operating system.  */
+#  if defined __APPLE__ && defined __MACH__          /* macOS */
+/*                LC_COLLATE LC_CTYPE LC_MESSAGES LC_MONETARY LC_NUMERIC LC_TIME
+
+   category            1        2           6         3            4        5
+   log2(LC_*_MASK)     0        1           2         3            4        5
+ */
+#   define gl_log2_lc_mask(category) ((0x2543100 >> (4 * (category))) & 0xf)
+#  elif defined __FreeBSD__ || defined __DragonFly__ /* FreeBSD */
+/*                LC_COLLATE LC_CTYPE LC_MESSAGES LC_MONETARY LC_NUMERIC LC_TIME
+
+   category            1        2           6         3            4        5
+   log2(LC_*_MASK)     0        1           5         2            3        4
+ */
+#   define gl_log2_lc_mask(category) ((category) - 1)
+#  elif defined _WIN32 && !defined __CYGWIN__        /* native Windows */
+#   define gl_log2_lc_mask(category) \
+      ((category) == LC_MESSAGES ? 0 : (category))
+#  else                           /* glibc, Solaris, Android, NetBSD, OpenBSD */
+#   define gl_log2_lc_mask(category) (category)
+#  endif
+/* From there we map them to array indices 0..5.  */
+#  if (gl_log2_lc_mask (LC_COLLATE) == 0 || gl_log2_lc_mask (LC_CTYPE) == 0 \
+       || gl_log2_lc_mask (LC_MESSAGES) == 0)
+  /* glibc, Solaris, Android, macOS, FreeBSD, native Windows */
+#   define gl_log2_lcmask_to_index(c) (c)
+#   define gl_index_to_log2_lcmask(i) (i)
+#  else
+  /* NetBSD, OpenBSD */
+#   define gl_log2_lcmask_to_index(c) ((c) - 1)
+#   define gl_index_to_log2_lcmask(i) ((i) + 1)
+#  endif
+/* Define the LC_*_MASK macros.  */
+#  define LC_COLLATE_MASK  (1 << gl_log2_lc_mask (LC_COLLATE))
+#  define LC_CTYPE_MASK    (1 << gl_log2_lc_mask (LC_CTYPE))
+#  define LC_MESSAGES_MASK (1 << gl_log2_lc_mask (LC_MESSAGES))
+#  define LC_MONETARY_MASK (1 << gl_log2_lc_mask (LC_MONETARY))
+#  define LC_NUMERIC_MASK  (1 << gl_log2_lc_mask (LC_NUMERIC))
+#  define LC_TIME_MASK     (1 << gl_log2_lc_mask (LC_TIME))
+#  define LC_ALL_MASK \
+     (LC_COLLATE_MASK | LC_CTYPE_MASK | LC_MESSAGES_MASK | LC_MONETARY_MASK \
+      | LC_NUMERIC_MASK | LC_TIME_MASK)
+/* Now define the locale_t type.  */
+struct gl_locale_category_t
+{
+  char *name;
+  bool is_c_locale;
+#  if 0
+  /* Use the native Windows '_locale_t' type.
+     Documentation:
+     <https://learn.microsoft.com/en-us/cpp/c-runtime-library/locale>
+     This field is NULL if is_c_locale is true.  But don't use this NULL value,
+     since for the native Windows *_l functions a null _locale_t means to use
+     the global locale.  */
+  _locale_t system_locale;
+#  endif
+};
+struct gl_locale_t
+{
+  struct gl_locale_category_t category[6];
+};
+typedef struct gl_locale_t *locale_t;
+#  define LC_GLOBAL_LOCALE ((locale_t)(-1))
+#  define GNULIB_defined_locale_t 1
+# endif
+#endif
+
 /* On native Windows with MSVC, 'struct lconv' lacks the members int_p_* and
    int_n_*.  Instead of overriding 'struct lconv', merely define these member
    names as macros.  This avoids trouble in C++ mode.  */
@@ -617,7 +699,8 @@ _GL_WARN_EXTERN_C int _gl_warn_on_use
 
 /* Bionic libc's 'struct lconv' is just a dummy.  */
 #if 0
-# define lconv rpl_lconv
+# if !defined GNULIB_defined_struct_lconv
+#  define lconv rpl_lconv
 struct lconv
 {
   /* All 'char *' are actually 'const char *'.  */
@@ -694,6 +777,8 @@ struct lconv
      number.  */
   char int_n_sep_by_space;
 };
+#  define GNULIB_defined_struct_lconv 1
+# endif
 #endif
 
 #if 1
@@ -702,7 +787,7 @@ struct lconv
 #   undef localeconv
 #   define localeconv rpl_localeconv
 #  endif
-_GL_FUNCDECL_RPL (localeconv, struct lconv *, (void));
+_GL_FUNCDECL_RPL (localeconv, struct lconv *, (void), );
 _GL_CXXALIAS_RPL (localeconv, struct lconv *, (void));
 # else
 _GL_CXXALIAS_SYS (localeconv, struct lconv *, (void));
@@ -731,7 +816,7 @@ _GL_WARN_ON_USE (localeconv,
 #   define setlocale rpl_setlocale
 #   define GNULIB_defined_setlocale 1
 #  endif
-_GL_FUNCDECL_RPL (setlocale, char *, (int category, const char *locale));
+_GL_FUNCDECL_RPL (setlocale, char *, (int category, const char *locale), );
 _GL_CXXALIAS_RPL (setlocale, char *, (int category, const char *locale));
 # else
 _GL_CXXALIAS_SYS (setlocale, char *, (int category, const char *locale));
@@ -752,7 +837,7 @@ _GL_WARN_ON_USE (setlocale, "setlocale works differently on native Windows - "
 # include "setlocale_null.h"
 #endif
 
-#if /*@GNULIB_NEWLOCALE@ ||*/ (0 && 0 && 1)
+#if 0 || (0 && 0 && 1)
 # if 0
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef newlocale
@@ -765,18 +850,16 @@ _GL_FUNCDECL_RPL (newlocale, locale_t,
 _GL_CXXALIAS_RPL (newlocale, locale_t,
                   (int category_mask, const char *name, locale_t base));
 # else
-#  if 1
+#  if !1
+_GL_FUNCDECL_SYS (newlocale, locale_t,
+                  (int category_mask, const char *name, locale_t base),
+                  _GL_ARG_NONNULL ((2)));
+#  endif
 _GL_CXXALIAS_SYS (newlocale, locale_t,
                   (int category_mask, const char *name, locale_t base));
-#  endif
 # endif
-# if __GLIBC__ >= 2 && 1
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (newlocale);
-# endif
-# if 1 || 0
-#  ifndef HAVE_WORKING_NEWLOCALE
-#   define HAVE_WORKING_NEWLOCALE 1
-#  endif
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef newlocale
@@ -786,36 +869,32 @@ _GL_WARN_ON_USE (newlocale, "newlocale is not portable");
 #endif
 
 #if 0 || (0 && 0 && 1)
-# if 1 /* locale_t may be undefined if !1.  */
-#  if 0
-#   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#    undef duplocale
-#    define duplocale rpl_duplocale
-#    define GNULIB_defined_duplocale 1
-#   endif
+# if 0
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef duplocale
+#   define duplocale rpl_duplocale
+#   define GNULIB_defined_duplocale 1
+#  endif
 _GL_FUNCDECL_RPL (duplocale, locale_t, (locale_t locale), _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (duplocale, locale_t, (locale_t locale));
-#  else
+# else
+#  if !1
+_GL_FUNCDECL_SYS (duplocale, locale_t, (locale_t locale), _GL_ARG_NONNULL ((1)));
+#  endif
 _GL_CXXALIAS_SYS (duplocale, locale_t, (locale_t locale));
-#  endif
 # endif
-# if __GLIBC__ >= 2 && 1
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (duplocale);
-# endif
-# if 1
-#  ifndef HAVE_WORKING_DUPLOCALE
-#   define HAVE_WORKING_DUPLOCALE 1
-#  endif
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef duplocale
 # if HAVE_RAW_DECL_DUPLOCALE
-_GL_WARN_ON_USE (duplocale, "duplocale is buggy on some glibc systems - "
+_GL_WARN_ON_USE (duplocale, "duplocale is unportable and buggy on some glibc systems - "
                  "use gnulib module duplocale for portability");
 # endif
 #endif
 
-#if /*@GNULIB_FREELOCALE@ ||*/ (0 && 0 && 1)
+#if 0 || (0 && 0 && 1)
 # if 0
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef freelocale
@@ -825,19 +904,50 @@ _GL_WARN_ON_USE (duplocale, "duplocale is buggy on some glibc systems - "
 _GL_FUNCDECL_RPL (freelocale, void, (locale_t locale), _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (freelocale, void, (locale_t locale));
 # else
-#  if 1
+#  if !1
+_GL_FUNCDECL_SYS (freelocale, void, (locale_t locale), _GL_ARG_NONNULL ((1)));
+#  endif
 /* Need to cast, because on FreeBSD and Mac OS X 10.13, the return type is
                                    int.  */
 _GL_CXXALIAS_SYS_CAST (freelocale, void, (locale_t locale));
-#  endif
 # endif
-# if __GLIBC__ >= 2 && 1
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (freelocale);
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef freelocale
 # if HAVE_RAW_DECL_FREELOCALE
 _GL_WARN_ON_USE (freelocale, "freelocale is not portable");
+# endif
+#endif
+
+#if 0
+# if 0
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef getlocalename_l
+#   define getlocalename_l rpl_getlocalename_l
+#  endif
+_GL_FUNCDECL_RPL (getlocalename_l, const char *,
+                  (int category, locale_t locale),
+                  _GL_ARG_NONNULL ((2)));
+_GL_CXXALIAS_RPL (getlocalename_l, const char *,
+                  (int category, locale_t locale));
+# else
+#  if !1
+_GL_FUNCDECL_SYS (getlocalename_l, const char *,
+                  (int category, locale_t locale),
+                  _GL_ARG_NONNULL ((2)));
+#  endif
+_GL_CXXALIAS_SYS (getlocalename_l, const char *,
+                  (int category, locale_t locale));
+# endif
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (getlocalename_l);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef getlocalename_l
+# if HAVE_RAW_DECL_GETLOCALENAME_L
+_GL_WARN_ON_USE (getlocalename_l, "getlocalename_l is not portable");
 # endif
 #endif
 
