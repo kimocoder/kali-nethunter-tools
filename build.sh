@@ -49,7 +49,7 @@ while [[ $# -gt 0 ]]; do
       ARCH_FILTER="$2"
       shift 2
       ;;
-    build|clean|rebuild|list|status|push|upgrade|update|help)
+    build|clean|rebuild|list|status|push|upgrade|update|check|help)
       if [ -z "$COMMAND" ]; then
         COMMAND="$1"
       fi
@@ -382,6 +382,203 @@ show_status() {
 }
 
 # ============================================================================
+# Check System
+# ============================================================================
+run_checks() {
+  local errors=0
+  local warnings=0
+  
+  log "Running system checks..."
+  echo ""
+  
+  # ========================================
+  # Check 1: Tools.conf vs Build Scripts
+  # ========================================
+  log "Check 1: Verifying build scripts exist for all tools in tools.conf..."
+  
+  for tool in "${TOOLS_LIST[@]}"; do
+    local build_script="$SCRIPT_DIR/scripts/build-$tool.sh"
+    if [ ! -f "$build_script" ]; then
+      log_error "  ✗ Missing build script for '$tool': $build_script"
+      ((errors++))
+    fi
+  done
+  
+  if [ $errors -eq 0 ]; then
+    log "  ✓ All tools have build scripts"
+  fi
+  echo ""
+  
+  # ========================================
+  # Check 2: Source Directory Availability
+  # ========================================
+  log "Check 2: Checking source directory availability..."
+  
+  local -a missing_sources=()
+  for tool in "${TOOLS_LIST[@]}"; do
+    local src_dir="$SCRIPT_DIR/src/$tool"
+    # Handle special cases where directory names differ
+    case "$tool" in
+      libnl3) src_dir="$SCRIPT_DIR/src/libnl" ;;
+      openssl) src_dir="$SCRIPT_DIR/src/libssl" ;;
+      tshark) src_dir="$SCRIPT_DIR/src/wireshark" ;;
+      glib2) src_dir="$SCRIPT_DIR/src/glib2-old-2.9.6" ;;
+    esac
+    
+    if [ ! -d "$src_dir" ]; then
+      missing_sources+=("$tool")
+      ((warnings++)) || true
+    fi
+  done
+  
+  if [ ${#missing_sources[@]} -gt 0 ]; then
+    log "  ⚠ No local source for: ${missing_sources[*]} (will download if needed)"
+  fi
+  
+  if [ ${#missing_sources[@]} -eq 0 ]; then
+    log "  ✓ All tools have local sources"
+  fi
+  echo ""
+  
+  # ========================================
+  # Check 3: TLS Alignment for ARM64 Binaries
+  # ========================================
+  log "Check 3: Checking TLS alignment for ARM64 binaries..."
+  
+  local arm64_dir="$SCRIPT_DIR/out/aarch64-linux-android"
+  if [ ! -d "$arm64_dir" ]; then
+    log "  ⚠ No ARM64 binaries found (not built yet)"
+    warnings=$((warnings + 1))
+  else
+    local tls_issues=0
+    local checked=0
+    
+    for tool in "${TOOLS_LIST[@]}"; do
+      # Skip libraries
+      if [ "${TOOLS_IS_LIBRARY[$tool]}" = "yes" ]; then
+        continue
+      fi
+      
+      local install_dir="$arm64_dir/$tool"
+      if [ ! -f "$install_dir/.built" ]; then
+        continue
+      fi
+      
+      # Check binaries in bin/ and sbin/
+      for dir in bin sbin; do
+        if [ -d "$install_dir/$dir" ]; then
+          for binary in "$install_dir/$dir"/*; do
+            if [ -f "$binary" ] && [ -x "$binary" ]; then
+              checked=$((checked + 1))
+              
+              # Check TLS alignment using readelf
+              if command -v readelf > /dev/null 2>&1; then
+                local tls_align=$(readelf -l "$binary" 2>/dev/null | grep -A 1 "TLS" | grep -oP "0x[0-9a-f]+" | tail -1)
+                
+                if [ -n "$tls_align" ]; then
+                  # Convert hex to decimal
+                  local align_dec=$((tls_align))
+                  
+                  if [ $align_dec -lt 64 ]; then
+                    log_error "  ✗ $(basename "$binary") has TLS alignment $align_dec (needs 64)"
+                    tls_issues=$((tls_issues + 1))
+                    errors=$((errors + 1))
+                  fi
+                fi
+              fi
+            fi
+          done
+        fi
+      done
+    done
+    
+    if [ $checked -eq 0 ]; then
+      log "  ⚠ No ARM64 binaries found to check"
+      warnings=$((warnings + 1))
+    elif [ $tls_issues -eq 0 ]; then
+      log "  ✓ All $checked ARM64 binaries have correct TLS alignment (64 bytes)"
+    else
+      log_error "  Found $tls_issues binaries with incorrect TLS alignment"
+    fi
+  fi
+  echo ""
+  
+  # ========================================
+  # Check 4: Dependency Consistency
+  # ========================================
+  log "Check 4: Verifying dependency consistency..."
+  
+  local dep_errors=0
+  for tool in "${TOOLS_LIST[@]}"; do
+    local deps="${TOOLS_DEPS[$tool]}"
+    if [ -n "$deps" ]; then
+      IFS=',' read -ra dep_array <<< "$deps"
+      for dep in "${dep_array[@]}"; do
+        dep=$(echo "$dep" | xargs)
+        if [ -n "$dep" ] && [[ ! " ${TOOLS_LIST[@]} " =~ " ${dep} " ]]; then
+          log_error "  ✗ Tool '$tool' depends on unknown tool '$dep'"
+          dep_errors=$((dep_errors + 1))
+          errors=$((errors + 1))
+        fi
+      done
+    fi
+  done
+  
+  if [ $dep_errors -eq 0 ]; then
+    log "  ✓ All dependencies are valid"
+  fi
+  echo ""
+  
+  # ========================================
+  # Check 5: Patch Files
+  # ========================================
+  log "Check 5: Verifying patch files exist..."
+  
+  local missing_patches=0
+  for tool in "${TOOLS_LIST[@]}"; do
+    local patches="${TOOLS_PATCHES[$tool]}"
+    if [ -n "$patches" ]; then
+      IFS=',' read -ra patch_array <<< "$patches"
+      for patch in "${patch_array[@]}"; do
+        patch=$(echo "$patch" | xargs)
+        if [ -n "$patch" ]; then
+          local patch_file="$SCRIPT_DIR/patches/$patch"
+          if [ ! -f "$patch_file" ]; then
+            log_error "  ✗ Missing patch file for '$tool': $patch"
+            missing_patches=$((missing_patches + 1))
+            errors=$((errors + 1))
+          fi
+        fi
+      done
+    fi
+  done
+  
+  if [ $missing_patches -eq 0 ]; then
+    log "  ✓ All patch files exist"
+  fi
+  echo ""
+  
+  # ========================================
+  # Summary
+  # ========================================
+  echo "========================================"
+  log "Check Summary:"
+  log "  Errors:   $errors"
+  log "  Warnings: $warnings"
+  
+  if [ $errors -eq 0 ] && [ $warnings -eq 0 ]; then
+    log_success "All checks passed! ✓"
+    return 0
+  elif [ $errors -eq 0 ]; then
+    log "All checks passed with $warnings warning(s)"
+    return 0
+  else
+    log_error "Checks failed with $errors error(s) and $warnings warning(s)"
+    return 1
+  fi
+}
+
+# ============================================================================
 # Version Management
 # ============================================================================
 get_current_version() {
@@ -579,6 +776,7 @@ show_help() {
   echo -e "  ${GREEN}rebuild${RESET} [TOOLS...]  Clean and rebuild"
   echo -e "  ${GREEN}list${RESET}                List available tools (libraries are hidden)"
   echo -e "  ${GREEN}status${RESET}              Show build status for tools"
+  echo -e "  ${GREEN}check${RESET}               Verify tool configurations, sources, and binary TLS alignment"
   echo -e "  ${GREEN}push${RESET} [TOOLS...]     Push built tools to Android device via ADB"
   echo -e "  ${GREEN}update${RESET}              Check if a newer version is available"
   echo -e "  ${GREEN}upgrade${RESET}             Upgrade to the latest version from git repository"
@@ -704,7 +902,7 @@ main() {
   architectures=$(get_architectures)
   
   # If building for multiple architectures, handle recursively
-  if [ "$COMMAND" != "list" ] && [ "$COMMAND" != "help" ] && [ "$COMMAND" != "status" ] && [ "$COMMAND" != "update" ] && [ "$COMMAND" != "upgrade" ]; then
+  if [ "$COMMAND" != "list" ] && [ "$COMMAND" != "help" ] && [ "$COMMAND" != "status" ] && [ "$COMMAND" != "update" ] && [ "$COMMAND" != "upgrade" ] && [ "$COMMAND" != "check" ]; then
     local arch_count
     arch_count=$(echo "$architectures" | wc -w)
     
@@ -862,6 +1060,11 @@ main() {
 
     status)
       show_status
+      ;;
+
+    check)
+      run_checks
+      exit $?
       ;;
 
     push)
