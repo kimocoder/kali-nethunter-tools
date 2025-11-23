@@ -4,10 +4,12 @@
  * Win32 GMODULE implementation
  * Copyright (C) 1998 Tor Lillqvist
  *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,9 +17,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -30,7 +30,9 @@
 /* 
  * MT safe
  */
+#include "config.h"
 
+#include <glib.h>
 #include <stdio.h>
 #include <windows.h>
 
@@ -40,45 +42,70 @@
 #include <sys/cygwin.h>
 #endif
 
-static void
-set_error (void)
+static void G_GNUC_PRINTF (2, 3)
+set_error (GError      **error,
+           const gchar  *format,
+           ...)
 {
-  gchar *error = g_win32_error_message (GetLastError ());
+  gchar *win32_error;
+  gchar *detail;
+  gchar *message;
+  va_list args;
 
-  g_module_set_error (error);
-  g_free (error);
+  win32_error = g_win32_error_message ((gint) GetLastError ());
+
+  va_start (args, format);
+  detail = g_strdup_vprintf (format, args);
+  va_end (args);
+
+  message = g_strconcat (detail, win32_error, NULL);
+
+  g_module_set_error (message);
+  g_set_error_literal (error, G_MODULE_ERROR, G_MODULE_ERROR_FAILED, message);
+
+  g_free (message);
+  g_free (detail);
+  g_free (win32_error);
 }
 
 /* --- functions --- */
 static gpointer
 _g_module_open (const gchar *file_name,
 		gboolean     bind_lazy,
-		gboolean     bind_local)
+		gboolean     bind_local,
+                GError     **error)
 {
   HINSTANCE handle;
+  wchar_t *wfilename;
+  DWORD old_mode;
+  BOOL success;
 #ifdef G_WITH_CYGWIN
   gchar tmp[MAX_PATH];
 
   cygwin_conv_to_win32_path(file_name, tmp);
   file_name = tmp;
 #endif
-  if (G_WIN32_HAVE_WIDECHAR_API ())
-    {
-      wchar_t *wfilename = g_utf8_to_utf16 (file_name, -1, NULL, NULL, NULL);
-  
-      handle = LoadLibraryW (wfilename);
-      g_free (wfilename);
-    }
-  else
-    {
-      gchar *cp_filename = g_locale_from_utf8 (file_name, -1, NULL, NULL, NULL);
+  wfilename = g_utf8_to_utf16 (file_name, -1, NULL, NULL, NULL);
 
-      handle = LoadLibraryA (cp_filename);
-      g_free (cp_filename);
-    }
+  /* suppress error dialog */
+  success = SetThreadErrorMode (SEM_NOOPENFILEERRORBOX | SEM_FAILCRITICALERRORS, &old_mode);
+  if (!success)
+    set_error (error, "");
+
+  /* When building for UWP, load app asset DLLs instead of filesystem DLLs.
+   * Needs MSVC, Windows 8 and newer, and is only usable from apps. */
+#if _WIN32_WINNT >= 0x0602 && defined(G_WINAPI_ONLY_APP)
+  handle = LoadPackagedLibrary (wfilename, 0);
+#else
+  handle = LoadLibraryW (wfilename);
+#endif
+
+  if (success)
+    SetThreadErrorMode (old_mode, NULL);
+  g_free (wfilename);
       
   if (!handle)
-    set_error ();
+    set_error (error, "'%s': ", file_name);
 
   return handle;
 }
@@ -93,109 +120,52 @@ _g_module_self (void)
 }
 
 static void
-_g_module_close (gpointer handle,
-		 gboolean is_unref)
+_g_module_close (gpointer handle)
 {
   if (handle != null_module_handle)
     if (!FreeLibrary (handle))
-      set_error ();
+      set_error (NULL, "");
 }
 
 static gpointer
 find_in_any_module_using_toolhelp (const gchar *symbol_name)
 {
-  typedef HANDLE (WINAPI *PFNCREATETOOLHELP32SNAPSHOT)(DWORD, DWORD);
-  static PFNCREATETOOLHELP32SNAPSHOT pfnCreateToolhelp32Snapshot = NULL;
-
-  typedef BOOL (WINAPI *PFNMODULE32FIRST)(HANDLE, MODULEENTRY32*);
-  static PFNMODULE32FIRST pfnModule32First= NULL;
-
-  typedef BOOL (WINAPI *PFNMODULE32NEXT)(HANDLE, MODULEENTRY32*);
-  static PFNMODULE32NEXT pfnModule32Next = NULL;
-
-  static HMODULE kernel32;
-
   HANDLE snapshot; 
   MODULEENTRY32 me32;
 
-  gpointer p;
+  gpointer p = NULL;
 
-  if (!pfnCreateToolhelp32Snapshot || !pfnModule32First || !pfnModule32Next)
+  /* Under UWP, Module32Next and Module32First are not available since we're
+   * not allowed to search in the address space of arbitrary loaded DLLs */
+#if !defined(G_WINAPI_ONLY_APP)
+  /* https://docs.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-createtoolhelp32snapshot#remarks
+   * If the function fails with ERROR_BAD_LENGTH, retry the function until it succeeds. */
+  while (TRUE)
     {
-      if (!kernel32)
-	if (!(kernel32 = GetModuleHandle ("kernel32.dll")))
-	  return NULL;
-
-      if (!(pfnCreateToolhelp32Snapshot = (PFNCREATETOOLHELP32SNAPSHOT) GetProcAddress (kernel32, "CreateToolhelp32Snapshot"))
-	  || !(pfnModule32First = (PFNMODULE32FIRST) GetProcAddress (kernel32, "Module32First"))
-	  || !(pfnModule32Next = (PFNMODULE32NEXT) GetProcAddress (kernel32, "Module32Next")))
-	return NULL;
+      snapshot = CreateToolhelp32Snapshot (TH32CS_SNAPMODULE, 0);
+      if (snapshot == INVALID_HANDLE_VALUE && GetLastError () == ERROR_BAD_LENGTH)
+        {
+          g_thread_yield ();
+          continue;
+        }
+      break;
     }
 
-  if ((snapshot = (*pfnCreateToolhelp32Snapshot) (TH32CS_SNAPMODULE, 0)) == (HANDLE) -1)
+  if (snapshot == INVALID_HANDLE_VALUE)
     return NULL;
 
   me32.dwSize = sizeof (me32);
   p = NULL;
-  if ((*pfnModule32First) (snapshot, &me32))
+  if (Module32First (snapshot, &me32))
     {
       do {
 	if ((p = GetProcAddress (me32.hModule, symbol_name)) != NULL)
 	  break;
-      } while ((*pfnModule32Next) (snapshot, &me32));
+      } while (Module32Next (snapshot, &me32));
     }
 
   CloseHandle (snapshot);
-
-  return p;
-}
-
-static gpointer
-find_in_any_module_using_psapi (const gchar *symbol_name)
-{
-  static HMODULE psapi = NULL;
-
-  typedef BOOL (WINAPI *PFNENUMPROCESSMODULES) (HANDLE, HMODULE *, DWORD, LPDWORD) ;
-  static PFNENUMPROCESSMODULES pfnEnumProcessModules = NULL;
-
-  HMODULE *modules;
-  HMODULE dummy;
-  gint i, size;
-  DWORD needed;
-  
-  gpointer p;
-
-  if (!pfnEnumProcessModules)
-    {
-      if (!psapi)
-	if ((psapi = LoadLibrary ("psapi.dll")) == NULL)
-	  return NULL;
-
-      if (!(pfnEnumProcessModules = (PFNENUMPROCESSMODULES) GetProcAddress (psapi, "EnumProcessModules")))
-	return NULL;
-    }
-
-  if (!(*pfnEnumProcessModules) (GetCurrentProcess (), &dummy,
-				 sizeof (HMODULE), &needed))
-    return NULL;
-
-  size = needed + 10 * sizeof (HMODULE);
-  modules = g_malloc (size);
-
-  if (!(*pfnEnumProcessModules) (GetCurrentProcess (), modules,
-				 size, &needed)
-      || needed > size)
-    {
-      g_free (modules);
-      return NULL;
-    }
-  
-  p = NULL;
-  for (i = 0; i < needed / sizeof (HMODULE); i++)
-    if ((p = GetProcAddress (modules[i], symbol_name)) != NULL)
-      break;
-
-  g_free (modules);
+#endif
 
   return p;
 }
@@ -205,8 +175,7 @@ find_in_any_module (const gchar *symbol_name)
 {
   gpointer result;
 
-  if ((result = find_in_any_module_using_toolhelp (symbol_name)) == NULL
-      && (result = find_in_any_module_using_psapi (symbol_name)) == NULL)
+  if ((result = find_in_any_module_using_toolhelp (symbol_name)) == NULL)
     return NULL;
   else
     return result;
@@ -227,7 +196,7 @@ _g_module_symbol (gpointer     handle,
     p = GetProcAddress (handle, symbol_name);
 
   if (!p)
-    set_error ();
+    set_error (NULL, "");
 
   return p;
 }
@@ -236,7 +205,7 @@ static gchar*
 _g_module_build_path (const gchar *directory,
 		      const gchar *module_name)
 {
-  gint k;
+  size_t k;
 
   k = strlen (module_name);
     

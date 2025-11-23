@@ -1,10 +1,13 @@
 /* GObject - GLib Type, Object, Parameter and Signal Library
  * Copyright (C) 1997-1999, 2000-2001 Tim Janik and Red Hat, Inc.
+ * Copyright (C) 2010 Christian Persch
+ *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,25 +15,29 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General
- * Public License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307, USA.
+ * Public License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
  * MT safe
  */
 
-#include	"../config.h"
+#include "config.h"
 
-#include	"gparamspecs.h"
+#include <string.h>
 
-#include	"gvaluecollector.h"
-#include	"gvaluearray.h"
-#include	"gobjectalias.h"
-#include	<string.h>
+#ifndef GLIB_DISABLE_DEPRECATION_WARNINGS
+#define GLIB_DISABLE_DEPRECATION_WARNINGS
+#endif
 
-#define	G_FLOAT_EPSILON		(1e-30)
+#include "gparamspecs.h"
+#include "gtype-private.h"
+#include "gvaluecollector.h"
+
+#include "gvaluearray.h"
+
+
+#define	G_FLOAT_EPSILON		(1e-30f)
 #define	G_DOUBLE_EPSILON	(1e-90)
 
 
@@ -40,8 +47,8 @@ param_char_init (GParamSpec *pspec)
 {
   GParamSpecChar *cspec = G_PARAM_SPEC_CHAR (pspec);
   
-  cspec->minimum = 0x7f;
-  cspec->maximum = 0x80;
+  cspec->minimum = CHAR_MIN;
+  cspec->maximum = CHAR_MAX;
   cspec->default_value = 0;
 }
 
@@ -50,6 +57,16 @@ param_char_set_default (GParamSpec *pspec,
 			GValue	   *value)
 {
   value->data[0].v_int = G_PARAM_SPEC_CHAR (pspec)->default_value;
+}
+
+static gboolean
+param_char_is_valid (GParamSpec   *pspec,
+                     const GValue *value)
+{
+  GParamSpecChar *cspec = G_PARAM_SPEC_CHAR (pspec);
+  gint oval = value->data[0].v_int;
+  
+  return cspec->minimum <= oval && oval <= cspec->maximum;
 }
 
 static gboolean
@@ -70,7 +87,7 @@ param_uchar_init (GParamSpec *pspec)
   GParamSpecUChar *uspec = G_PARAM_SPEC_UCHAR (pspec);
   
   uspec->minimum = 0;
-  uspec->maximum = 0xff;
+  uspec->maximum = UCHAR_MAX;
   uspec->default_value = 0;
 }
 
@@ -79,6 +96,16 @@ param_uchar_set_default (GParamSpec *pspec,
 			 GValue	    *value)
 {
   value->data[0].v_uint = G_PARAM_SPEC_UCHAR (pspec)->default_value;
+}
+
+static gboolean
+param_uchar_is_valid (GParamSpec   *pspec,
+		      const GValue *value)
+{
+  GParamSpecUChar *uspec = G_PARAM_SPEC_UCHAR (pspec);
+  guint oval = value->data[0].v_uint;
+  
+  return uspec->minimum <= oval && oval <= uspec->maximum;
 }
 
 static gboolean
@@ -101,6 +128,15 @@ param_boolean_set_default (GParamSpec *pspec,
 }
 
 static gboolean
+param_boolean_is_valid (GParamSpec   *pspec,
+                        const GValue *value)
+{
+  int oval = value->data[0].v_int;
+
+  return oval == FALSE || oval == TRUE;
+}
+
+static gboolean
 param_boolean_validate (GParamSpec *pspec,
 			GValue     *value)
 {
@@ -116,8 +152,8 @@ param_int_init (GParamSpec *pspec)
 {
   GParamSpecInt *ispec = G_PARAM_SPEC_INT (pspec);
   
-  ispec->minimum = 0x7fffffff;
-  ispec->maximum = 0x80000000;
+  ispec->minimum = INT_MIN;
+  ispec->maximum = INT_MAX;
   ispec->default_value = 0;
 }
 
@@ -126,6 +162,16 @@ param_int_set_default (GParamSpec *pspec,
 		       GValue     *value)
 {
   value->data[0].v_int = G_PARAM_SPEC_INT (pspec)->default_value;
+}
+
+static gboolean
+param_int_is_valid (GParamSpec   *pspec,
+                    const GValue *value)
+{
+  GParamSpecInt *ispec = G_PARAM_SPEC_INT (pspec);
+  int oval = value->data[0].v_int;
+
+  return ispec->minimum <= oval && oval <= ispec->maximum;
 }
 
 static gboolean
@@ -157,7 +203,7 @@ param_uint_init (GParamSpec *pspec)
   GParamSpecUInt *uspec = G_PARAM_SPEC_UINT (pspec);
   
   uspec->minimum = 0;
-  uspec->maximum = 0xffffffff;
+  uspec->maximum = UINT_MAX;
   uspec->default_value = 0;
 }
 
@@ -166,6 +212,16 @@ param_uint_set_default (GParamSpec *pspec,
 			GValue     *value)
 {
   value->data[0].v_uint = G_PARAM_SPEC_UINT (pspec)->default_value;
+}
+
+static gboolean
+param_uint_is_valid (GParamSpec   *pspec,
+		     const GValue *value)
+{
+  GParamSpecUInt *uspec = G_PARAM_SPEC_UINT (pspec);
+  guint oval = value->data[0].v_uint;
+  
+  return uspec->minimum <= oval && oval <= uspec->maximum;
 }
 
 static gboolean
@@ -196,13 +252,8 @@ param_long_init (GParamSpec *pspec)
 {
   GParamSpecLong *lspec = G_PARAM_SPEC_LONG (pspec);
   
-#if SIZEOF_LONG == 4
-  lspec->minimum = 0x7fffffff;
-  lspec->maximum = 0x80000000;
-#else /* SIZEOF_LONG != 4 (8) */
-  lspec->minimum = 0x7fffffffffffffff;
-  lspec->maximum = 0x8000000000000000;
-#endif
+  lspec->minimum = LONG_MIN;
+  lspec->maximum = LONG_MAX;
   lspec->default_value = 0;
 }
 
@@ -211,6 +262,16 @@ param_long_set_default (GParamSpec *pspec,
 			GValue     *value)
 {
   value->data[0].v_long = G_PARAM_SPEC_LONG (pspec)->default_value;
+}
+
+static gboolean
+param_long_is_valid (GParamSpec   *pspec,
+		     const GValue *value)
+{
+  GParamSpecLong *lspec = G_PARAM_SPEC_LONG (pspec);
+  glong oval = value->data[0].v_long;
+  
+  return lspec->minimum <= oval && oval <= lspec->maximum;
 }
 
 static gboolean
@@ -242,11 +303,7 @@ param_ulong_init (GParamSpec *pspec)
   GParamSpecULong *uspec = G_PARAM_SPEC_ULONG (pspec);
   
   uspec->minimum = 0;
-#if SIZEOF_LONG == 4
-  uspec->maximum = 0xffffffff;
-#else /* SIZEOF_LONG != 4 (8) */
-  uspec->maximum = 0xffffffffffffffff;
-#endif
+  uspec->maximum = ULONG_MAX;
   uspec->default_value = 0;
 }
 
@@ -255,6 +312,16 @@ param_ulong_set_default (GParamSpec *pspec,
 			 GValue     *value)
 {
   value->data[0].v_ulong = G_PARAM_SPEC_ULONG (pspec)->default_value;
+}
+
+static gboolean
+param_ulong_is_valid (GParamSpec   *pspec,
+                      const GValue *value)
+{
+  GParamSpecULong *uspec = G_PARAM_SPEC_ULONG (pspec);
+  gulong oval = value->data[0].v_ulong;
+  
+  return uspec->minimum <= oval && oval <= uspec->maximum;
 }
 
 static gboolean
@@ -298,6 +365,16 @@ param_int64_set_default (GParamSpec *pspec,
 }
 
 static gboolean
+param_int64_is_valid (GParamSpec   *pspec,
+                      const GValue *value)
+{
+  GParamSpecInt64 *lspec = G_PARAM_SPEC_INT64 (pspec);
+  gint64 oval = value->data[0].v_int64;
+  
+  return lspec->minimum <= oval && oval <= lspec->maximum;
+}
+
+static gboolean
 param_int64_validate (GParamSpec *pspec,
 		     GValue     *value)
 {
@@ -338,6 +415,16 @@ param_uint64_set_default (GParamSpec *pspec,
 }
 
 static gboolean
+param_uint64_is_valid (GParamSpec   *pspec,
+                       const GValue *value)
+{
+  GParamSpecUInt64 *uspec = G_PARAM_SPEC_UINT64 (pspec);
+  guint64 oval = value->data[0].v_uint64;
+  
+  return uspec->minimum <= oval && oval <= uspec->maximum;
+}
+
+static gboolean
 param_uint64_validate (GParamSpec *pspec,
 		      GValue     *value)
 {
@@ -373,6 +460,13 @@ param_unichar_set_default (GParamSpec *pspec,
 			 GValue     *value)
 {
   value->data[0].v_uint = G_PARAM_SPEC_UNICHAR (pspec)->default_value;
+}
+
+static gboolean
+param_unichar_is_valid (GParamSpec   *pspec,
+                        const GValue *value)
+{
+  return g_unichar_validate (value->data[0].v_uint);
 }
 
 static gboolean
@@ -434,6 +528,16 @@ param_enum_set_default (GParamSpec *pspec,
 }
 
 static gboolean
+param_enum_is_valid (GParamSpec   *pspec,
+                     const GValue *value)
+{
+  GParamSpecEnum *espec = G_PARAM_SPEC_ENUM (pspec);
+  glong oval = value->data[0].v_long;
+  
+  return g_enum_get_value (espec->enum_class, oval) != NULL;
+}
+
+static gboolean
 param_enum_validate (GParamSpec *pspec,
 		     GValue     *value)
 {
@@ -479,6 +583,15 @@ param_flags_set_default (GParamSpec *pspec,
 }
 
 static gboolean
+param_flags_is_valid (GParamSpec   *pspec,
+                      const GValue *value)
+{
+  GParamSpecFlags *fspec = G_PARAM_SPEC_FLAGS (pspec);
+  gulong oval = value->data[0].v_ulong;
+  
+  return (oval & ~fspec->flags_class->mask) == 0;
+}
+static gboolean
 param_flags_validate (GParamSpec *pspec,
 		      GValue     *value)
 {
@@ -509,6 +622,16 @@ param_float_set_default (GParamSpec *pspec,
 			 GValue     *value)
 {
   value->data[0].v_float = G_PARAM_SPEC_FLOAT (pspec)->default_value;
+}
+
+static gboolean
+param_float_is_valid (GParamSpec   *pspec,
+                      const GValue *value)
+{
+  GParamSpecFloat *fspec = G_PARAM_SPEC_FLOAT (pspec);
+  gfloat oval = value->data[0].v_float;
+  
+  return fspec->minimum <= oval && oval <= fspec->maximum;
 }
 
 static gboolean
@@ -552,6 +675,16 @@ param_double_set_default (GParamSpec *pspec,
 			  GValue     *value)
 {
   value->data[0].v_double = G_PARAM_SPEC_DOUBLE (pspec)->default_value;
+}
+
+static gboolean
+param_double_is_valid (GParamSpec   *pspec,
+                       const GValue *value)
+{
+  GParamSpecDouble *dspec = G_PARAM_SPEC_DOUBLE (pspec);
+  gdouble oval = value->data[0].v_double;
+  
+  return dspec->minimum <= oval && oval <= dspec->maximum;
 }
 
 static gboolean
@@ -621,7 +754,7 @@ param_string_validate (GParamSpec *pspec,
 {
   GParamSpecString *sspec = G_PARAM_SPEC_STRING (pspec);
   gchar *string = value->data[0].v_pointer;
-  guint changed = 0;
+  guint n_changed = 0;
   
   if (string && string[0])
     {
@@ -629,32 +762,72 @@ param_string_validate (GParamSpec *pspec,
       
       if (sspec->cset_first && !strchr (sspec->cset_first, string[0]))
 	{
+          if (value->data[1].v_uint & G_VALUE_NOCOPY_CONTENTS)
+            {
+              value->data[0].v_pointer = g_strdup (string);
+              string = value->data[0].v_pointer;
+              value->data[1].v_uint &= (unsigned) ~G_VALUE_NOCOPY_CONTENTS;
+            }
 	  string[0] = sspec->substitutor;
-	  changed++;
+	  n_changed++;
 	}
       if (sspec->cset_nth)
 	for (s = string + 1; *s; s++)
 	  if (!strchr (sspec->cset_nth, *s))
 	    {
+              if (value->data[1].v_uint & G_VALUE_NOCOPY_CONTENTS)
+                {
+                  value->data[0].v_pointer = g_strdup (string);
+                  s = (gchar*) value->data[0].v_pointer + (s - string);
+                  string = value->data[0].v_pointer;
+                  value->data[1].v_uint &= (unsigned) ~G_VALUE_NOCOPY_CONTENTS;
+                }
 	      *s = sspec->substitutor;
-	      changed++;
+	      n_changed++;
 	    }
     }
   if (sspec->null_fold_if_empty && string && string[0] == 0)
     {
-      g_free (value->data[0].v_pointer);
+      if (!(value->data[1].v_uint & G_VALUE_NOCOPY_CONTENTS))
+        g_free (value->data[0].v_pointer);
+      else
+        value->data[1].v_uint &= (unsigned) ~G_VALUE_NOCOPY_CONTENTS;
       value->data[0].v_pointer = NULL;
-      changed++;
+      n_changed++;
       string = value->data[0].v_pointer;
     }
   if (sspec->ensure_non_null && !string)
     {
+      value->data[1].v_uint &= (unsigned) ~G_VALUE_NOCOPY_CONTENTS;
       value->data[0].v_pointer = g_strdup ("");
-      changed++;
+      n_changed++;
       string = value->data[0].v_pointer;
     }
-  
-  return changed;
+
+  return (n_changed > 0);
+}
+
+static gboolean
+param_string_is_valid (GParamSpec   *pspec,
+                       const GValue *value)
+{
+  GParamSpecString *sspec = G_PARAM_SPEC_STRING (pspec);
+  gboolean ret = TRUE;
+
+  if (sspec->cset_first != NULL || sspec->cset_nth != NULL ||
+      sspec->ensure_non_null || sspec->null_fold_if_empty)
+    {
+      GValue tmp_value = G_VALUE_INIT;
+
+      g_value_init (&tmp_value, G_VALUE_TYPE (value));
+      g_value_copy (value, &tmp_value);
+
+      ret = !param_string_validate (pspec, &tmp_value);
+
+      g_value_unset (&tmp_value);
+    }
+
+  return ret;
 }
 
 static gint
@@ -684,21 +857,33 @@ param_param_set_default (GParamSpec *pspec,
 }
 
 static gboolean
+param_param_is_valid (GParamSpec   *pspec,
+                      const GValue *value)
+{
+  GParamSpec *param = value->data[0].v_pointer;
+
+  if (param == NULL)
+    return FALSE;
+
+  return g_value_type_compatible (G_PARAM_SPEC_TYPE (param), G_PARAM_SPEC_VALUE_TYPE (pspec));
+}
+
+static gboolean
 param_param_validate (GParamSpec *pspec,
 		      GValue     *value)
 {
   /* GParamSpecParam *spec = G_PARAM_SPEC_PARAM (pspec); */
   GParamSpec *param = value->data[0].v_pointer;
-  guint changed = 0;
+  guint n_changed = 0;
   
   if (param && !g_value_type_compatible (G_PARAM_SPEC_TYPE (param), G_PARAM_SPEC_VALUE_TYPE (pspec)))
     {
       g_param_spec_unref (param);
       value->data[0].v_pointer = NULL;
-      changed++;
+      n_changed++;
     }
   
-  return changed;
+  return (n_changed > 0);
 }
 
 static void
@@ -712,18 +897,6 @@ param_boxed_set_default (GParamSpec *pspec,
 			 GValue     *value)
 {
   value->data[0].v_pointer = NULL;
-}
-
-static gboolean
-param_boxed_validate (GParamSpec *pspec,
-		      GValue     *value)
-{
-  /* GParamSpecBoxed *bspec = G_PARAM_SPEC_BOXED (pspec); */
-  guint changed = 0;
-
-  /* can't do a whole lot here since we haven't even G_BOXED_TYPE() */
-  
-  return changed;
 }
 
 static gint
@@ -750,16 +923,6 @@ param_pointer_set_default (GParamSpec *pspec,
 			   GValue     *value)
 {
   value->data[0].v_pointer = NULL;
-}
-
-static gboolean
-param_pointer_validate (GParamSpec *pspec,
-			GValue     *value)
-{
-  /* GParamSpecPointer *spec = G_PARAM_SPEC_POINTER (pspec); */
-  guint changed = 0;
-  
-  return changed;
 }
 
 static gint
@@ -843,15 +1006,15 @@ param_value_array_validate (GParamSpec *pspec,
 {
   GParamSpecValueArray *aspec = G_PARAM_SPEC_VALUE_ARRAY (pspec);
   GValueArray *value_array = value->data[0].v_pointer;
-  guint changed = 0;
+  guint n_changed = 0;
 
   if (!value->data[0].v_pointer && aspec->fixed_n_elements)
-    value->data[0].v_pointer = g_value_array_new (aspec->fixed_n_elements);
+    value_array = value->data[0].v_pointer = g_value_array_new (aspec->fixed_n_elements);
 
   if (value->data[0].v_pointer)
     {
       /* ensure array size validity */
-      changed += value_array_ensure_size (value_array, aspec->fixed_n_elements);
+      n_changed += value_array_ensure_size (value_array, aspec->fixed_n_elements);
       
       /* ensure array values validity against a present element spec */
       if (aspec->element_spec)
@@ -870,15 +1033,18 @@ param_value_array_validate (GParamSpec *pspec,
 		    g_value_unset (element);
 		  g_value_init (element, G_PARAM_SPEC_VALUE_TYPE (element_spec));
 		  g_param_value_set_default (element_spec, element);
-		  changed++;
+		  n_changed++;
 		}
-	      /* validate array value against element_spec */
-	      changed += g_param_value_validate (element_spec, element);
+              else
+                {
+	          /* validate array value against element_spec */
+	          n_changed += g_param_value_validate (element_spec, element) ? 1 : 0;
+                }
 	    }
 	}
     }
 
-  return changed;
+  return (n_changed > 0);
 }
 
 static gint
@@ -937,21 +1103,32 @@ param_object_set_default (GParamSpec *pspec,
 }
 
 static gboolean
+param_object_is_valid (GParamSpec   *pspec,
+                       const GValue *value)
+{
+  GParamSpecObject *ospec = G_PARAM_SPEC_OBJECT (pspec);
+  GObject *object = value->data[0].v_pointer;
+
+  return object &&
+         g_value_type_compatible (G_OBJECT_TYPE (object), G_PARAM_SPEC_VALUE_TYPE (ospec));
+}
+
+static gboolean
 param_object_validate (GParamSpec *pspec,
 		       GValue     *value)
 {
   GParamSpecObject *ospec = G_PARAM_SPEC_OBJECT (pspec);
   GObject *object = value->data[0].v_pointer;
-  guint changed = 0;
+  guint n_changed = 0;
   
   if (object && !g_value_type_compatible (G_OBJECT_TYPE (object), G_PARAM_SPEC_VALUE_TYPE (ospec)))
     {
       g_object_unref (object);
       value->data[0].v_pointer = NULL;
-      changed++;
+      n_changed++;
     }
   
-  return changed;
+  return (n_changed > 0);
 }
 
 static gint
@@ -998,6 +1175,15 @@ param_override_set_default (GParamSpec *pspec,
 }
 
 static gboolean
+param_override_is_valid (GParamSpec   *pspec,
+			 const GValue *value)
+{
+  GParamSpecOverride *ospec = G_PARAM_SPEC_OVERRIDE (pspec);
+
+  return g_param_value_is_valid (ospec->overridden, value);
+}
+
+static gboolean
 param_override_validate (GParamSpec *pspec,
 			 GValue     *value)
 {
@@ -1025,7 +1211,20 @@ static void
 param_gtype_set_default (GParamSpec *pspec,
 			 GValue     *value)
 {
-  value->data[0].v_long = G_TYPE_NONE;
+  GParamSpecGType *tspec = G_PARAM_SPEC_GTYPE (pspec);
+
+  value->data[0].v_pointer = GTYPE_TO_POINTER (tspec->is_a_type);
+}
+
+static gboolean
+param_gtype_is_valid (GParamSpec   *pspec,
+                      const GValue *value)
+{
+  GParamSpecGType *tspec = G_PARAM_SPEC_GTYPE (pspec);
+  GType gtype = GPOINTER_TO_TYPE (value->data[0].v_pointer);
+  
+  return tspec->is_a_type == G_TYPE_NONE ||
+         g_type_is_a (gtype, tspec->is_a_type);
 }
 
 static gboolean
@@ -1033,16 +1232,16 @@ param_gtype_validate (GParamSpec *pspec,
 		      GValue     *value)
 {
   GParamSpecGType *tspec = G_PARAM_SPEC_GTYPE (pspec);
-  GType gtype = value->data[0].v_long;
-  guint changed = 0;
+  GType gtype = GPOINTER_TO_TYPE (value->data[0].v_pointer);
+  guint n_changed = 0;
   
   if (tspec->is_a_type != G_TYPE_NONE && !g_type_is_a (gtype, tspec->is_a_type))
     {
-      value->data[0].v_long = G_TYPE_NONE;
-      changed++;
+      value->data[0].v_pointer = GTYPE_TO_POINTER (tspec->is_a_type);
+      n_changed++;
     }
   
-  return changed;
+  return (n_changed > 0);
 }
 
 static gint
@@ -1050,31 +1249,140 @@ param_gtype_values_cmp (GParamSpec   *pspec,
 			const GValue *value1,
 			const GValue *value2)
 {
-  GType p1 = value1->data[0].v_long;
-  GType p2 = value2->data[0].v_long;
+  GType p1 = GPOINTER_TO_TYPE (value1->data[0].v_pointer);
+  GType p2 = GPOINTER_TO_TYPE (value2->data[0].v_pointer);
 
   /* not much to compare here, try to at least provide stable lesser/greater result */
 
   return p1 < p2 ? -1 : p1 > p2;
 }
 
+static void
+param_variant_init (GParamSpec *pspec)
+{
+  GParamSpecVariant *vspec = G_PARAM_SPEC_VARIANT (pspec);
+
+  vspec->type = NULL;
+  vspec->default_value = NULL;
+}
+
+static void
+param_variant_finalize (GParamSpec *pspec)
+{
+  GParamSpecVariant *vspec = G_PARAM_SPEC_VARIANT (pspec);
+  GParamSpecClass *parent_class = g_type_class_peek (g_type_parent (G_TYPE_PARAM_VARIANT));
+
+  if (vspec->default_value)
+    g_variant_unref (vspec->default_value);
+  g_variant_type_free (vspec->type);
+
+  parent_class->finalize (pspec);
+}
+
+static void
+param_variant_set_default (GParamSpec *pspec,
+                           GValue     *value)
+{
+  value->data[0].v_pointer = G_PARAM_SPEC_VARIANT (pspec)->default_value;
+  value->data[1].v_uint |= G_VALUE_NOCOPY_CONTENTS;
+}
+
+static gboolean
+param_variant_is_valid (GParamSpec   *pspec,
+                        const GValue *value)
+{
+  GParamSpecVariant *vspec = G_PARAM_SPEC_VARIANT (pspec);
+  GVariant *variant = value->data[0].v_pointer;
+
+  if (variant == NULL)
+    return vspec->default_value == NULL;
+  else
+    return g_variant_is_of_type (variant, vspec->type);
+}
+
+static gboolean
+param_variant_validate (GParamSpec *pspec,
+                        GValue     *value)
+{
+  GParamSpecVariant *vspec = G_PARAM_SPEC_VARIANT (pspec);
+  GVariant *variant = value->data[0].v_pointer;
+
+  if ((variant == NULL && vspec->default_value != NULL) ||
+      (variant != NULL && !g_variant_is_of_type (variant, vspec->type)))
+    {
+      g_param_value_set_default (pspec, value);
+      return TRUE;
+    }
+
+  return FALSE;
+}
+
+/* g_variant_compare() can only be used with scalar types. */
+static gboolean
+variant_is_incomparable (GVariant *v)
+{
+  GVariantClass v_class = g_variant_classify (v);
+
+  return (v_class == G_VARIANT_CLASS_HANDLE ||
+          v_class == G_VARIANT_CLASS_VARIANT ||
+          v_class ==  G_VARIANT_CLASS_MAYBE||
+          v_class == G_VARIANT_CLASS_ARRAY ||
+          v_class ==  G_VARIANT_CLASS_TUPLE ||
+          v_class == G_VARIANT_CLASS_DICT_ENTRY);
+}
+
+static gint
+param_variant_values_cmp (GParamSpec   *pspec,
+                          const GValue *value1,
+                          const GValue *value2)
+{
+  GVariant *v1 = value1->data[0].v_pointer;
+  GVariant *v2 = value2->data[0].v_pointer;
+
+  if (v1 == NULL && v2 == NULL)
+    return 0;
+  else if (v1 == NULL && v2 != NULL)
+    return -1;
+  else if (v1 != NULL && v2 == NULL)
+    return 1;
+
+  if (!g_variant_type_equal (g_variant_get_type (v1), g_variant_get_type (v2)) ||
+      variant_is_incomparable (v1) ||
+      variant_is_incomparable (v2))
+    return g_variant_equal (v1, v2) ? 0 : (v1 < v2 ? -1 : 1);
+
+  return g_variant_compare (v1, v2);
+}
+
 /* --- type initialization --- */
+
+#define set_is_valid_vfunc(type,func) { \
+  GParamSpecClass *class = g_type_class_ref (type); \
+  class->value_is_valid = func; \
+  g_type_class_unref (class); \
+}
+
 GType *g_param_spec_types = NULL;
 
 void
-g_param_spec_types_init (void)	
+_g_param_spec_types_init (void)	
 {
-  const guint n_types = 22;
-  GType type, *spec_types, *spec_types_bound;
+  const guint n_types = 23;
+  GType type, *spec_types;
+#ifndef G_DISABLE_ASSERT
+  GType *spec_types_bound;
+#endif
 
   g_param_spec_types = g_new0 (GType, n_types);
   spec_types = g_param_spec_types;
+#ifndef G_DISABLE_ASSERT
   spec_types_bound = g_param_spec_types + n_types;
+#endif
   
   /* G_TYPE_PARAM_CHAR
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecChar),	/* instance_size */
       16,			/* n_preallocs */
       param_char_init,		/* instance_init */
@@ -1085,6 +1393,7 @@ g_param_spec_types_init (void)
       param_int_values_cmp,	/* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamChar"), &pspec_info);
+    set_is_valid_vfunc (type, param_char_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_CHAR);
   }
@@ -1092,7 +1401,7 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_UCHAR
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecUChar), /* instance_size */
       16,                       /* n_preallocs */
       param_uchar_init,         /* instance_init */
@@ -1103,6 +1412,7 @@ g_param_spec_types_init (void)
       param_uint_values_cmp,	/* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamUChar"), &pspec_info);
+    set_is_valid_vfunc (type, param_uchar_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_UCHAR);
   }
@@ -1110,7 +1420,7 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_BOOLEAN
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecBoolean), /* instance_size */
       16,                         /* n_preallocs */
       NULL,			  /* instance_init */
@@ -1121,6 +1431,7 @@ g_param_spec_types_init (void)
       param_int_values_cmp,       /* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamBoolean"), &pspec_info);
+    set_is_valid_vfunc (type, param_boolean_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_BOOLEAN);
   }
@@ -1128,7 +1439,7 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_INT
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecInt),   /* instance_size */
       16,                       /* n_preallocs */
       param_int_init,           /* instance_init */
@@ -1139,6 +1450,7 @@ g_param_spec_types_init (void)
       param_int_values_cmp,	/* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamInt"), &pspec_info);
+    set_is_valid_vfunc (type, param_int_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_INT);
   }
@@ -1146,7 +1458,7 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_UINT
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecUInt),  /* instance_size */
       16,                       /* n_preallocs */
       param_uint_init,          /* instance_init */
@@ -1157,6 +1469,7 @@ g_param_spec_types_init (void)
       param_uint_values_cmp,	/* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamUInt"), &pspec_info);
+    set_is_valid_vfunc (type, param_uint_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_UINT);
   }
@@ -1164,7 +1477,7 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_LONG
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecLong),  /* instance_size */
       16,                       /* n_preallocs */
       param_long_init,          /* instance_init */
@@ -1175,6 +1488,7 @@ g_param_spec_types_init (void)
       param_long_values_cmp,	/* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamLong"), &pspec_info);
+    set_is_valid_vfunc (type, param_long_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_LONG);
   }
@@ -1182,7 +1496,7 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_ULONG
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecULong), /* instance_size */
       16,                       /* n_preallocs */
       param_ulong_init,         /* instance_init */
@@ -1193,6 +1507,7 @@ g_param_spec_types_init (void)
       param_ulong_values_cmp,	/* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamULong"), &pspec_info);
+    set_is_valid_vfunc (type, param_ulong_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_ULONG);
   }
@@ -1200,7 +1515,7 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_INT64
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecInt64),  /* instance_size */
       16,                       /* n_preallocs */
       param_int64_init,         /* instance_init */
@@ -1211,6 +1526,7 @@ g_param_spec_types_init (void)
       param_int64_values_cmp,	/* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamInt64"), &pspec_info);
+    set_is_valid_vfunc (type, param_int64_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_INT64);
   }
@@ -1218,7 +1534,7 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_UINT64
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecUInt64), /* instance_size */
       16,                       /* n_preallocs */
       param_uint64_init,        /* instance_init */
@@ -1229,6 +1545,7 @@ g_param_spec_types_init (void)
       param_uint64_values_cmp,	/* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamUInt64"), &pspec_info);
+    set_is_valid_vfunc (type, param_uint64_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_UINT64);
   }
@@ -1236,7 +1553,7 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_UNICHAR
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecUnichar), /* instance_size */
       16,                        /* n_preallocs */
       param_unichar_init,	 /* instance_init */
@@ -1247,6 +1564,7 @@ g_param_spec_types_init (void)
       param_unichar_values_cmp,	 /* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamUnichar"), &pspec_info);
+    set_is_valid_vfunc (type, param_unichar_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_UNICHAR);
   }
@@ -1254,7 +1572,7 @@ g_param_spec_types_init (void)
  /* G_TYPE_PARAM_ENUM
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecEnum),  /* instance_size */
       16,                       /* n_preallocs */
       param_enum_init,          /* instance_init */
@@ -1265,6 +1583,7 @@ g_param_spec_types_init (void)
       param_long_values_cmp,	/* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamEnum"), &pspec_info);
+    set_is_valid_vfunc (type, param_enum_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_ENUM);
   }
@@ -1272,7 +1591,7 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_FLAGS
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecFlags),	/* instance_size */
       16,			/* n_preallocs */
       param_flags_init,		/* instance_init */
@@ -1283,6 +1602,7 @@ g_param_spec_types_init (void)
       param_ulong_values_cmp,	/* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamFlags"), &pspec_info);
+    set_is_valid_vfunc (type, param_flags_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_FLAGS);
   }
@@ -1290,7 +1610,7 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_FLOAT
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecFloat), /* instance_size */
       16,                       /* n_preallocs */
       param_float_init,         /* instance_init */
@@ -1301,6 +1621,7 @@ g_param_spec_types_init (void)
       param_float_values_cmp,	/* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamFloat"), &pspec_info);
+    set_is_valid_vfunc (type, param_float_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_FLOAT);
   }
@@ -1308,7 +1629,7 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_DOUBLE
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecDouble),	/* instance_size */
       16,				/* n_preallocs */
       param_double_init,		/* instance_init */
@@ -1319,6 +1640,7 @@ g_param_spec_types_init (void)
       param_double_values_cmp,		/* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamDouble"), &pspec_info);
+    set_is_valid_vfunc (type, param_double_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_DOUBLE);
   }
@@ -1326,7 +1648,7 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_STRING
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecString),	/* instance_size */
       16,				/* n_preallocs */
       param_string_init,		/* instance_init */
@@ -1337,6 +1659,7 @@ g_param_spec_types_init (void)
       param_string_values_cmp,		/* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamString"), &pspec_info);
+    set_is_valid_vfunc (type, param_string_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_STRING);
   }
@@ -1344,7 +1667,7 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_PARAM
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecParam),	/* instance_size */
       16,			/* n_preallocs */
       param_param_init,		/* instance_init */
@@ -1355,6 +1678,7 @@ g_param_spec_types_init (void)
       param_pointer_values_cmp,	/* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamParam"), &pspec_info);
+    set_is_valid_vfunc (type, param_param_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_PARAM);
   }
@@ -1362,14 +1686,14 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_BOXED
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecBoxed),	/* instance_size */
       4,			/* n_preallocs */
       param_boxed_init,		/* instance_init */
       G_TYPE_BOXED,		/* value_type */
       NULL,			/* finalize */
       param_boxed_set_default,	/* value_set_default */
-      param_boxed_validate,	/* value_validate */
+      NULL,                   	/* value_validate */
       param_boxed_values_cmp,	/* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamBoxed"), &pspec_info);
@@ -1380,14 +1704,14 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_POINTER
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecPointer),  /* instance_size */
       0,                           /* n_preallocs */
       param_pointer_init,	   /* instance_init */
       G_TYPE_POINTER,  		   /* value_type */
       NULL,			   /* finalize */
       param_pointer_set_default,   /* value_set_default */
-      param_pointer_validate,	   /* value_validate */
+      NULL,
       param_pointer_values_cmp,	   /* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamPointer"), &pspec_info);
@@ -1398,7 +1722,7 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_VALUE_ARRAY
    */
   {
-    static /* const */ GParamSpecTypeInfo pspec_info = {
+    /* const */ GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecValueArray),	/* instance_size */
       0,				/* n_preallocs */
       param_value_array_init,		/* instance_init */
@@ -1417,7 +1741,7 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_OBJECT
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecObject), /* instance_size */
       16,                        /* n_preallocs */
       param_object_init,	 /* instance_init */
@@ -1428,6 +1752,7 @@ g_param_spec_types_init (void)
       param_object_values_cmp,	 /* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamObject"), &pspec_info);
+    set_is_valid_vfunc (type, param_object_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_OBJECT);
   }
@@ -1435,7 +1760,7 @@ g_param_spec_types_init (void)
   /* G_TYPE_PARAM_OVERRIDE
    */
   {
-    static const GParamSpecTypeInfo pspec_info = {
+    const GParamSpecTypeInfo pspec_info = {
       sizeof (GParamSpecOverride), /* instance_size */
       16,                        /* n_preallocs */
       param_override_init,	 /* instance_init */
@@ -1446,6 +1771,7 @@ g_param_spec_types_init (void)
       param_override_values_cmp,  /* values_cmp */
     };
     type = g_param_type_register_static (g_intern_static_string ("GParamOverride"), &pspec_info);
+    set_is_valid_vfunc (type, param_override_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_OVERRIDE);
   }
@@ -1457,15 +1783,36 @@ g_param_spec_types_init (void)
       sizeof (GParamSpecGType),	/* instance_size */
       0,			/* n_preallocs */
       param_gtype_init,		/* instance_init */
-      G_TYPE_GTYPE,		/* value_type */
+      0xdeadbeef,		/* value_type, assigned further down */
       NULL,			/* finalize */
       param_gtype_set_default,	/* value_set_default */
       param_gtype_validate,	/* value_validate */
       param_gtype_values_cmp,	/* values_cmp */
     };
+    pspec_info.value_type = G_TYPE_GTYPE;
     type = g_param_type_register_static (g_intern_static_string ("GParamGType"), &pspec_info);
+    set_is_valid_vfunc (type, param_gtype_is_valid);
     *spec_types++ = type;
     g_assert (type == G_TYPE_PARAM_GTYPE);
+  }
+
+  /* G_TYPE_PARAM_VARIANT
+   */
+  {
+    const GParamSpecTypeInfo pspec_info = {
+      sizeof (GParamSpecVariant), /* instance_size */
+      0,                          /* n_preallocs */
+      param_variant_init,         /* instance_init */
+      G_TYPE_VARIANT,             /* value_type */
+      param_variant_finalize,     /* finalize */
+      param_variant_set_default,  /* value_set_default */
+      param_variant_validate,     /* value_validate */
+      param_variant_values_cmp,   /* values_cmp */
+    };
+    type = g_param_type_register_static (g_intern_static_string ("GParamVariant"), &pspec_info);
+    set_is_valid_vfunc (type, param_variant_is_valid);
+    *spec_types++ = type;
+    g_assert (type == G_TYPE_PARAM_VARIANT);
   }
 
   g_assert (spec_types == spec_types_bound);
@@ -1473,6 +1820,20 @@ g_param_spec_types_init (void)
 
 /* --- GParamSpec initialization --- */
 
+/**
+ * g_param_spec_char:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @minimum: minimum value for the property specified
+ * @maximum: maximum value for the property specified
+ * @default_value: default value for the property specified
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecChar instance specifying a %G_TYPE_CHAR property.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_char (const gchar *name,
 		   const gchar *nick,
@@ -1499,6 +1860,20 @@ g_param_spec_char (const gchar *name,
   return G_PARAM_SPEC (cspec);
 }
 
+/**
+ * g_param_spec_uchar:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @minimum: minimum value for the property specified
+ * @maximum: maximum value for the property specified
+ * @default_value: default value for the property specified
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecUChar instance specifying a %G_TYPE_UCHAR property.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_uchar (const gchar *name,
 		    const gchar *nick,
@@ -1525,6 +1900,24 @@ g_param_spec_uchar (const gchar *name,
   return G_PARAM_SPEC (uspec);
 }
 
+/**
+ * g_param_spec_boolean:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @default_value: default value for the property specified
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecBoolean instance specifying a %G_TYPE_BOOLEAN
+ * property. In many cases, it may be more appropriate to use an enum with
+ * g_param_spec_enum(), both to improve code clarity by using explicitly named
+ * values, and to allow for more values to be added in future without breaking
+ * API.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_boolean (const gchar *name,
 		      const gchar *nick,
@@ -1547,6 +1940,22 @@ g_param_spec_boolean (const gchar *name,
   return G_PARAM_SPEC (bspec);
 }
 
+/**
+ * g_param_spec_int:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @minimum: minimum value for the property specified
+ * @maximum: maximum value for the property specified
+ * @default_value: default value for the property specified
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecInt instance specifying a %G_TYPE_INT property.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_int (const gchar *name,
 		  const gchar *nick,
@@ -1573,6 +1982,22 @@ g_param_spec_int (const gchar *name,
   return G_PARAM_SPEC (ispec);
 }
 
+/**
+ * g_param_spec_uint:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @minimum: minimum value for the property specified
+ * @maximum: maximum value for the property specified
+ * @default_value: default value for the property specified
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecUInt instance specifying a %G_TYPE_UINT property.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_uint (const gchar *name,
 		   const gchar *nick,
@@ -1599,6 +2024,22 @@ g_param_spec_uint (const gchar *name,
   return G_PARAM_SPEC (uspec);
 }
 
+/**
+ * g_param_spec_long:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @minimum: minimum value for the property specified
+ * @maximum: maximum value for the property specified
+ * @default_value: default value for the property specified
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecLong instance specifying a %G_TYPE_LONG property.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_long (const gchar *name,
 		   const gchar *nick,
@@ -1625,6 +2066,23 @@ g_param_spec_long (const gchar *name,
   return G_PARAM_SPEC (lspec);
 }
 
+/**
+ * g_param_spec_ulong:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @minimum: minimum value for the property specified
+ * @maximum: maximum value for the property specified
+ * @default_value: default value for the property specified
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecULong instance specifying a %G_TYPE_ULONG
+ * property.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_ulong (const gchar *name,
 		    const gchar *nick,
@@ -1651,6 +2109,22 @@ g_param_spec_ulong (const gchar *name,
   return G_PARAM_SPEC (uspec);
 }
 
+/**
+ * g_param_spec_int64:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @minimum: minimum value for the property specified
+ * @maximum: maximum value for the property specified
+ * @default_value: default value for the property specified
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecInt64 instance specifying a %G_TYPE_INT64 property.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_int64 (const gchar *name,
 		    const gchar *nick,
@@ -1677,6 +2151,23 @@ g_param_spec_int64 (const gchar *name,
   return G_PARAM_SPEC (lspec);
 }
 
+/**
+ * g_param_spec_uint64:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @minimum: minimum value for the property specified
+ * @maximum: maximum value for the property specified
+ * @default_value: default value for the property specified
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecUInt64 instance specifying a %G_TYPE_UINT64
+ * property.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_uint64 (const gchar *name,
 		     const gchar *nick,
@@ -1703,6 +2194,22 @@ g_param_spec_uint64 (const gchar *name,
   return G_PARAM_SPEC (uspec);
 }
 
+/**
+ * g_param_spec_unichar:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @default_value: default value for the property specified
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecUnichar instance specifying a %G_TYPE_UINT
+ * property. #GValue structures for this property can be accessed with
+ * g_value_set_uint() and g_value_get_uint().
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_unichar (const gchar *name,
 		      const gchar *nick,
@@ -1723,6 +2230,22 @@ g_param_spec_unichar (const gchar *name,
   return G_PARAM_SPEC (uspec);
 }
 
+/**
+ * g_param_spec_enum:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @enum_type: a #GType derived from %G_TYPE_ENUM
+ * @default_value: default value for the property specified
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecEnum instance specifying a %G_TYPE_ENUM
+ * property.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_enum (const gchar *name,
 		   const gchar *nick,
@@ -1745,7 +2268,7 @@ g_param_spec_enum (const gchar *name,
 				 nick,
 				 blurb,
 				 flags);
-  
+
   espec->enum_class = enum_class;
   espec->default_value = default_value;
   G_PARAM_SPEC (espec)->value_type = enum_type;
@@ -1753,6 +2276,22 @@ g_param_spec_enum (const gchar *name,
   return G_PARAM_SPEC (espec);
 }
 
+/**
+ * g_param_spec_flags:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @flags_type: a #GType derived from %G_TYPE_FLAGS
+ * @default_value: default value for the property specified
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecFlags instance specifying a %G_TYPE_FLAGS
+ * property.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_flags (const gchar *name,
 		    const gchar *nick,
@@ -1783,6 +2322,22 @@ g_param_spec_flags (const gchar *name,
   return G_PARAM_SPEC (fspec);
 }
 
+/**
+ * g_param_spec_float:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @minimum: minimum value for the property specified
+ * @maximum: maximum value for the property specified
+ * @default_value: default value for the property specified
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecFloat instance specifying a %G_TYPE_FLOAT property.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_float (const gchar *name,
 		    const gchar *nick,
@@ -1809,6 +2364,23 @@ g_param_spec_float (const gchar *name,
   return G_PARAM_SPEC (fspec);
 }
 
+/**
+ * g_param_spec_double:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @minimum: minimum value for the property specified
+ * @maximum: maximum value for the property specified
+ * @default_value: default value for the property specified
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecDouble instance specifying a %G_TYPE_DOUBLE
+ * property.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_double (const gchar *name,
 		     const gchar *nick,
@@ -1835,6 +2407,20 @@ g_param_spec_double (const gchar *name,
   return G_PARAM_SPEC (dspec);
 }
 
+/**
+ * g_param_spec_string:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @default_value: (nullable): default value for the property specified
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecString instance.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_string (const gchar *name,
 		     const gchar *nick,
@@ -1847,12 +2433,28 @@ g_param_spec_string (const gchar *name,
 						   nick,
 						   blurb,
 						   flags);
+
   g_free (sspec->default_value);
   sspec->default_value = g_strdup (default_value);
   
   return G_PARAM_SPEC (sspec);
 }
 
+/**
+ * g_param_spec_param:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @param_type: a #GType derived from %G_TYPE_PARAM
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecParam instance specifying a %G_TYPE_PARAM
+ * property.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_param (const gchar *name,
 		    const gchar *nick,
@@ -1869,11 +2471,27 @@ g_param_spec_param (const gchar *name,
 				 nick,
 				 blurb,
 				 flags);
+
   G_PARAM_SPEC (pspec)->value_type = param_type;
   
   return G_PARAM_SPEC (pspec);
 }
 
+/**
+ * g_param_spec_boxed:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @boxed_type: %G_TYPE_BOXED derived type of this property
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecBoxed instance specifying a %G_TYPE_BOXED
+ * derived property.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_boxed (const gchar *name,
 		    const gchar *nick,
@@ -1891,11 +2509,27 @@ g_param_spec_boxed (const gchar *name,
 				 nick,
 				 blurb,
 				 flags);
+
   G_PARAM_SPEC (bspec)->value_type = boxed_type;
   
   return G_PARAM_SPEC (bspec);
 }
 
+/**
+ * g_param_spec_pointer:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecPointer instance specifying a pointer property.
+ * Where possible, it is better to use g_param_spec_object() or
+ * g_param_spec_boxed() to expose memory management information.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_pointer (const gchar *name,
 		      const gchar *nick,
@@ -1909,9 +2543,28 @@ g_param_spec_pointer (const gchar *name,
 				 nick,
 				 blurb,
 				 flags);
+
   return G_PARAM_SPEC (pspec);
 }
 
+/**
+ * g_param_spec_gtype:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @is_a_type: a #GType whose subtypes are allowed as values
+ *  of the property (use %G_TYPE_NONE for any type)
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecGType instance specifying a
+ * %G_TYPE_GTYPE property.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Since: 2.10
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_gtype (const gchar *name,
 		    const gchar *nick,
@@ -1932,6 +2585,24 @@ g_param_spec_gtype (const gchar *name,
   return G_PARAM_SPEC (tspec);
 }
 
+/**
+ * g_param_spec_value_array: (skip)
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @element_spec: a #GParamSpec describing the elements contained in
+ *  arrays of this property, may be %NULL
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecValueArray instance specifying a
+ * %G_TYPE_VALUE_ARRAY property. %G_TYPE_VALUE_ARRAY is a
+ * %G_TYPE_BOXED type, as such, #GValue structures for this property
+ * can be accessed with g_value_set_boxed() and g_value_get_boxed().
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_value_array (const gchar *name,
 			  const gchar *nick,
@@ -1941,14 +2612,14 @@ g_param_spec_value_array (const gchar *name,
 {
   GParamSpecValueArray *aspec;
   
-  if (element_spec)
-    g_return_val_if_fail (G_IS_PARAM_SPEC (element_spec), NULL);
+  g_return_val_if_fail (element_spec == NULL || G_IS_PARAM_SPEC (element_spec), NULL);
   
   aspec = g_param_spec_internal (G_TYPE_PARAM_VALUE_ARRAY,
 				 name,
 				 nick,
 				 blurb,
 				 flags);
+
   if (element_spec)
     {
       aspec->element_spec = g_param_spec_ref (element_spec);
@@ -1958,6 +2629,21 @@ g_param_spec_value_array (const gchar *name,
   return G_PARAM_SPEC (aspec);
 }
 
+/**
+ * g_param_spec_object:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @object_type: %G_TYPE_OBJECT derived type of this property
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecBoxed instance specifying a %G_TYPE_OBJECT
+ * derived property.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): a newly created parameter specification
+ */
 GParamSpec*
 g_param_spec_object (const gchar *name,
 		     const gchar *nick,
@@ -1974,11 +2660,25 @@ g_param_spec_object (const gchar *name,
 				 nick,
 				 blurb,
 				 flags);
+
   G_PARAM_SPEC (ospec)->value_type = object_type;
   
   return G_PARAM_SPEC (ospec);
 }
 
+/**
+ * g_param_spec_override: (skip)
+ * @name: the name of the property.
+ * @overridden: The property that is being overridden
+ *
+ * Creates a new property of type #GParamSpecOverride. This is used
+ * to direct operations to another paramspec, and will not be directly
+ * useful unless you are implementing a new base type similar to GObject.
+ *
+ * Since: 2.4
+ *
+ * Returns: the newly created #GParamSpec
+ */
 GParamSpec*
 g_param_spec_override (const gchar *name,
 		       GParamSpec  *overridden)
@@ -2009,5 +2709,50 @@ g_param_spec_override (const gchar *name,
   return pspec;
 }
 
-#define __G_PARAMSPECS_C__
-#include "gobjectaliasdef.c"
+/**
+ * g_param_spec_variant:
+ * @name: canonical name of the property specified
+ * @nick: (nullable): nick name for the property specified
+ * @blurb: (nullable): description of the property specified
+ * @type: a #GVariantType
+ * @default_value: (nullable) (transfer full): a #GVariant of type @type to
+ *                 use as the default value, or %NULL
+ * @flags: flags for the property specified
+ *
+ * Creates a new #GParamSpecVariant instance specifying a #GVariant
+ * property.
+ *
+ * If @default_value is floating, it is consumed.
+ *
+ * See g_param_spec_internal() for details on property names.
+ *
+ * Returns: (transfer full): the newly created #GParamSpec
+ *
+ * Since: 2.26
+ */
+GParamSpec*
+g_param_spec_variant (const gchar        *name,
+                      const gchar        *nick,
+                      const gchar        *blurb,
+                      const GVariantType *type,
+                      GVariant           *default_value,
+                      GParamFlags         flags)
+{
+  GParamSpecVariant *vspec;
+
+  g_return_val_if_fail (type != NULL, NULL);
+  g_return_val_if_fail (default_value == NULL ||
+                        g_variant_is_of_type (default_value, type), NULL);
+
+  vspec = g_param_spec_internal (G_TYPE_PARAM_VARIANT,
+                                 name,
+                                 nick,
+                                 blurb,
+                                 flags);
+
+  vspec->type = g_variant_type_copy (type);
+  if (default_value)
+    vspec->default_value = g_variant_ref_sink (default_value);
+
+  return G_PARAM_SPEC (vspec);
+}

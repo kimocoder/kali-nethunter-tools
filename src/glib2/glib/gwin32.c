@@ -2,10 +2,12 @@
  * Copyright (C) 1995-1998  Peter Mattis, Spencer Kimball and Josh MacDonald
  * Copyright (C) 1998-1999  Tor Lillqvist
  *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -13,9 +15,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -33,26 +33,48 @@
 
 #include "glibconfig.h"
 
+#include <glib/gstdio.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
 #include <errno.h>
+#include <fcntl.h>
 
-#define STRICT			/* Strict typing, please */
+#include <winsock2.h>
 #include <windows.h>
-#undef STRICT
 #ifndef G_WITH_CYGWIN
 #include <direct.h>
 #endif
 #include <errno.h>
 #include <ctype.h>
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__DMC__)
 #  include <io.h>
-#endif /* _MSC_VER */
+#endif /* _MSC_VER || __DMC__ */
+
+#define MODERN_API_FAMILY 2
+
+#if WINAPI_FAMILY == MODERN_API_FAMILY
+/* This is for modern UI Builds, where we can't use LoadLibraryW()/GetProcAddress() */
+/* ntddk.h is found in the WDK, and MinGW */
+#include <ntddk.h>
+
+#ifdef _MSC_VER
+#pragma comment (lib, "ntoskrnl.lib")
+#endif
+#elif defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
+/* mingw-w64 must use winternl.h, but not MinGW */
+#include <ntdef.h>
+#else
+#include <winternl.h>
+#endif
 
 #include "glib.h"
-#include "galias.h"
+#include "gwin32.h"
+#include "gwin32private.h"
+#include "gthreadprivate.h"
+#include "gwin32private.h"
+#include "glib-init.h"
 
 #ifdef G_WITH_CYGWIN
 #include <sys/cygwin.h>
@@ -83,1113 +105,277 @@ g_win32_ftruncate (gint  fd,
  * Returns: newly-allocated locale name.
  **/
 
-/* Borrowed from GNU gettext 0.13.1: */
-/* Mingw headers don't have latest language and sublanguage codes.  */
-#ifndef LANG_AFRIKAANS
-#define LANG_AFRIKAANS 0x36
-#endif
-#ifndef LANG_ALBANIAN
-#define LANG_ALBANIAN 0x1c
-#endif
-#ifndef LANG_AMHARIC
-#define LANG_AMHARIC 0x5e
-#endif
-#ifndef LANG_ARABIC
-#define LANG_ARABIC 0x01
-#endif
-#ifndef LANG_ARMENIAN
-#define LANG_ARMENIAN 0x2b
-#endif
-#ifndef LANG_ASSAMESE
-#define LANG_ASSAMESE 0x4d
-#endif
-#ifndef LANG_AZERI
-#define LANG_AZERI 0x2c
-#endif
-#ifndef LANG_BASQUE
-#define LANG_BASQUE 0x2d
-#endif
-#ifndef LANG_BELARUSIAN
-#define LANG_BELARUSIAN 0x23
-#endif
-#ifndef LANG_BENGALI
-#define LANG_BENGALI 0x45
-#endif
-#ifndef LANG_BURMESE
-#define LANG_BURMESE 0x55
-#endif
-#ifndef LANG_CAMBODIAN
-#define LANG_CAMBODIAN 0x53
-#endif
-#ifndef LANG_CATALAN
-#define LANG_CATALAN 0x03
-#endif
-#ifndef LANG_CHEROKEE
-#define LANG_CHEROKEE 0x5c
-#endif
-#ifndef LANG_DIVEHI
-#define LANG_DIVEHI 0x65
-#endif
-#ifndef LANG_EDO
-#define LANG_EDO 0x66
-#endif
-#ifndef LANG_ESTONIAN
-#define LANG_ESTONIAN 0x25
-#endif
-#ifndef LANG_FAEROESE
-#define LANG_FAEROESE 0x38
-#endif
-#ifndef LANG_FARSI
-#define LANG_FARSI 0x29
-#endif
-#ifndef LANG_FRISIAN
-#define LANG_FRISIAN 0x62
-#endif
-#ifndef LANG_FULFULDE
-#define LANG_FULFULDE 0x67
-#endif
-#ifndef LANG_GAELIC
-#define LANG_GAELIC 0x3c
-#endif
-#ifndef LANG_GALICIAN
-#define LANG_GALICIAN 0x56
-#endif
-#ifndef LANG_GEORGIAN
-#define LANG_GEORGIAN 0x37
-#endif
-#ifndef LANG_GUARANI
-#define LANG_GUARANI 0x74
-#endif
-#ifndef LANG_GUJARATI
-#define LANG_GUJARATI 0x47
-#endif
-#ifndef LANG_HAUSA
-#define LANG_HAUSA 0x68
-#endif
-#ifndef LANG_HAWAIIAN
-#define LANG_HAWAIIAN 0x75
-#endif
-#ifndef LANG_HEBREW
-#define LANG_HEBREW 0x0d
-#endif
-#ifndef LANG_HINDI
-#define LANG_HINDI 0x39
-#endif
-#ifndef LANG_IBIBIO
-#define LANG_IBIBIO 0x69
-#endif
-#ifndef LANG_IGBO
-#define LANG_IGBO 0x70
-#endif
-#ifndef LANG_INDONESIAN
-#define LANG_INDONESIAN 0x21
-#endif
-#ifndef LANG_INUKTITUT
-#define LANG_INUKTITUT 0x5d
-#endif
-#ifndef LANG_KANNADA
-#define LANG_KANNADA 0x4b
-#endif
-#ifndef LANG_KANURI
-#define LANG_KANURI 0x71
-#endif
-#ifndef LANG_KASHMIRI
-#define LANG_KASHMIRI 0x60
-#endif
-#ifndef LANG_KAZAK
-#define LANG_KAZAK 0x3f
-#endif
-#ifndef LANG_KONKANI
-#define LANG_KONKANI 0x57
-#endif
-#ifndef LANG_KYRGYZ
-#define LANG_KYRGYZ 0x40
-#endif
-#ifndef LANG_LAO
-#define LANG_LAO 0x54
-#endif
-#ifndef LANG_LATIN
-#define LANG_LATIN 0x76
-#endif
-#ifndef LANG_LATVIAN
-#define LANG_LATVIAN 0x26
-#endif
-#ifndef LANG_LITHUANIAN
-#define LANG_LITHUANIAN 0x27
-#endif
-#ifndef LANG_MACEDONIAN
-#define LANG_MACEDONIAN 0x2f
-#endif
-#ifndef LANG_MALAY
-#define LANG_MALAY 0x3e
-#endif
-#ifndef LANG_MALAYALAM
-#define LANG_MALAYALAM 0x4c
-#endif
-#ifndef LANG_MALTESE
-#define LANG_MALTESE 0x3a
-#endif
-#ifndef LANG_MANIPURI
-#define LANG_MANIPURI 0x58
-#endif
-#ifndef LANG_MARATHI
-#define LANG_MARATHI 0x4e
-#endif
-#ifndef LANG_MONGOLIAN
-#define LANG_MONGOLIAN 0x50
-#endif
-#ifndef LANG_NEPALI
-#define LANG_NEPALI 0x61
-#endif
-#ifndef LANG_ORIYA
-#define LANG_ORIYA 0x48
-#endif
-#ifndef LANG_OROMO
-#define LANG_OROMO 0x72
-#endif
-#ifndef LANG_PAPIAMENTU
-#define LANG_PAPIAMENTU 0x79
-#endif
-#ifndef LANG_PASHTO
-#define LANG_PASHTO 0x63
-#endif
-#ifndef LANG_PUNJABI
-#define LANG_PUNJABI 0x46
-#endif
-#ifndef LANG_RHAETO_ROMANCE
-#define LANG_RHAETO_ROMANCE 0x17
-#endif
-#ifndef LANG_SAAMI
-#define LANG_SAAMI 0x3b
-#endif
-#ifndef LANG_SANSKRIT
-#define LANG_SANSKRIT 0x4f
-#endif
-#ifndef LANG_SERBIAN
-#define LANG_SERBIAN 0x1a
-#endif
-#ifndef LANG_SINDHI
-#define LANG_SINDHI 0x59
-#endif
-#ifndef LANG_SINHALESE
-#define LANG_SINHALESE 0x5b
-#endif
-#ifndef LANG_SLOVAK
-#define LANG_SLOVAK 0x1b
-#endif
-#ifndef LANG_SOMALI
-#define LANG_SOMALI 0x77
-#endif
-#ifndef LANG_SORBIAN
-#define LANG_SORBIAN 0x2e
-#endif
-#ifndef LANG_SUTU
-#define LANG_SUTU 0x30
-#endif
-#ifndef LANG_SWAHILI
-#define LANG_SWAHILI 0x41
-#endif
-#ifndef LANG_SYRIAC
-#define LANG_SYRIAC 0x5a
-#endif
-#ifndef LANG_TAGALOG
-#define LANG_TAGALOG 0x64
-#endif
-#ifndef LANG_TAJIK
-#define LANG_TAJIK 0x28
-#endif
-#ifndef LANG_TAMAZIGHT
-#define LANG_TAMAZIGHT 0x5f
-#endif
-#ifndef LANG_TAMIL
-#define LANG_TAMIL 0x49
-#endif
-#ifndef LANG_TATAR
-#define LANG_TATAR 0x44
-#endif
-#ifndef LANG_TELUGU
-#define LANG_TELUGU 0x4a
-#endif
-#ifndef LANG_THAI
-#define LANG_THAI 0x1e
-#endif
-#ifndef LANG_TIBETAN
-#define LANG_TIBETAN 0x51
-#endif
-#ifndef LANG_TIGRINYA
-#define LANG_TIGRINYA 0x73
-#endif
-#ifndef LANG_TSONGA
-#define LANG_TSONGA 0x31
-#endif
-#ifndef LANG_TSWANA
-#define LANG_TSWANA 0x32
-#endif
-#ifndef LANG_TURKMEN
-#define LANG_TURKMEN 0x42
-#endif
-#ifndef LANG_UKRAINIAN
-#define LANG_UKRAINIAN 0x22
-#endif
-#ifndef LANG_URDU
-#define LANG_URDU 0x20
-#endif
-#ifndef LANG_UZBEK
-#define LANG_UZBEK 0x43
-#endif
-#ifndef LANG_VENDA
-#define LANG_VENDA 0x33
-#endif
-#ifndef LANG_VIETNAMESE
-#define LANG_VIETNAMESE 0x2a
-#endif
-#ifndef LANG_WELSH
-#define LANG_WELSH 0x52
-#endif
-#ifndef LANG_XHOSA
-#define LANG_XHOSA 0x34
-#endif
-#ifndef LANG_YI
-#define LANG_YI 0x78
-#endif
-#ifndef LANG_YIDDISH
-#define LANG_YIDDISH 0x3d
-#endif
-#ifndef LANG_YORUBA
-#define LANG_YORUBA 0x6a
-#endif
-#ifndef LANG_ZULU
-#define LANG_ZULU 0x35
-#endif
-#ifndef SUBLANG_ARABIC_SAUDI_ARABIA
-#define SUBLANG_ARABIC_SAUDI_ARABIA 0x01
-#endif
-#ifndef SUBLANG_ARABIC_IRAQ
-#define SUBLANG_ARABIC_IRAQ 0x02
-#endif
-#ifndef SUBLANG_ARABIC_EGYPT
-#define SUBLANG_ARABIC_EGYPT 0x03
-#endif
-#ifndef SUBLANG_ARABIC_LIBYA
-#define SUBLANG_ARABIC_LIBYA 0x04
-#endif
-#ifndef SUBLANG_ARABIC_ALGERIA
-#define SUBLANG_ARABIC_ALGERIA 0x05
-#endif
-#ifndef SUBLANG_ARABIC_MOROCCO
-#define SUBLANG_ARABIC_MOROCCO 0x06
-#endif
-#ifndef SUBLANG_ARABIC_TUNISIA
-#define SUBLANG_ARABIC_TUNISIA 0x07
-#endif
-#ifndef SUBLANG_ARABIC_OMAN
-#define SUBLANG_ARABIC_OMAN 0x08
-#endif
-#ifndef SUBLANG_ARABIC_YEMEN
-#define SUBLANG_ARABIC_YEMEN 0x09
-#endif
-#ifndef SUBLANG_ARABIC_SYRIA
-#define SUBLANG_ARABIC_SYRIA 0x0a
-#endif
-#ifndef SUBLANG_ARABIC_JORDAN
-#define SUBLANG_ARABIC_JORDAN 0x0b
-#endif
-#ifndef SUBLANG_ARABIC_LEBANON
-#define SUBLANG_ARABIC_LEBANON 0x0c
-#endif
-#ifndef SUBLANG_ARABIC_KUWAIT
-#define SUBLANG_ARABIC_KUWAIT 0x0d
-#endif
-#ifndef SUBLANG_ARABIC_UAE
-#define SUBLANG_ARABIC_UAE 0x0e
-#endif
-#ifndef SUBLANG_ARABIC_BAHRAIN
-#define SUBLANG_ARABIC_BAHRAIN 0x0f
-#endif
-#ifndef SUBLANG_ARABIC_QATAR
-#define SUBLANG_ARABIC_QATAR 0x10
-#endif
-#ifndef SUBLANG_AZERI_LATIN
-#define SUBLANG_AZERI_LATIN 0x01
-#endif
-#ifndef SUBLANG_AZERI_CYRILLIC
-#define SUBLANG_AZERI_CYRILLIC 0x02
-#endif
-#ifndef SUBLANG_BENGALI_INDIA
-#define SUBLANG_BENGALI_INDIA 0x00
-#endif
-#ifndef SUBLANG_BENGALI_BANGLADESH
-#define SUBLANG_BENGALI_BANGLADESH 0x01
-#endif
-#ifndef SUBLANG_CHINESE_MACAU
-#define SUBLANG_CHINESE_MACAU 0x05
-#endif
-#ifndef SUBLANG_ENGLISH_SOUTH_AFRICA
-#define SUBLANG_ENGLISH_SOUTH_AFRICA 0x07
-#endif
-#ifndef SUBLANG_ENGLISH_JAMAICA
-#define SUBLANG_ENGLISH_JAMAICA 0x08
-#endif
-#ifndef SUBLANG_ENGLISH_CARIBBEAN
-#define SUBLANG_ENGLISH_CARIBBEAN 0x09
-#endif
-#ifndef SUBLANG_ENGLISH_BELIZE
-#define SUBLANG_ENGLISH_BELIZE 0x0a
-#endif
-#ifndef SUBLANG_ENGLISH_TRINIDAD
-#define SUBLANG_ENGLISH_TRINIDAD 0x0b
-#endif
-#ifndef SUBLANG_ENGLISH_ZIMBABWE
-#define SUBLANG_ENGLISH_ZIMBABWE 0x0c
-#endif
-#ifndef SUBLANG_ENGLISH_PHILIPPINES
-#define SUBLANG_ENGLISH_PHILIPPINES 0x0d
-#endif
-#ifndef SUBLANG_ENGLISH_INDONESIA
-#define SUBLANG_ENGLISH_INDONESIA 0x0e
-#endif
-#ifndef SUBLANG_ENGLISH_HONGKONG
-#define SUBLANG_ENGLISH_HONGKONG 0x0f
-#endif
-#ifndef SUBLANG_ENGLISH_INDIA
-#define SUBLANG_ENGLISH_INDIA 0x10
-#endif
-#ifndef SUBLANG_ENGLISH_MALAYSIA
-#define SUBLANG_ENGLISH_MALAYSIA 0x11
-#endif
-#ifndef SUBLANG_ENGLISH_SINGAPORE
-#define SUBLANG_ENGLISH_SINGAPORE 0x12
-#endif
-#ifndef SUBLANG_FRENCH_LUXEMBOURG
-#define SUBLANG_FRENCH_LUXEMBOURG 0x05
-#endif
-#ifndef SUBLANG_FRENCH_MONACO
-#define SUBLANG_FRENCH_MONACO 0x06
-#endif
-#ifndef SUBLANG_FRENCH_WESTINDIES
-#define SUBLANG_FRENCH_WESTINDIES 0x07
-#endif
-#ifndef SUBLANG_FRENCH_REUNION
-#define SUBLANG_FRENCH_REUNION 0x08
-#endif
-#ifndef SUBLANG_FRENCH_CONGO
-#define SUBLANG_FRENCH_CONGO 0x09
-#endif
-#ifndef SUBLANG_FRENCH_SENEGAL
-#define SUBLANG_FRENCH_SENEGAL 0x0a
-#endif
-#ifndef SUBLANG_FRENCH_CAMEROON
-#define SUBLANG_FRENCH_CAMEROON 0x0b
-#endif
-#ifndef SUBLANG_FRENCH_COTEDIVOIRE
-#define SUBLANG_FRENCH_COTEDIVOIRE 0x0c
-#endif
-#ifndef SUBLANG_FRENCH_MALI
-#define SUBLANG_FRENCH_MALI 0x0d
-#endif
-#ifndef SUBLANG_FRENCH_MOROCCO
-#define SUBLANG_FRENCH_MOROCCO 0x0e
-#endif
-#ifndef SUBLANG_FRENCH_HAITI
-#define SUBLANG_FRENCH_HAITI 0x0f
-#endif
-#ifndef SUBLANG_GERMAN_LUXEMBOURG
-#define SUBLANG_GERMAN_LUXEMBOURG 0x04
-#endif
-#ifndef SUBLANG_GERMAN_LIECHTENSTEIN
-#define SUBLANG_GERMAN_LIECHTENSTEIN 0x05
-#endif
-#ifndef SUBLANG_KASHMIRI_INDIA
-#define SUBLANG_KASHMIRI_INDIA 0x02
-#endif
-#ifndef SUBLANG_MALAY_MALAYSIA
-#define SUBLANG_MALAY_MALAYSIA 0x01
-#endif
-#ifndef SUBLANG_MALAY_BRUNEI_DARUSSALAM
-#define SUBLANG_MALAY_BRUNEI_DARUSSALAM 0x02
-#endif
-#ifndef SUBLANG_NEPALI_INDIA
-#define SUBLANG_NEPALI_INDIA 0x02
-#endif
-#ifndef SUBLANG_PUNJABI_INDIA
-#define SUBLANG_PUNJABI_INDIA 0x00
-#endif
-#ifndef SUBLANG_PUNJABI_PAKISTAN
-#define SUBLANG_PUNJABI_PAKISTAN 0x01
-#endif
-#ifndef SUBLANG_ROMANIAN_ROMANIA
-#define SUBLANG_ROMANIAN_ROMANIA 0x00
-#endif
-#ifndef SUBLANG_ROMANIAN_MOLDOVA
-#define SUBLANG_ROMANIAN_MOLDOVA 0x01
-#endif
-#ifndef SUBLANG_SERBIAN_LATIN
-#define SUBLANG_SERBIAN_LATIN 0x02
-#endif
-#ifndef SUBLANG_SERBIAN_CYRILLIC
-#define SUBLANG_SERBIAN_CYRILLIC 0x03
-#endif
-#ifndef SUBLANG_SINDHI_INDIA
-#define SUBLANG_SINDHI_INDIA 0x00
-#endif
-#ifndef SUBLANG_SINDHI_PAKISTAN
-#define SUBLANG_SINDHI_PAKISTAN 0x01
-#endif
-#ifndef SUBLANG_SPANISH_GUATEMALA
-#define SUBLANG_SPANISH_GUATEMALA 0x04
-#endif
-#ifndef SUBLANG_SPANISH_COSTA_RICA
-#define SUBLANG_SPANISH_COSTA_RICA 0x05
-#endif
-#ifndef SUBLANG_SPANISH_PANAMA
-#define SUBLANG_SPANISH_PANAMA 0x06
-#endif
-#ifndef SUBLANG_SPANISH_DOMINICAN_REPUBLIC
-#define SUBLANG_SPANISH_DOMINICAN_REPUBLIC 0x07
-#endif
-#ifndef SUBLANG_SPANISH_VENEZUELA
-#define SUBLANG_SPANISH_VENEZUELA 0x08
-#endif
-#ifndef SUBLANG_SPANISH_COLOMBIA
-#define SUBLANG_SPANISH_COLOMBIA 0x09
-#endif
-#ifndef SUBLANG_SPANISH_PERU
-#define SUBLANG_SPANISH_PERU 0x0a
-#endif
-#ifndef SUBLANG_SPANISH_ARGENTINA
-#define SUBLANG_SPANISH_ARGENTINA 0x0b
-#endif
-#ifndef SUBLANG_SPANISH_ECUADOR
-#define SUBLANG_SPANISH_ECUADOR 0x0c
-#endif
-#ifndef SUBLANG_SPANISH_CHILE
-#define SUBLANG_SPANISH_CHILE 0x0d
-#endif
-#ifndef SUBLANG_SPANISH_URUGUAY
-#define SUBLANG_SPANISH_URUGUAY 0x0e
-#endif
-#ifndef SUBLANG_SPANISH_PARAGUAY
-#define SUBLANG_SPANISH_PARAGUAY 0x0f
-#endif
-#ifndef SUBLANG_SPANISH_BOLIVIA
-#define SUBLANG_SPANISH_BOLIVIA 0x10
-#endif
-#ifndef SUBLANG_SPANISH_EL_SALVADOR
-#define SUBLANG_SPANISH_EL_SALVADOR 0x11
-#endif
-#ifndef SUBLANG_SPANISH_HONDURAS
-#define SUBLANG_SPANISH_HONDURAS 0x12
-#endif
-#ifndef SUBLANG_SPANISH_NICARAGUA
-#define SUBLANG_SPANISH_NICARAGUA 0x13
-#endif
-#ifndef SUBLANG_SPANISH_PUERTO_RICO
-#define SUBLANG_SPANISH_PUERTO_RICO 0x14
-#endif
-#ifndef SUBLANG_SWEDISH_FINLAND
-#define SUBLANG_SWEDISH_FINLAND 0x02
-#endif
-#ifndef SUBLANG_TAMAZIGHT_ARABIC
-#define SUBLANG_TAMAZIGHT_ARABIC 0x01
-#endif
-#ifndef SUBLANG_TAMAZIGHT_LATIN
-#define SUBLANG_TAMAZIGHT_LATIN 0x02
-#endif
-#ifndef SUBLANG_TIGRINYA_ETHIOPIA
-#define SUBLANG_TIGRINYA_ETHIOPIA 0x00
-#endif
-#ifndef SUBLANG_TIGRINYA_ERITREA
-#define SUBLANG_TIGRINYA_ERITREA 0x01
-#endif
-#ifndef SUBLANG_URDU_PAKISTAN
-#define SUBLANG_URDU_PAKISTAN 0x01
-#endif
-#ifndef SUBLANG_URDU_INDIA
-#define SUBLANG_URDU_INDIA 0x02
-#endif
-#ifndef SUBLANG_UZBEK_LATIN
-#define SUBLANG_UZBEK_LATIN 0x01
-#endif
-#ifndef SUBLANG_UZBEK_CYRILLIC
-#define SUBLANG_UZBEK_CYRILLIC 0x02
+#ifndef SUBLANG_SERBIAN_LATIN_BA
+#define SUBLANG_SERBIAN_LATIN_BA 0x06
 #endif
 
 gchar *
 g_win32_getlocale (void)
 {
+  gchar *result;
   LCID lcid;
   LANGID langid;
-  gchar *ev;
+  const gchar *ev;
   gint primary, sub;
-  gchar *l = "C", *sl = NULL;
-  gchar bfr[20];
+  WCHAR iso639[10];
+  gchar *iso639_utf8;
+  WCHAR iso3166[10];
+  gchar *iso3166_utf8;
+  const gchar *script = NULL;
 
   /* Let the user override the system settings through environment
-     variables, as on POSIX systems.  */
-  if (((ev = getenv ("LC_ALL")) != NULL && ev[0] != '\0')
-      || ((ev = getenv ("LC_MESSAGES")) != NULL && ev[0] != '\0')
-      || ((ev = getenv ("LANG")) != NULL && ev[0] != '\0'))
+   * variables, as on POSIX systems. Note that in GTK applications
+   * since GTK 2.10.7 setting either LC_ALL or LANG also sets the
+   * Win32 locale and C library locale through code in gtkmain.c.
+   */
+  if (((ev = g_getenv ("LC_ALL")) != NULL && ev[0] != '\0')
+      || ((ev = g_getenv ("LC_MESSAGES")) != NULL && ev[0] != '\0')
+      || ((ev = g_getenv ("LANG")) != NULL && ev[0] != '\0'))
     return g_strdup (ev);
 
-  /* Use native Win32 API locale ID.  */
   lcid = GetThreadLocale ();
 
+  if (!GetLocaleInfoW (lcid, LOCALE_SISO639LANGNAME, iso639, sizeof (iso639)) ||
+      !GetLocaleInfoW (lcid, LOCALE_SISO3166CTRYNAME, iso3166, sizeof (iso3166)))
+    return g_strdup ("C");
+  
   /* Strip off the sorting rules, keep only the language part.  */
   langid = LANGIDFROMLCID (lcid);
 
   /* Split into language and territory part.  */
   primary = PRIMARYLANGID (langid);
   sub = SUBLANGID (langid);
+
+  /* Handle special cases */
   switch (primary)
     {
-    case LANG_AFRIKAANS: l = "af"; sl = "ZA"; break;
-    case LANG_ALBANIAN: l = "sq"; sl = "AL"; break;
-    case LANG_ARABIC:
-      l = "ar";
-      switch (sub)
-	{
-	case SUBLANG_ARABIC_SAUDI_ARABIA: sl = "SA"; break;
-	case SUBLANG_ARABIC_IRAQ: sl = "IQ"; break;
-	case SUBLANG_ARABIC_EGYPT: sl = "EG"; break;
-	case SUBLANG_ARABIC_LIBYA: sl = "LY"; break;
-	case SUBLANG_ARABIC_ALGERIA: sl = "DZ"; break;
-	case SUBLANG_ARABIC_MOROCCO: sl = "MA"; break;
-	case SUBLANG_ARABIC_TUNISIA: sl = "TN"; break;
-	case SUBLANG_ARABIC_OMAN: sl = "OM"; break;
-	case SUBLANG_ARABIC_YEMEN: sl = "YE"; break;
-	case SUBLANG_ARABIC_SYRIA: sl = "SY"; break;
-	case SUBLANG_ARABIC_JORDAN: sl = "JO"; break;
-	case SUBLANG_ARABIC_LEBANON: sl = "LB"; break;
-	case SUBLANG_ARABIC_KUWAIT: sl = "KW"; break;
-	case SUBLANG_ARABIC_UAE: sl = "AE"; break;
-	case SUBLANG_ARABIC_BAHRAIN: sl = "BH"; break;
-	case SUBLANG_ARABIC_QATAR: sl = "QA"; break;
-	}
-      break;
-    case LANG_ARMENIAN: l = "hy"; sl = "AM"; break;
-    case LANG_ASSAMESE: l = "as"; sl = "IN"; break;
     case LANG_AZERI:
-      l = "az";
       switch (sub)
 	{
-	/* FIXME: Adjust this when Azerbaijani locales appear on Unix.  */
-	case SUBLANG_AZERI_LATIN: sl = "AZ@latin"; break;
-	case SUBLANG_AZERI_CYRILLIC: sl = "AZ@cyrillic"; break;
+	case SUBLANG_AZERI_LATIN:
+	  script = "@Latn";
+	  break;
+	case SUBLANG_AZERI_CYRILLIC:
+	  script = "@Cyrl";
+	  break;
 	}
       break;
-    case LANG_BASQUE:
-      l = "eu"; /* sl could be "ES" or "FR".  */
-      break;
-    case LANG_BELARUSIAN: l = "be"; sl = "BY"; break;
-    case LANG_BENGALI:
-      l = "bn";
+    case LANG_SERBIAN:		/* LANG_CROATIAN == LANG_SERBIAN */
       switch (sub)
 	{
-	case SUBLANG_BENGALI_INDIA: sl = "IN"; break;
-	case SUBLANG_BENGALI_BANGLADESH: sl = "BD"; break;
-	}
-      break;
-    case LANG_BULGARIAN: l = "bg"; sl = "BG"; break;
-    case LANG_BURMESE: l = "my"; sl = "MM"; break;
-    case LANG_CAMBODIAN: l = "km"; sl = "KH"; break;
-    case LANG_CATALAN: l = "ca"; sl = "ES"; break;
-    case LANG_CHINESE:
-      l = "zh";
-      switch (sub)
-	{
-	case SUBLANG_CHINESE_TRADITIONAL: sl = "TW"; break;
-	case SUBLANG_CHINESE_SIMPLIFIED: sl = "CN"; break;
-	case SUBLANG_CHINESE_HONGKONG: sl = "HK"; break;
-	case SUBLANG_CHINESE_SINGAPORE: sl = "SG"; break;
-	case SUBLANG_CHINESE_MACAU: sl = "MO"; break;
-	}
-      break;
-    case LANG_CROATIAN:		/* LANG_CROATIAN == LANG_SERBIAN */
-      switch (sub)
-	{
-	/* FIXME: How to distinguish Croatian and Latin Serbian locales?  */
-	case SUBLANG_SERBIAN_LATIN: l = "sr"; sl = "@Latn"; break;
-	case SUBLANG_SERBIAN_CYRILLIC: l = "sr"; break;
-	default: l = "hr"; sl = "HR";
-	}
-      break;
-    case LANG_CZECH: l = "cs"; sl = "CZ"; break;
-    case LANG_DANISH: l = "da"; sl = "DK"; break;
-    case LANG_DIVEHI: l = "div"; sl = "MV"; break;
-    case LANG_DUTCH:
-      l = "nl";
-      switch (sub)
-	{
-	case SUBLANG_DUTCH: sl = "NL"; break;
-	case SUBLANG_DUTCH_BELGIAN: sl = "BE"; break;
-	}
-      break;
-    case LANG_ENGLISH:
-      l = "en";
-      switch (sub)
-	{
-	case SUBLANG_ENGLISH_US: sl = "US"; break;
-	case SUBLANG_ENGLISH_UK: sl = "GB"; break;
-	case SUBLANG_ENGLISH_AUS: sl = "AU"; break;
-	case SUBLANG_ENGLISH_CAN: sl = "CA"; break;
-	case SUBLANG_ENGLISH_NZ: sl = "NZ"; break;
-	case SUBLANG_ENGLISH_EIRE: sl = "IE"; break;
-	case SUBLANG_ENGLISH_SOUTH_AFRICA: sl = "ZA"; break;
-	case SUBLANG_ENGLISH_JAMAICA: sl = "JM"; break;
-	case SUBLANG_ENGLISH_CARIBBEAN: sl = "GD"; break; /* Grenada? */
-	case SUBLANG_ENGLISH_BELIZE: sl = "BZ"; break;
-	case SUBLANG_ENGLISH_TRINIDAD: sl = "TT"; break;
-	case SUBLANG_ENGLISH_ZIMBABWE: sl = "ZW"; break;
-	case SUBLANG_ENGLISH_PHILIPPINES: sl = "PH"; break;
-	case SUBLANG_ENGLISH_INDONESIA: sl = "ID"; break;
-	case SUBLANG_ENGLISH_HONGKONG: sl = "HK"; break;
-	case SUBLANG_ENGLISH_INDIA: sl = "IN"; break;
-	case SUBLANG_ENGLISH_MALAYSIA: sl = "MY"; break;
-	case SUBLANG_ENGLISH_SINGAPORE: sl = "SG"; break;
-	}
-      break;
-    case LANG_ESTONIAN: l = "et"; sl = "EE"; break;
-    case LANG_FAEROESE: l = "fo"; sl = "FO"; break;
-    case LANG_FARSI: l = "fa"; sl = "IR"; break;
-    case LANG_FINNISH: l = "fi"; sl = "FI"; break;
-    case LANG_FRENCH:
-      l = "fr";
-      switch (sub)
-	{
-	case SUBLANG_FRENCH: sl = "FR"; break;
-	case SUBLANG_FRENCH_BELGIAN: sl = "BE"; break;
-	case SUBLANG_FRENCH_CANADIAN: sl = "CA"; break;
-	case SUBLANG_FRENCH_SWISS: sl = "CH"; break;
-	case SUBLANG_FRENCH_LUXEMBOURG: sl = "LU"; break;
-	case SUBLANG_FRENCH_MONACO: sl = "MC"; break;
-	case SUBLANG_FRENCH_WESTINDIES: break;
-	case SUBLANG_FRENCH_REUNION: sl = "RE"; break;
-	case SUBLANG_FRENCH_CONGO: sl = "CG"; break;
-	case SUBLANG_FRENCH_SENEGAL: sl = "SN"; break;
-	case SUBLANG_FRENCH_CAMEROON: sl = "CM"; break;
-	case SUBLANG_FRENCH_COTEDIVOIRE: sl = "CI"; break;
-	case SUBLANG_FRENCH_MALI: sl = "ML"; break;
-	case SUBLANG_FRENCH_MOROCCO: sl = "MA"; break;
-	case SUBLANG_FRENCH_HAITI: sl = "HT"; break;
-	}
-      break;
-    case LANG_FRISIAN: l = "fy"; sl ="NL"; break;
-    case LANG_FULFULDE: l = "ful"; sl = "NG"; break;
-    case LANG_GAELIC:
-      switch (sub)
-	{
-	case 0x01: /* SCOTTISH */ l = "gd"; sl = "GB"; break;
-	case 0x02: /* IRISH */ l = "ga"; sl = "IE"; break;
-	}
-      break;
-    case LANG_GALICIAN: l = "gl"; sl = "ES"; break;
-    case LANG_GEORGIAN: l = "ka"; sl = "GE"; break;
-    case LANG_GERMAN:
-      l = "de";
-      switch (sub)
-	{
-	case SUBLANG_GERMAN: sl = "DE"; break;
-	case SUBLANG_GERMAN_SWISS: sl = "CH"; break;
-	case SUBLANG_GERMAN_AUSTRIAN: sl = "AT"; break;
-	case SUBLANG_GERMAN_LUXEMBOURG: sl = "LU"; break;
-	case SUBLANG_GERMAN_LIECHTENSTEIN: sl = "LI"; break;
-	}
-      break;
-    case LANG_GREEK: l = "el"; sl = "GR"; break;
-    case LANG_GUARANI: l = "gn"; sl = "PY"; break;
-    case LANG_GUJARATI: l = "gu"; sl = "IN"; break;
-    case LANG_HAUSA: l = "ha"; sl = "NG"; break;
-    case LANG_HAWAIIAN:
-      /* FIXME: Do they mean Hawaiian ("haw_US", 1000 speakers)
-       * or Hawaii Creole English ("cpe_US", 600000 speakers)?
-       */
-      l = "cpe";
-      sl = "US";
-      break;
-    case LANG_HEBREW: l = "he"; sl = "IL"; break;
-    case LANG_HINDI: l = "hi"; sl = "IN"; break;
-    case LANG_HUNGARIAN: l = "hu"; sl = "HU"; break;
-    case LANG_IBIBIO: l = "nic"; sl = "NG"; break;
-    case LANG_ICELANDIC: l = "is"; sl = "IS"; break;
-    case LANG_IGBO: l = "ibo"; sl = "NG"; break;
-    case LANG_INDONESIAN: l = "id"; sl = "ID"; break;
-    case LANG_INUKTITUT: l = "iu"; sl = "CA"; break;
-    case LANG_ITALIAN:
-      l = "it";
-      switch (sub)
-	{
-	case SUBLANG_ITALIAN: sl = "IT"; break;
-	case SUBLANG_ITALIAN_SWISS: sl = "CH"; break;
-	}
-      break;
-    case LANG_JAPANESE: l = "ja"; sl = "JP"; break;
-    case LANG_KANNADA: l = "kn"; sl = "IN"; break;
-    case LANG_KANURI: l = "kau"; sl = "NG"; break;
-    case LANG_KASHMIRI:
-      l = "ks";
-      switch (sub)
-	{
-	case SUBLANG_DEFAULT: sl = "PK"; break;
-	case SUBLANG_KASHMIRI_INDIA: sl = "IN"; break;
-	}
-      break;
-    case LANG_KAZAK: l = "kk"; sl = "KZ"; break;
-    case LANG_KONKANI:
-      /* FIXME: Adjust this when such locales appear on Unix.  */
-      l = "kok";
-      sl = "IN";
-      break;
-    case LANG_KOREAN: l = "ko"; sl = "KR"; break;
-    case LANG_KYRGYZ: l = "ky"; sl = "KG"; break; 
-    case LANG_LAO: l = "lo"; sl = "LA"; break;
-    case LANG_LATIN: l = "la"; sl = "VA"; break;
-    case LANG_LATVIAN: l = "lv"; sl = "LV"; break;
-    case LANG_LITHUANIAN: l = "lt"; sl = "LT"; break;
-    case LANG_MACEDONIAN: l = "mk"; sl = "MK"; break;
-    case LANG_MALAY:
-      l = "ms";
-      switch (sub)
-	{
-	case SUBLANG_MALAY_MALAYSIA: sl = "MY"; break;
-	case SUBLANG_MALAY_BRUNEI_DARUSSALAM: sl = "BN"; break;
-	}
-      break;
-    case LANG_MALAYALAM: l = "ml"; sl = "IN"; break;
-    case LANG_MANIPURI:
-      /* FIXME: Adjust this when such locales appear on Unix.  */
-      l = "mni";
-      sl = "IN";
-      break;
-    case LANG_MARATHI: l = "mr"; sl = "IN"; break;
-    case LANG_MONGOLIAN:
-      /* Ambiguous: could be "mn_CN" or "mn_MN".  */
-      l = "mn";
-      break;
-    case LANG_NEPALI:
-      l = "ne";
-      switch (sub)
-	{
-	case SUBLANG_DEFAULT: sl = "NP"; break;
-	case SUBLANG_NEPALI_INDIA: sl = "IN"; break;
-	}
-      break;
-    case LANG_NORWEGIAN:
-      l = "no";
-      switch (sub)
-	{
-	case SUBLANG_NORWEGIAN_BOKMAL: sl = "NO"; break;
-	case SUBLANG_NORWEGIAN_NYNORSK: l = "nn"; sl = "NO"; break;
-	}
-      break;
-    case LANG_ORIYA: l = "or"; sl = "IN"; break;
-    case LANG_OROMO: l = "om"; sl = "ET"; break;
-    case LANG_PAPIAMENTU: l = "pap"; sl = "AN"; break;
-    case LANG_PASHTO:
-      /* Ambiguous: could be "ps_PK" or "ps_AF".  */
-      l = "ps";
-      break;
-    case LANG_POLISH: l = "pl"; sl = "PL"; break;
-    case LANG_PORTUGUESE:
-      l = "pt";
-      switch (sub)
-	{
-	case SUBLANG_PORTUGUESE: sl = "PT"; break;
-	case SUBLANG_PORTUGUESE_BRAZILIAN: sl = "BR"; break;
-	}
-      break;
-    case LANG_PUNJABI:
-      l = "pa";
-      switch (sub)
-	{
-	case SUBLANG_PUNJABI_INDIA: sl = "IN"; break; /* Gurmukhi script */
-	case SUBLANG_PUNJABI_PAKISTAN: sl = "PK"; break; /* Arabic script */
-	}
-      break;
-    case LANG_RHAETO_ROMANCE: l = "rm"; sl = "CH"; break;
-    case LANG_ROMANIAN:
-      l = "ro";
-      switch (sub)
-	{
-	case SUBLANG_ROMANIAN_ROMANIA: sl = "RO"; break;
-	case SUBLANG_ROMANIAN_MOLDOVA: sl = "MD"; break;
-	}
-      break;
-    case LANG_RUSSIAN:
-      l = "ru";/* Ambiguous: could be "ru_RU" or "ru_UA" or "ru_MD". */
-      break;
-    case LANG_SAAMI: /* actually Northern Sami */ l = "se"; sl = "NO"; break;
-    case LANG_SANSKRIT: l = "sa"; sl = "IN"; break;
-    case LANG_SINDHI: l = "sd";
-      switch (sub)
-	{
-	case SUBLANG_SINDHI_INDIA: sl = "IN"; break;
-	case SUBLANG_SINDHI_PAKISTAN: sl = "PK"; break;
-	}
-      break;
-    case LANG_SINHALESE: l = "si"; sl = "LK"; break;
-    case LANG_SLOVAK: l = "sk"; sl = "SK"; break;
-    case LANG_SLOVENIAN: l = "sl"; sl = "SI"; break;
-    case LANG_SOMALI: l = "so"; sl = "SO"; break;
-    case LANG_SORBIAN:
-      /* FIXME: Adjust this when such locales appear on Unix.  */
-      l = "wen";
-      sl = "DE";
-      break;
-    case LANG_SPANISH:
-      l = "es";
-      switch (sub)
-	{
-	case SUBLANG_SPANISH: sl = "ES"; break;
-	case SUBLANG_SPANISH_MEXICAN: sl = "MX"; break;
-	case SUBLANG_SPANISH_MODERN:
-	  sl = "ES@modern"; break;	/* not seen on Unix */
-	case SUBLANG_SPANISH_GUATEMALA: sl = "GT"; break;
-	case SUBLANG_SPANISH_COSTA_RICA: sl = "CR"; break;
-	case SUBLANG_SPANISH_PANAMA: sl = "PA"; break;
-	case SUBLANG_SPANISH_DOMINICAN_REPUBLIC: sl = "DO"; break;
-	case SUBLANG_SPANISH_VENEZUELA: sl = "VE"; break;
-	case SUBLANG_SPANISH_COLOMBIA: sl = "CO"; break;
-	case SUBLANG_SPANISH_PERU: sl = "PE"; break;
-	case SUBLANG_SPANISH_ARGENTINA: sl = "AR"; break;
-	case SUBLANG_SPANISH_ECUADOR: sl = "EC"; break;
-	case SUBLANG_SPANISH_CHILE: sl = "CL"; break;
-	case SUBLANG_SPANISH_URUGUAY: sl = "UY"; break;
-	case SUBLANG_SPANISH_PARAGUAY: sl = "PY"; break;
-	case SUBLANG_SPANISH_BOLIVIA: sl = "BO"; break;
-	case SUBLANG_SPANISH_EL_SALVADOR: sl = "SV"; break;
-	case SUBLANG_SPANISH_HONDURAS: sl = "HN"; break;
-	case SUBLANG_SPANISH_NICARAGUA: sl = "NI"; break;
-	case SUBLANG_SPANISH_PUERTO_RICO: sl = "PR"; break;
-	}
-      break;
-    case LANG_SUTU: l = "bnt"; sl = "TZ"; break; /* or "st_LS" or "nso_ZA"? */ 
-    case LANG_SWAHILI: l = "sw"; sl = "KE"; break;
-    case LANG_SWEDISH:
-      l = "sv";
-      switch (sub)
-	{
-	case SUBLANG_DEFAULT: sl = "SE"; break;
-	case SUBLANG_SWEDISH_FINLAND: sl = "FI"; break;
-	}
-      break;
-    case LANG_SYRIAC: l = "syr"; sl = "TR"; break; /* An extinct language. */
-    case LANG_TAGALOG: l = "tl"; sl = "PH"; break;
-    case LANG_TAJIK: l = "tg"; sl = "TJ"; break;
-    case LANG_TAMIL:
-      l = "ta"; /* Ambiguous: could be "ta_IN" or "ta_LK" or "ta_SG". */
-      break;
-    case LANG_TATAR: l = "tt"; sl = "RU"; break;
-    case LANG_TELUGU: l = "te"; sl = "IN"; break;
-    case LANG_THAI: l = "th"; sl = "TH"; break;
-    case LANG_TIBETAN: l = "bo"; sl = "CN"; break;
-    case LANG_TIGRINYA:
-      l = "ti";
-      switch (sub)
-	{
-	case SUBLANG_TIGRINYA_ETHIOPIA: sl = "ET"; break;
-	case SUBLANG_TIGRINYA_ERITREA: sl = "ER"; break;
-	}
-      break;
-    case LANG_TSONGA: l = "ts"; sl = "ZA"; break;
-    case LANG_TSWANA: l = "tn"; sl = "BW"; break;
-    case LANG_TURKISH: l = "tr"; sl = "TR"; break;
-    case LANG_TURKMEN: l = "tk"; sl = "TM"; break;
-    case LANG_UKRAINIAN: l = "uk"; sl = "UA"; break;
-    case LANG_URDU:
-      l = "ur";
-      switch (sub)
-	{
-	case SUBLANG_URDU_PAKISTAN: sl = "PK"; break;
-	case SUBLANG_URDU_INDIA: sl = "IN"; break;
+	case SUBLANG_SERBIAN_LATIN:
+	case 0x06: /* Serbian (Latin) - Bosnia and Herzegovina */
+	  script = "@Latn";
+	  break;
 	}
       break;
     case LANG_UZBEK:
-      l = "uz";
       switch (sub)
 	{
-	case SUBLANG_UZBEK_LATIN: sl = "UZ"; break;
-	case SUBLANG_UZBEK_CYRILLIC: sl = "UZ@cyrillic"; break;
+	case SUBLANG_UZBEK_LATIN:
+	  script = "@Latn";
+	  break;
+	case SUBLANG_UZBEK_CYRILLIC:
+	  script = "@Cyrl";
+	  break;
 	}
       break;
-    case LANG_VENDA:
-      /* FIXME: It's not clear whether Venda has the ISO 639-2 two-letter code
-	 "ve" or not.
-	 http://www.loc.gov/standards/iso639-2/englangn.html has it, but
-	 http://lcweb.loc.gov/standards/iso639-2/codechanges.html doesn't,  */
-      l = "ven"; /* or "ve"? */
-      sl = "ZA";
-      break;
-    case LANG_VIETNAMESE: l = "vi"; sl = "VN"; break;
-    case LANG_WELSH: l = "cy"; sl = "GB"; break;
-    case LANG_XHOSA: l = "xh"; sl = "ZA"; break;
-    case LANG_YI: l = "sit"; sl = "CN"; break;
-    case LANG_YIDDISH: l = "yi"; sl = "IL"; break;
-    case LANG_YORUBA: l = "yo"; sl = "NG"; break;
-    case LANG_ZULU: l = "zu"; sl = "ZA"; break;
-    }
-  strcpy (bfr, l);
-  if (sl != NULL)
-    {
-      if (sl[0] != '@')
-	strcat (bfr, "_");
-      strcat (bfr, sl);
     }
 
-  return g_strdup (bfr);
+  iso639_utf8 = g_utf16_to_utf8 (iso639, -1, NULL, NULL, NULL);
+  iso3166_utf8 = g_utf16_to_utf8 (iso3166, -1, NULL, NULL, NULL);
+
+  result = g_strconcat (iso639_utf8, "_", iso3166_utf8, script, NULL);
+
+  g_free (iso3166_utf8);
+  g_free (iso639_utf8);
+
+  return result;
 }
 
 /**
  * g_win32_error_message:
- * @error: error code.
+ * @error: Win32 error code
  *
- * Translate a Win32 error code (as returned by GetLastError()) into
- * the corresponding message. The message is either language neutral,
- * or in the thread's language, or the user's language, the system's
- * language, or US English (see docs for FormatMessage()). The
- * returned string is in UTF-8. It should be deallocated with
- * g_free().
+ * Translate a Win32 error code into a human readable message.
  *
- * Returns: newly-allocated error message
+ * The error code could be as returned by
+ * [`GetLastError()`](https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror)
+ * or [`WSAGetLastError()`](https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-wsagetlasterror).
+ *
+ * The message is either language neutral, or in the thread’s language, or the
+ * user’s language, the system’s language, or US English (see documentation for
+ * [`FormatMessage()`](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-formatmessagew)).
+ * The returned string is in UTF-8.
+ *
+ * If a human readable message cannot be found for the given @error, an empty
+ * string is returned.
+ *
+ * Returns: (transfer full) (not nullable): newly-allocated error message
  **/
 gchar *
 g_win32_error_message (gint error)
 {
   gchar *retval;
+  wchar_t *msg = NULL;
+  size_t nchars;
 
-  if (G_WIN32_HAVE_WIDECHAR_API ())
+  FormatMessageW (FORMAT_MESSAGE_ALLOCATE_BUFFER
+		  |FORMAT_MESSAGE_IGNORE_INSERTS
+		  |FORMAT_MESSAGE_FROM_SYSTEM,
+		  NULL, error, 0,
+		  (LPWSTR) &msg, 0, NULL);
+  if (msg != NULL)
     {
-      wchar_t *msg = NULL;
-      int nchars;
+      nchars = wcslen (msg);
 
-      FormatMessageW (FORMAT_MESSAGE_ALLOCATE_BUFFER
-		      |FORMAT_MESSAGE_IGNORE_INSERTS
-		      |FORMAT_MESSAGE_FROM_SYSTEM,
-		      NULL, error, 0,
-		      (LPWSTR) &msg, 0, NULL);
-      if (msg != NULL)
-	{
-	  nchars = wcslen (msg);
+      if (nchars >= 2 && msg[nchars-1] == L'\n' && msg[nchars-2] == L'\r')
+        msg[nchars-2] = L'\0';
 
-	  if (nchars > 2 && msg[nchars-1] == '\n' && msg[nchars-2] == '\r')
-	    msg[nchars-2] = '\0';
-	  
-	  retval = g_utf16_to_utf8 (msg, -1, NULL, NULL, NULL);
-	  
-	  LocalFree (msg);
-	}
-      else
-	retval = g_strdup ("");
+      retval = g_utf16_to_utf8 (msg, -1, NULL, NULL, NULL);
+
+      LocalFree (msg);
     }
   else
-    {
-      gchar *msg = NULL;
-      int nbytes;
-
-      FormatMessageA (FORMAT_MESSAGE_ALLOCATE_BUFFER
-		      |FORMAT_MESSAGE_IGNORE_INSERTS
-		      |FORMAT_MESSAGE_FROM_SYSTEM,
-		      NULL, error, 0,
-		      (LPTSTR) &msg, 0, NULL);
-      if (msg != NULL)
-	{
-	  nbytes = strlen (msg);
-
-	  if (nbytes > 2 && msg[nbytes-1] == '\n' && msg[nbytes-2] == '\r')
-	    msg[nbytes-2] = '\0';
-	  
-	  retval = g_locale_to_utf8 (msg, -1, NULL, NULL, NULL);
-	  
-	  LocalFree (msg);
-	}
-      else
-	retval = g_strdup ("");
-    }
+    retval = g_strdup ("");
 
   return retval;
 }
 
-static gchar *
-get_package_directory_from_module (gchar *module_name)
+/**
+ * g_win32_get_package_installation_directory_of_module:
+ * @hmodule: (nullable): The Win32 handle for a DLL loaded into the current process, or %NULL
+ *
+ * This function tries to determine the installation directory of a
+ * software package based on the location of a DLL of the software
+ * package.
+ *
+ * @hmodule should be the handle of a loaded DLL or %NULL. The
+ * function looks up the directory that DLL was loaded from. If
+ * @hmodule is NULL, the directory the main executable of the current
+ * process is looked up. If that directory's last component is "bin"
+ * or "lib", its parent directory is returned, otherwise the directory
+ * itself.
+ *
+ * It thus makes sense to pass only the handle to a "public" DLL of a
+ * software package to this function, as such DLLs typically are known
+ * to be installed in a "bin" or occasionally "lib" subfolder of the
+ * installation folder. DLLs that are of the dynamically loaded module
+ * or plugin variety are often located in more private locations
+ * deeper down in the tree, from which it is impossible for GLib to
+ * deduce the root of the package installation.
+ *
+ * The typical use case for this function is to have a DllMain() that
+ * saves the handle for the DLL. Then when code in the DLL needs to
+ * construct names of files in the installation tree it calls this
+ * function passing the DLL handle.
+ *
+ * Returns: a string containing the guessed installation directory for
+ * the software package @hmodule is from. The string is in the GLib
+ * file name encoding, i.e. UTF-8. The return value should be freed
+ * with g_free() when not needed any longer. If the function fails
+ * %NULL is returned.
+ *
+ * Since: 2.16
+ */
+gchar *
+g_win32_get_package_installation_directory_of_module (gpointer hmodule)
 {
-  static GHashTable *module_dirs = NULL;
-  G_LOCK_DEFINE_STATIC (module_dirs);
-  HMODULE hmodule = NULL;
-  gchar *fn;
+  gchar *filename;
+  gchar *retval;
   gchar *p;
-  gchar *result;
+  wchar_t wc_fn[MAX_PATH];
 
-  G_LOCK (module_dirs);
+  /* NOTE: it relies that GetModuleFileNameW returns only canonical paths */
+  if (!GetModuleFileNameW (hmodule, wc_fn, MAX_PATH))
+    return NULL;
 
-  if (module_dirs == NULL)
-    module_dirs = g_hash_table_new (g_str_hash, g_str_equal);
-  
-  result = g_hash_table_lookup (module_dirs, module_name ? module_name : "");
-      
-  if (result)
+  filename = g_utf16_to_utf8 (wc_fn, -1, NULL, NULL, NULL);
+
+  if ((p = strrchr (filename, G_DIR_SEPARATOR)) != NULL)
+    *p = '\0';
+
+  retval = g_strdup (filename);
+
+  do
     {
-      G_UNLOCK (module_dirs);
-      return g_strdup (result);
+      p = strrchr (retval, G_DIR_SEPARATOR);
+      if (p == NULL)
+        break;
+
+      *p = '\0';
+
+      if (g_ascii_strcasecmp (p + 1, "bin") == 0 ||
+          g_ascii_strcasecmp (p + 1, "lib") == 0)
+        break;
     }
+  while (p != NULL);
 
-  if (module_name)
+  if (p == NULL)
     {
-      if (G_WIN32_HAVE_WIDECHAR_API ())
-	{
-	  wchar_t *wc_module_name = g_utf8_to_utf16 (module_name, -1, NULL, NULL, NULL);
-	  hmodule = GetModuleHandleW (wc_module_name);
-	  g_free (wc_module_name);
-	}
-      else
-	{
-	  char *cp_module_name = g_locale_from_utf8 (module_name, -1, NULL, NULL, NULL);
-	  hmodule = GetModuleHandleA (cp_module_name);
-	  g_free (cp_module_name);
-	}
-      if (!hmodule)
-	return NULL;
-    }
-
-  if (G_WIN32_HAVE_WIDECHAR_API ())
-    {
-      wchar_t wc_fn[MAX_PATH];
-      if (!GetModuleFileNameW (hmodule, wc_fn, MAX_PATH))
-	{
-	  G_UNLOCK (module_dirs);
-	  return NULL;
-	}
-      fn = g_utf16_to_utf8 (wc_fn, -1, NULL, NULL, NULL);
+      g_free (retval);
+      retval = filename;
     }
   else
-    {
-      gchar cp_fn[MAX_PATH];
-      if (!GetModuleFileNameA (hmodule, cp_fn, MAX_PATH))
-	{
-	  G_UNLOCK (module_dirs);
-	  return NULL;
-	}
-      fn = g_locale_to_utf8 (cp_fn, -1, NULL, NULL, NULL);
-    }
-
-  if ((p = strrchr (fn, G_DIR_SEPARATOR)) != NULL)
-    *p = '\0';
-
-  p = strrchr (fn, G_DIR_SEPARATOR);
-  if (p && (g_ascii_strcasecmp (p + 1, "bin") == 0 ||
-	    g_ascii_strcasecmp (p + 1, "lib") == 0))
-    *p = '\0';
+    g_free (filename);
 
 #ifdef G_WITH_CYGWIN
   /* In Cygwin we need to have POSIX paths */
   {
     gchar tmp[MAX_PATH];
 
-    cygwin_conv_to_posix_path(fn, tmp);
-    g_free(fn);
-    fn = g_strdup(tmp);
+    cygwin_conv_to_posix_path (retval, tmp);
+    g_free (retval);
+    retval = g_strdup (tmp);
   }
 #endif
 
-  g_hash_table_insert (module_dirs, module_name ? module_name : "", fn);
+  return retval;
+}
+
+static gchar *
+get_package_directory_from_module (const gchar *module_name)
+{
+  static GHashTable *module_dirs = NULL;
+  G_LOCK_DEFINE_STATIC (module_dirs);
+  HMODULE hmodule = NULL;
+  gchar *fn;
+
+  G_LOCK (module_dirs);
+
+  if (module_dirs == NULL)
+    module_dirs = g_hash_table_new (g_str_hash, g_str_equal);
+  
+  fn = g_hash_table_lookup (module_dirs, module_name ? module_name : "");
+      
+  if (fn)
+    {
+      G_UNLOCK (module_dirs);
+      return g_strdup (fn);
+    }
+
+  if (module_name)
+    {
+      wchar_t *wc_module_name = g_utf8_to_utf16 (module_name, -1, NULL, NULL, NULL);
+      hmodule = GetModuleHandleW (wc_module_name);
+      g_free (wc_module_name);
+
+      if (!hmodule)
+	{
+	  G_UNLOCK (module_dirs);
+	  return NULL;
+	}
+    }
+
+  fn = g_win32_get_package_installation_directory_of_module (hmodule);
+
+  if (fn == NULL)
+    {
+      G_UNLOCK (module_dirs);
+      return NULL;
+    }
+  
+  g_hash_table_insert (module_dirs, module_name ? g_strdup (module_name) : "", fn);
 
   G_UNLOCK (module_dirs);
 
@@ -1198,19 +384,36 @@ get_package_directory_from_module (gchar *module_name)
 
 /**
  * g_win32_get_package_installation_directory:
- * @package: An identifier for a software package, or %NULL, in UTF-8
- * @dll_name: The name of a DLL that a package provides, or %NULL, in UTF-8
+ * @package: (nullable): You should pass %NULL for this.
+ * @dll_name: (nullable): The name of a DLL that a package provides in UTF-8, or %NULL.
  *
  * Try to determine the installation directory for a software package.
- * Typically used by GNU software packages.
  *
- * @package should be a short identifier for the package. Typically it
- * is the same identifier as used for
- * <literal>GETTEXT_PACKAGE</literal> in software configured according
- * to GNU standards. The function first looks in the Windows Registry
- * for the value <literal>&num;InstallationDirectory</literal> in the key
- * <literal>&num;HKLM\Software\@package</literal>, and if that value
+ * This function is deprecated. Use
+ * g_win32_get_package_installation_directory_of_module() instead.
+ *
+ * The use of @package is deprecated. You should always pass %NULL. A
+ * warning is printed if non-NULL is passed as @package.
+ *
+ * The original intended use of @package was for a short identifier of
+ * the package, typically the same identifier as used for
+ * `GETTEXT_PACKAGE` in software configured using GNU
+ * autotools. The function first looks in the Windows Registry for the
+ * value `#InstallationDirectory` in the key
+ * `#HKLM\Software\@package`, and if that value
  * exists and is a string, returns that.
+ *
+ * It is strongly recommended that packagers of GLib-using libraries
+ * for Windows do not store installation paths in the Registry to be
+ * used by this function as that interferes with having several
+ * parallel installations of the library. Enabling multiple
+ * installations of different versions of some GLib-using library, or
+ * GLib itself, is desirable for various reasons.
+ *
+ * For this reason it is recommended to always pass %NULL as
+ * @package to this function, to avoid the temptation to use the
+ * Registry. In version 2.20 of GLib the @package parameter
+ * will be ignored and this function won't look in the Registry at all.
  *
  * If @package is %NULL, or the above value isn't found in the
  * Registry, but @dll_name is non-%NULL, it should name a DLL loaded
@@ -1227,101 +430,22 @@ get_package_directory_from_module (gchar *module_name)
  * the same way as above.
  *
  * Returns: a string containing the installation directory for
- * @package. The string is in the GLib file name encoding, i.e. UTF-8
- * on Windows. The return value should be freed with g_free() when not
- * needed any longer.
+ * @package. The string is in the GLib file name encoding,
+ * i.e. UTF-8. The return value should be freed with g_free() when not
+ * needed any longer. If the function fails %NULL is returned.
+ *
+ * Deprecated: 2.18: Pass the HMODULE of a DLL or EXE to
+ * g_win32_get_package_installation_directory_of_module() instead.
  **/
 
 gchar *
-g_win32_get_package_installation_directory (gchar *package,
-					    gchar *dll_name)
+g_win32_get_package_installation_directory (const gchar *package,
+                                            const gchar *dll_name)
 {
-  static GHashTable *package_dirs = NULL;
-  G_LOCK_DEFINE_STATIC (package_dirs);
   gchar *result = NULL;
-  gchar *key;
-  HKEY reg_key = NULL;
-  DWORD type;
-  DWORD nbytes;
 
   if (package != NULL)
-    {
-      G_LOCK (package_dirs);
-      
-      if (package_dirs == NULL)
-	package_dirs = g_hash_table_new (g_str_hash, g_str_equal);
-      
-      result = g_hash_table_lookup (package_dirs, package);
-      
-      if (result && result[0])
-	{
-	  G_UNLOCK (package_dirs);
-	  return g_strdup (result);
-	}
-      
-      key = g_strconcat ("Software\\", package, NULL);
-      
-      nbytes = 0;
-      if (G_WIN32_HAVE_WIDECHAR_API ())
-	{
-	  wchar_t *wc_key = g_utf8_to_utf16 (key, -1, NULL, NULL, NULL);
-	  if (((RegOpenKeyExW (HKEY_CURRENT_USER, wc_key, 0,
-			       KEY_QUERY_VALUE, &reg_key) == ERROR_SUCCESS
-		&& RegQueryValueExW (reg_key, L"InstallationDirectory", 0,
-				     &type, NULL, &nbytes) == ERROR_SUCCESS)
-	       ||
-	       (RegOpenKeyExW (HKEY_LOCAL_MACHINE, wc_key, 0,
-			       KEY_QUERY_VALUE, &reg_key) == ERROR_SUCCESS
-		&& RegQueryValueExW (reg_key, L"InstallationDirectory", 0,
-				     &type, NULL, &nbytes) == ERROR_SUCCESS))
-	      && type == REG_SZ)
-	    {
-	      wchar_t *wc_temp = g_new (wchar_t, (nbytes+1)/2 + 1);
-	      RegQueryValueExW (reg_key, L"InstallationDirectory", 0,
-				&type, (LPBYTE) wc_temp, &nbytes);
-	      wc_temp[nbytes/2] = '\0';
-	      result = g_utf16_to_utf8 (wc_temp, -1, NULL, NULL, NULL);
-	      g_free (wc_temp);
-	    }
-	  g_free (wc_key);
-	}
-      else
-	{
-	  char *cp_key = g_locale_from_utf8 (key, -1, NULL, NULL, NULL);
-	  if (((RegOpenKeyExA (HKEY_CURRENT_USER, cp_key, 0,
-			       KEY_QUERY_VALUE, &reg_key) == ERROR_SUCCESS
-		&& RegQueryValueExA (reg_key, "InstallationDirectory", 0,
-				     &type, NULL, &nbytes) == ERROR_SUCCESS)
-	       ||
-	       (RegOpenKeyExA (HKEY_LOCAL_MACHINE, cp_key, 0,
-			       KEY_QUERY_VALUE, &reg_key) == ERROR_SUCCESS
-		&& RegQueryValueExA (reg_key, "InstallationDirectory", 0,
-				     &type, NULL, &nbytes) == ERROR_SUCCESS))
-	      && type == REG_SZ)
-	    {
-	      char *cp_temp = g_malloc (nbytes + 1);
-	      RegQueryValueExA (reg_key, "InstallationDirectory", 0,
-				&type, cp_temp, &nbytes);
-	      cp_temp[nbytes] = '\0';
-	      result = g_locale_to_utf8 (cp_temp, -1, NULL, NULL, NULL);
-	      g_free (cp_temp);
-	    }
-	  g_free (cp_key);
-	}
-
-      if (reg_key != NULL)
-	RegCloseKey (reg_key);
-      
-      g_free (key);
-
-      if (result)
-	{
-	  g_hash_table_insert (package_dirs, package, result);
-	  G_UNLOCK (package_dirs);
-	  return g_strdup (result);
-	}
-      G_UNLOCK (package_dirs);
-    }
+      g_warning ("Passing a non-NULL package to g_win32_get_package_installation_directory() is deprecated and it is ignored.");
 
   if (dll_name != NULL)
     result = get_package_directory_from_module (dll_name);
@@ -1332,82 +456,46 @@ g_win32_get_package_installation_directory (gchar *package,
   return result;
 }
 
-#undef g_win32_get_package_installation_directory
-
-/* DLL ABI binary compatibility version that uses system codepage file names */
-
-gchar *
-g_win32_get_package_installation_directory (gchar *package,
-					    gchar *dll_name)
-{
-  gchar *utf8_package = NULL, *utf8_dll_name = NULL;
-  gchar *utf8_retval, *retval;
-
-  if (package != NULL)
-    utf8_package = g_locale_to_utf8 (package, -1, NULL, NULL, NULL);
-
-  if (dll_name != NULL)
-    utf8_dll_name = g_locale_to_utf8 (dll_name, -1, NULL, NULL, NULL);
-
-  utf8_retval =
-    g_win32_get_package_installation_directory_utf8 (utf8_package,
-						     utf8_dll_name);
-
-  retval = g_locale_from_utf8 (utf8_retval, -1, NULL, NULL, NULL);
-
-  g_free (utf8_package);
-  g_free (utf8_dll_name);
-  g_free (utf8_retval);
-
-  return retval;
-}
-
 /**
  * g_win32_get_package_installation_subdirectory:
- * @package: An identifier for a software package, in UTF-8, or %NULL
- * @dll_name: The name of a DLL that a package provides, in UTF-8, or %NULL
+ * @package: (nullable): You should pass %NULL for this.
+ * @dll_name: (nullable): The name of a DLL that a package provides, in UTF-8, or %NULL.
  * @subdir: A subdirectory of the package installation directory, also in UTF-8
+ *
+ * This function is deprecated. Use
+ * g_win32_get_package_installation_directory_of_module() and
+ * g_build_filename() instead.
  *
  * Returns a newly-allocated string containing the path of the
  * subdirectory @subdir in the return value from calling
  * g_win32_get_package_installation_directory() with the @package and
- * @dll_name parameters. 
+ * @dll_name parameters. See the documentation for
+ * g_win32_get_package_installation_directory() for more details. In
+ * particular, note that it is deprecated to pass anything except NULL
+ * as @package.
  *
  * Returns: a string containing the complete path to @subdir inside
  * the installation directory of @package. The returned string is in
- * the GLib file name encoding, i.e. UTF-8 on Windows. The return
- * value should be freed with g_free() when no longer needed.
+ * the GLib file name encoding, i.e. UTF-8. The return value should be
+ * freed with g_free() when no longer needed. If something goes wrong,
+ * %NULL is returned.
+ *
+ * Deprecated: 2.18: Pass the HMODULE of a DLL or EXE to
+ * g_win32_get_package_installation_directory_of_module() instead, and
+ * then construct a subdirectory pathname with g_build_filename().
  **/
 
 gchar *
-g_win32_get_package_installation_subdirectory (gchar *package,
-					       gchar *dll_name,
-					       gchar *subdir)
+g_win32_get_package_installation_subdirectory (const gchar *package,
+                                               const gchar *dll_name,
+                                               const gchar *subdir)
 {
   gchar *prefix;
   gchar *dirname;
 
-  prefix = g_win32_get_package_installation_directory_utf8 (package, dll_name);
-
-  dirname = g_build_filename (prefix, subdir, NULL);
-  g_free (prefix);
-
-  return dirname;
-}
-
-#undef g_win32_get_package_installation_subdirectory
-
-/* DLL ABI binary compatibility version that uses system codepage file names */
-
-gchar *
-g_win32_get_package_installation_subdirectory (gchar *package,
-					       gchar *dll_name,
-					       gchar *subdir)
-{
-  gchar *prefix;
-  gchar *dirname;
-
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   prefix = g_win32_get_package_installation_directory (package, dll_name);
+G_GNUC_END_IGNORE_DEPRECATIONS
 
   dirname = g_build_filename (prefix, subdir, NULL);
   g_free (prefix);
@@ -1415,56 +503,208 @@ g_win32_get_package_installation_subdirectory (gchar *package,
   return dirname;
 }
 
-static guint windows_version;
-
-static void 
-g_win32_windows_version_init (void)
+/*
+ * private API to call Windows's RtlGetVersion(), which may need to be called
+ * via GetProcAddress()
+ */
+gboolean
+_g_win32_call_rtl_version (OSVERSIONINFOEXW *info)
 {
-  static gboolean beenhere = FALSE;
+  static OSVERSIONINFOEXW result;
+  static gsize inited = 0;
 
-  if (!beenhere)
+  g_return_val_if_fail (info != NULL, FALSE);
+
+  if (g_once_init_enter (&inited))
     {
-      beenhere = TRUE;
-      if (getenv ("G_WIN32_PRETEND_WIN9X"))
-	windows_version = 0x80000004;
-      else
-	windows_version = GetVersion ();
+#if WINAPI_FAMILY != MODERN_API_FAMILY
+      /* For non-modern UI Apps, use the LoadLibraryW()/GetProcAddress() thing */
+      typedef NTSTATUS (WINAPI fRtlGetVersion) (PRTL_OSVERSIONINFOEXW);
+
+      fRtlGetVersion *RtlGetVersion;
+      HMODULE hmodule = LoadLibraryW (L"ntdll.dll");
+      g_return_val_if_fail (hmodule != NULL, FALSE);
+
+      RtlGetVersion = (fRtlGetVersion *) GetProcAddress (hmodule, "RtlGetVersion");
+      g_return_val_if_fail (RtlGetVersion != NULL, FALSE);
+#endif
+
+      memset (&result, 0, sizeof (OSVERSIONINFOEXW));
+      result.dwOSVersionInfoSize = sizeof (OSVERSIONINFOEXW);
+
+      RtlGetVersion (&result);
+
+#if WINAPI_FAMILY != MODERN_API_FAMILY
+      FreeLibrary (hmodule);
+#endif
+      g_once_init_leave (&inited, TRUE);
     }
+
+  *info = result;
+
+  return TRUE;
 }
 
-void 
-_g_win32_thread_init (void)
+/**
+ * g_win32_check_windows_version:
+ * @major: major version of Windows
+ * @minor: minor version of Windows
+ * @spver: Windows Service Pack Level, 0 if none
+ * @os_type: Type of Windows OS
+ *
+ * Returns whether the version of the Windows operating system the
+ * code is running on is at least the specified major, minor and
+ * service pack versions.  See MSDN documentation for the Operating
+ * System Version.  Software that needs even more detailed version and
+ * feature information should use the Win32 API VerifyVersionInfo()
+ * directly.
+ *
+ * Successive calls of this function can be used for enabling or
+ * disabling features at run-time for a range of Windows versions,
+ * as per the VerifyVersionInfo() API documentation.
+ *
+ * Returns: %TRUE if the Windows Version is the same or greater than
+ *          the specified major, minor and service pack versions, and
+ *          whether the running Windows is a workstation or server edition
+ *          of Windows, if specifically specified.
+ *
+ * Since: 2.44
+ **/
+gboolean
+g_win32_check_windows_version (const gint major,
+                               const gint minor,
+                               const gint spver,
+                               const GWin32OSType os_type)
 {
-  g_win32_windows_version_init ();
+  OSVERSIONINFOEXW osverinfo;
+  gboolean is_ver_checked = FALSE;
+  gboolean is_type_checked = FALSE;
+
+  /* We Only Support Checking for XP or later */
+  g_return_val_if_fail (major >= 5 && (major <= 6 || major == 10), FALSE);
+  g_return_val_if_fail ((major >= 5 && minor >= 1) || major >= 6, FALSE);
+
+  /* Check for Service Pack Version >= 0 */
+  g_return_val_if_fail (spver >= 0, FALSE);
+
+  if (!_g_win32_call_rtl_version (&osverinfo))
+    return FALSE;
+
+  /* check the OS and Service Pack Versions */
+  if (osverinfo.dwMajorVersion > (DWORD) major)
+    is_ver_checked = TRUE;
+  else if (osverinfo.dwMajorVersion == (DWORD) major)
+    {
+      if (osverinfo.dwMinorVersion > (DWORD) minor)
+        is_ver_checked = TRUE;
+      else if (osverinfo.dwMinorVersion == (DWORD) minor)
+        if (osverinfo.wServicePackMajor >= (DWORD) spver)
+          is_ver_checked = TRUE;
+    }
+
+  /* Check OS Type */
+  if (is_ver_checked)
+    {
+      switch (os_type)
+        {
+          case G_WIN32_OS_ANY:
+            is_type_checked = TRUE;
+            break;
+          case G_WIN32_OS_WORKSTATION:
+            if (osverinfo.wProductType == VER_NT_WORKSTATION)
+              is_type_checked = TRUE;
+            break;
+          case G_WIN32_OS_SERVER:
+            if (osverinfo.wProductType == VER_NT_SERVER ||
+                osverinfo.wProductType == VER_NT_DOMAIN_CONTROLLER)
+              is_type_checked = TRUE;
+            break;
+          default:
+            /* shouldn't get here normally */
+            g_warning ("Invalid os_type specified");
+            break;
+        }
+    }
+
+  return is_ver_checked && is_type_checked;
 }
 
 /**
  * g_win32_get_windows_version:
  *
+ * This function is deprecated. Use
+ * g_win32_check_windows_version() instead.
+ *
  * Returns version information for the Windows operating system the
  * code is running on. See MSDN documentation for the GetVersion()
  * function. To summarize, the most significant bit is one on Win9x,
- * and zero on NT-based systems. The least significant byte is 4 on
- * Windows NT 4, 5 on Windows XP. Software that needs really detailled
- * version and feature information should use Win32 API like
+ * and zero on NT-based systems. Since version 2.14, GLib works only
+ * on NT-based systems, so checking whether your are running on Win9x
+ * in your own software is moot. The least significant byte is 4 on
+ * Windows NT 4, and 5 on Windows XP. Software that needs really
+ * detailed version and feature information should use Win32 API like
  * GetVersionEx() and VerifyVersionInfo().
  *
- * If there is an environment variable <envar>G_WIN32_PRETEND_WIN9X</envar> 
- * defined (with any value), this function always returns a version 
- * code for Windows 9x. This is mainly an internal debugging aid for 
- * GTK+ and GLib developers, to be able to check the code paths for 
- * Windows 9x.
- *
  * Returns: The version information.
- * 
- * Since: 2.6
+ *
+ * Deprecated: 2.44: Be aware that for Windows 8.1 and Windows Server
+ * 2012 R2 and later, this will return 62 unless the application is
+ * manifested for Windows 8.1/Windows Server 2012 R2, for example.
+ * MSDN stated that GetVersion(), which is used here, is subject to
+ * further change or removal after Windows 8.1.
  **/
 guint
 g_win32_get_windows_version (void)
 {
-  g_win32_windows_version_init ();
-  
+  static gsize windows_version;
+
+  if (g_once_init_enter (&windows_version))
+    g_once_init_leave (&windows_version, GetVersion ());
+
   return windows_version;
+}
+
+/*
+ * Doesn't use gettext (and gconv), preventing recursive calls when
+ * g_win32_locale_filename_from_utf8() is called during
+ * gettext initialization.
+ */
+static gchar *
+special_wchar_to_locale_encoding (wchar_t *wstring)
+{
+  int sizeof_output;
+  int wctmb_result;
+  char *result;
+  BOOL not_representable = FALSE;
+
+  sizeof_output = WideCharToMultiByte (CP_ACP,
+                                       WC_NO_BEST_FIT_CHARS,
+                                       wstring, -1,
+                                       NULL, 0,
+                                       NULL,
+                                       &not_representable);
+
+  if (not_representable ||
+      sizeof_output == 0 ||
+      sizeof_output > MAX_PATH)
+    return NULL;
+
+  result = g_malloc0 (sizeof_output + 1);
+
+  wctmb_result = WideCharToMultiByte (CP_ACP,
+                                      WC_NO_BEST_FIT_CHARS,
+                                      wstring, -1,
+                                      result, sizeof_output + 1,
+                                      NULL,
+                                      &not_representable);
+
+  if (wctmb_result == sizeof_output &&
+      not_representable == FALSE)
+    return result;
+
+  g_free (result);
+
+  return NULL;
 }
 
 /**
@@ -1491,7 +731,7 @@ g_win32_get_windows_version (void)
  * The return value is dynamically allocated and should be freed with
  * g_free() when no longer needed.
  *
- * Return value: The converted filename, or %NULL on conversion
+ * Returns: The converted filename, or %NULL on conversion
  * failure and lack of short names.
  *
  * Since: 2.8
@@ -1499,28 +739,1034 @@ g_win32_get_windows_version (void)
 gchar *
 g_win32_locale_filename_from_utf8 (const gchar *utf8filename)
 {
-  gchar *retval = g_locale_from_utf8 (utf8filename, -1, NULL, NULL, NULL);
+  gchar *retval;
+  wchar_t *wname;
 
-  if (retval == NULL && G_WIN32_HAVE_WIDECHAR_API ())
+  wname = g_utf8_to_utf16 (utf8filename, -1, NULL, NULL, NULL);
+
+  if (wname == NULL)
+    return NULL;
+
+  retval = special_wchar_to_locale_encoding (wname);
+
+  if (retval == NULL)
     {
-      /* Conversion failed, so convert to wide chars, check if there
-       * is a 8.3 version, and use that.
-       */
-      wchar_t *wname = g_utf8_to_utf16 (utf8filename, -1, NULL, NULL, NULL);
-      if (wname != NULL)
-	{
-	  wchar_t wshortname[MAX_PATH + 1];
-	  if (GetShortPathNameW (wname, wshortname, G_N_ELEMENTS (wshortname)))
-	    {
-	      gchar *tem = g_utf16_to_utf8 (wshortname, -1, NULL, NULL, NULL);
-	      retval = g_locale_from_utf8 (tem, -1, NULL, NULL, NULL);
-	      g_free (tem);
-	    }
-	  g_free (wname);
-	}
+      /* Conversion failed, so check if there is a 8.3 version, and use that. */
+      wchar_t wshortname[MAX_PATH + 1];
+
+      if (GetShortPathNameW (wname, wshortname, G_N_ELEMENTS (wshortname)))
+        retval = special_wchar_to_locale_encoding (wshortname);
     }
+
+  g_free (wname);
+
   return retval;
 }
 
-#define __G_WIN32_C__
-#include "galiasdef.c"
+/**
+ * g_win32_get_command_line:
+ *
+ * Gets the command line arguments, on Windows, in the GLib filename
+ * encoding (ie: UTF-8).
+ *
+ * Normally, on Windows, the command line arguments are passed to main()
+ * in the system codepage encoding.  This prevents passing filenames as
+ * arguments if the filenames contain characters that fall outside of
+ * this codepage.  If such filenames are passed, then substitutions
+ * will occur (such as replacing some characters with '?').
+ *
+ * GLib's policy of using UTF-8 as a filename encoding on Windows was
+ * designed to localise the pain of dealing with filenames outside of
+ * the system codepage to one area: dealing with commandline arguments
+ * in main().
+ *
+ * As such, most GLib programs should ignore the value of argv passed to
+ * their main() function and call g_win32_get_command_line() instead.
+ * This will get the "full Unicode" commandline arguments using
+ * GetCommandLineW() and convert it to the GLib filename encoding (which
+ * is UTF-8 on Windows).
+ *
+ * The strings returned by this function are suitable for use with
+ * functions such as g_open() and g_file_new_for_commandline_arg() but
+ * are not suitable for use with g_option_context_parse(), which assumes
+ * that its input will be in the system codepage.  The return value is
+ * suitable for use with g_option_context_parse_strv(), however, which
+ * is a better match anyway because it won't leak memory.
+ *
+ * Unlike argv, the returned value is a normal strv and can (and should)
+ * be freed with g_strfreev() when no longer needed.
+ *
+ * Returns: (transfer full): the commandline arguments in the GLib
+ *   filename encoding (ie: UTF-8)
+ *
+ * Since: 2.40
+ **/
+gchar **
+g_win32_get_command_line (void)
+{
+  gchar **result;
+  LPWSTR *args;
+  gint i, n;
+
+  args = CommandLineToArgvW (GetCommandLineW(), &n);
+
+  result = g_new (gchar *, n + 1);
+  for (i = 0; i < n; i++)
+    result[i] = g_utf16_to_utf8 (args[i], -1, NULL, NULL, NULL);
+  result[i] = NULL;
+
+  LocalFree (args);
+  return result;
+}
+
+/* Binary compatibility versions. Not for newly compiled code. */
+
+_GLIB_EXTERN gchar *g_win32_get_package_installation_directory_utf8    (const gchar *package,
+                                                                        const gchar *dll_name);
+
+_GLIB_EXTERN gchar *g_win32_get_package_installation_subdirectory_utf8 (const gchar *package,
+                                                                        const gchar *dll_name,
+                                                                        const gchar *subdir);
+
+gchar *
+g_win32_get_package_installation_directory_utf8 (const gchar *package,
+                                                 const gchar *dll_name)
+{
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+  return g_win32_get_package_installation_directory (package, dll_name);
+G_GNUC_END_IGNORE_DEPRECATIONS
+}
+
+gchar *
+g_win32_get_package_installation_subdirectory_utf8 (const gchar *package,
+                                                    const gchar *dll_name,
+                                                    const gchar *subdir)
+{
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+  return g_win32_get_package_installation_subdirectory (package,
+                                                        dll_name,
+                                                        subdir);
+G_GNUC_END_IGNORE_DEPRECATIONS
+}
+
+/* This function looks up two environment
+ * variables, G_WIN32_ALLOC_CONSOLE and G_WIN32_ATTACH_CONSOLE.
+ * G_WIN32_ALLOC_CONSOLE, if set to 1, makes the process
+ * call AllocConsole(). This is useful for binaries that
+ * are compiled to run without automatically-allocated console
+ * (like most GUI applications).
+ * G_WIN32_ATTACH_CONSOLE, if set to a comma-separated list
+ * of one or more strings "stdout", "stdin" and "stderr",
+ * makes the process reopen the corresponding standard streams
+ * to ensure that they are attached to the files that
+ * GetStdHandle() returns, which, hopefully, would be
+ * either a file handle or a console handle.
+ *
+ * This function is called automatically when glib DLL is
+ * attached to a process, from DllMain().
+ */
+void
+g_console_win32_init (void)
+{
+  struct
+    {
+      gboolean     redirect;
+      FILE        *stream;
+      const gchar *stream_name;
+      DWORD        std_handle_type;
+      int          flags;
+      const gchar *mode;
+    }
+  streams[] =
+    {
+      { FALSE, stdin, "stdin", STD_INPUT_HANDLE, _O_RDONLY, "rb" },
+      { FALSE, stdout, "stdout", STD_OUTPUT_HANDLE, 0, "wb" },
+      { FALSE, stderr, "stderr", STD_ERROR_HANDLE, 0, "wb" },
+    };
+
+  const gchar  *attach_envvar;
+  guint         i;
+  gchar       **attach_strs;
+
+  /* Note: it's not a very good practice to use DllMain()
+   * to call any functions not in Kernel32.dll.
+   * The following only works if there are no weird
+   * circular DLL dependencies that could cause glib DllMain()
+   * to be called before CRT DllMain().
+   */
+
+  if (g_strcmp0 (g_getenv ("G_WIN32_ALLOC_CONSOLE"), "1") == 0)
+    AllocConsole (); /* no error handling, fails if console already exists */
+
+  attach_envvar = g_getenv ("G_WIN32_ATTACH_CONSOLE");
+
+  if (attach_envvar == NULL)
+    return;
+
+  /* Re-use parent console, if we don't have our own.
+   * If we do, it will fail, so just ignore the error.
+   */
+  AttachConsole (ATTACH_PARENT_PROCESS);
+
+  attach_strs = g_strsplit (attach_envvar, ",", -1);
+
+  for (i = 0; attach_strs[i]; i++)
+    {
+      if (g_strcmp0 (attach_strs[i], "stdout") == 0)
+        streams[1].redirect = TRUE;
+      else if (g_strcmp0 (attach_strs[i], "stderr") == 0)
+        streams[2].redirect = TRUE;
+      else if (g_strcmp0 (attach_strs[i], "stdin") == 0)
+        streams[0].redirect = TRUE;
+      else
+        g_warning ("Unrecognized stream name %s", attach_strs[i]);
+    }
+
+  g_strfreev (attach_strs);
+
+  for (i = 0; i < G_N_ELEMENTS (streams); i++)
+    {
+      int          old_fd;
+      int          backup_fd;
+      int          new_fd;
+      int          preferred_fd = i;
+      HANDLE       std_handle;
+      errno_t      errsv = 0;
+
+      if (!streams[i].redirect)
+        continue;
+
+      if (ferror (streams[i].stream) != 0)
+        {
+          g_warning ("Stream %s is in error state", streams[i].stream_name);
+          continue;
+        }
+
+      std_handle = GetStdHandle (streams[i].std_handle_type);
+
+      if (std_handle == INVALID_HANDLE_VALUE)
+        {
+          DWORD gle = GetLastError ();
+          g_warning ("Standard handle for %s can't be obtained: %lu",
+                     streams[i].stream_name, gle);
+          continue;
+        }
+
+      old_fd = fileno (streams[i].stream);
+
+      /* We need the stream object to be associated with
+       * any valid integer fd for the code to work.
+       * If it isn't, reopen it with NUL (/dev/null) to
+       * ensure that it is.
+       */
+      if (old_fd < 0)
+        {
+          if (freopen ("NUL", streams[i].mode, streams[i].stream) == NULL)
+            {
+              errsv = errno;
+              g_warning ("Failed to redirect %s: %d - %s",
+                         streams[i].stream_name,
+                         errsv,
+                         strerror (errsv));
+              continue;
+            }
+
+          old_fd = fileno (streams[i].stream);
+
+          if (old_fd < 0)
+            {
+              g_warning ("Stream %s does not have a valid fd",
+                         streams[i].stream_name);
+              continue;
+            }
+        }
+
+      new_fd = _open_osfhandle ((intptr_t) std_handle, streams[i].flags);
+
+      if (new_fd < 0)
+        {
+          g_warning ("Failed to create new fd for stream %s",
+                     streams[i].stream_name);
+          continue;
+        }
+
+      backup_fd = dup (old_fd);
+
+      if (backup_fd < 0)
+        g_warning ("Failed to backup old fd %d for stream %s",
+                   old_fd, streams[i].stream_name);
+
+      errno = 0;
+
+      /* Force old_fd to be associated with the same file
+       * as new_fd, i.e with the standard handle we need
+       * (or, rather, with the same kernel object; handle
+       * value will be different, but the kernel object
+       * won't be).
+       */
+      /* NOTE: MSDN claims that _dup2() returns 0 on success and -1 on error,
+       * POSIX claims that dup2() reurns new FD on success and -1 on error.
+       * The "< 0" check satisfies the error condition for either implementation.
+       */
+      if (_dup2 (new_fd, old_fd) < 0)
+        {
+          errsv = errno;
+          g_warning ("Failed to substitute fd %d for stream %s: %d : %s",
+                     old_fd, streams[i].stream_name, errsv, strerror (errsv));
+
+          _close (new_fd);
+
+          if (backup_fd < 0)
+            continue;
+
+          errno = 0;
+
+          /* Try to restore old_fd back to its previous
+           * handle, in case the _dup2() call above succeeded partially.
+           */
+          if (_dup2 (backup_fd, old_fd) < 0)
+            {
+              errsv = errno;
+              g_warning ("Failed to restore fd %d for stream %s: %d : %s",
+                         old_fd, streams[i].stream_name, errsv, strerror (errsv));
+            }
+
+          _close (backup_fd);
+
+          continue;
+        }
+
+      /* Success, drop the backup */
+      if (backup_fd >= 0)
+        _close (backup_fd);
+
+      /* Sadly, there's no way to check that preferred_fd
+       * is currently valid, so we can't back it up.
+       * Doing operations on invalid FDs invokes invalid
+       * parameter handler, which is bad for us.
+       */
+      if (old_fd != preferred_fd)
+        /* This extra code will also try to ensure that
+         * the expected file descriptors 0, 1 and 2 are
+         * associated with the appropriate standard
+         * handles.
+         */
+        if (_dup2 (new_fd, preferred_fd) < 0)
+          g_warning ("Failed to dup fd %d into fd %d", new_fd, preferred_fd);
+
+      _close (new_fd);
+    }
+}
+
+/* This is a handle to the Vectored Exception Handler that
+ * we install on library initialization. If installed correctly,
+ * it will be non-NULL. Only used to later de-install the handler
+ * on library de-initialization.
+ */
+static void        *WinVEH_handle = NULL;
+
+#define             DEBUGGER_BUFFER_SIZE (MAX_PATH + 1)
+/* This is the debugger that we'll run on crash */
+static wchar_t      debugger[DEBUGGER_BUFFER_SIZE];
+
+static gsize        number_of_exceptions_to_catch = 0;
+static DWORD       *exceptions_to_catch = NULL;
+
+static HANDLE       debugger_wakeup_event = 0;
+static DWORD        debugger_spawn_flags = 0;
+
+/* Copy @cmdline into @debugger, and substitute @pid for `%p`
+ * and @event for `%e`.
+ * If @debugger_size (in wchar_ts) is overflowed, return %FALSE.
+ * Also returns %FALSE when `%` is followed by anything other
+ * than `e` or `p`.
+ */
+bool
+g_win32_substitute_pid_and_event (wchar_t       *local_debugger,
+                                  gsize          debugger_size,
+                                  const wchar_t *cmdline,
+                                  DWORD          pid,
+                                  guintptr       event)
+{
+  gsize i = 0, dbg_i = 0;
+/* These are integers, and they can't be longer than 20 characters
+ * even when they are 64-bit and in decimal notation.
+ * Use 30 just to be sure.
+ */
+#define STR_BUFFER_SIZE 30
+  wchar_t pid_str[STR_BUFFER_SIZE] = {0};
+  gsize pid_str_len;
+  wchar_t event_str[STR_BUFFER_SIZE] = {0};
+  gsize event_str_len;
+
+  _snwprintf_s (pid_str, STR_BUFFER_SIZE, G_N_ELEMENTS (pid_str), L"%lu", pid);
+  pid_str[G_N_ELEMENTS (pid_str) - 1] = 0;
+  pid_str_len = wcslen (pid_str);
+  _snwprintf_s (event_str, STR_BUFFER_SIZE, G_N_ELEMENTS (pid_str), L"%Iu", event);
+  event_str[G_N_ELEMENTS (pid_str) - 1] = 0;
+  event_str_len = wcslen (event_str);
+#undef STR_BUFFER_SIZE
+
+  while (cmdline[i] != 0 && dbg_i < debugger_size)
+    {
+      if (cmdline[i] != L'%')
+        local_debugger[dbg_i++] = cmdline[i++];
+      else if (cmdline[i + 1] == L'p')
+        {
+          gsize j = 0;
+          while (j < pid_str_len && dbg_i < debugger_size)
+            local_debugger[dbg_i++] = pid_str[j++];
+          i += 2;
+        }
+      else if (cmdline[i + 1] == L'e')
+        {
+          gsize j = 0;
+          while (j < event_str_len && dbg_i < debugger_size)
+            local_debugger[dbg_i++] = event_str[j++];
+          i += 2;
+        }
+      else
+        return FALSE;
+    }
+  if (dbg_i < debugger_size)
+    local_debugger[dbg_i] = 0;
+  else
+    return FALSE;
+
+  return TRUE;
+}
+
+static char *
+copy_chars (char       *buffer,
+            gsize      *buffer_size,
+            const char *to_copy)
+{
+  gsize copy_count = MIN (strlen (to_copy), *buffer_size - 1);
+  memset (buffer, 0x20, copy_count);
+  strncpy_s (buffer, *buffer_size, to_copy, _TRUNCATE);
+  *buffer_size -= copy_count;
+  return &buffer[copy_count];
+}
+
+/* Handles exceptions (useful for debugging).
+ * Issues a DebugBreak() call if the process is being debugged (not really
+ * useful - if the process is being debugged, this handler won't be invoked
+ * anyway). If it is not, runs a debugger from G_DEBUGGER env var,
+ * substituting first %p in it for PID, and the first %e for the event handle -
+ * that event should be set once the debugger attaches itself (otherwise the
+ * only way out of WaitForSingleObject() is to time out after 1 minute).
+ * For example, G_DEBUGGER can be set to the following command:
+ * ```
+ * gdb.exe -ex "attach %p" -ex "signal-event %e" -ex "bt" -ex "c"
+ * ```
+ * This will make GDB attach to the process, signal the event (GDB must be
+ * recent enough for the signal-event command to be available),
+ * show the backtrace and resume execution, which should make it catch
+ * the exception when Windows re-raises it again.
+ * The command line can't be longer than MAX_PATH (260 characters).
+ *
+ * This function will only stop (and run a debugger) on the following exceptions:
+ * * EXCEPTION_ACCESS_VIOLATION
+ * * EXCEPTION_STACK_OVERFLOW
+ * * EXCEPTION_ILLEGAL_INSTRUCTION
+ * To make it stop at other exceptions one should set the G_VEH_CATCH
+ * environment variable to a list of comma-separated hexadecimal numbers,
+ * where each number is the code of an exception that should be caught.
+ * This is done to prevent GLib from breaking when Windows uses
+ * exceptions to shuttle information (SetThreadName(), OutputDebugString())
+ * or for control flow.
+ *
+ * This function deliberately avoids calling any GLib code.
+ * This is done on purpose. This function can be called when the program
+ * is in a bad state (crashing). It can also be called very early, as soon
+ * as the handler is installed. Therefore, it's imperative that
+ * it does as little as possible. Preferably, all the work that can be
+ * done in advance (when the program is not crashing yet) should be done
+ * in advance.
+ */
+static LONG __stdcall
+g_win32_veh_handler (PEXCEPTION_POINTERS ExceptionInfo)
+{
+  EXCEPTION_RECORD    *er;
+  gsize                i;
+  STARTUPINFOW         si;
+  PROCESS_INFORMATION  pi;
+#define ITOA_BUFFER_SIZE 100
+  char                 itoa_buffer[ITOA_BUFFER_SIZE];
+#define DEBUG_STRING_SIZE 1024
+  gsize                dbgs = DEBUG_STRING_SIZE;
+  char                 debug_string[DEBUG_STRING_SIZE];
+  char                *dbgp;
+
+  if (ExceptionInfo == NULL ||
+      ExceptionInfo->ExceptionRecord == NULL ||
+      IsDebuggerPresent () ||
+      debugger[0] == 0)
+    return EXCEPTION_CONTINUE_SEARCH;
+
+  er = ExceptionInfo->ExceptionRecord;
+
+  switch (er->ExceptionCode)
+    {
+    case EXCEPTION_ACCESS_VIOLATION:
+    case EXCEPTION_STACK_OVERFLOW:
+    case EXCEPTION_ILLEGAL_INSTRUCTION:
+      break;
+    default:
+      for (i = 0; i < number_of_exceptions_to_catch; i++)
+        if (exceptions_to_catch[i] == er->ExceptionCode)
+          break;
+
+      if (i == number_of_exceptions_to_catch)
+        return EXCEPTION_CONTINUE_SEARCH;
+
+      break;
+    }
+
+  memset (&si, 0, sizeof (si));
+  memset (&pi, 0, sizeof (pi));
+  si.cb = sizeof (si);
+
+  /* Run the debugger */
+  if (0 != CreateProcessW (NULL, debugger, NULL, NULL, TRUE, debugger_spawn_flags, NULL, NULL, &si, &pi))
+    {
+      CloseHandle (pi.hProcess);
+      CloseHandle (pi.hThread);
+      /* If successful, wait for 60 seconds on the event
+       * we passed. The debugger should signal that event.
+       * 60 second limit is here to prevent us from hanging
+       * up forever in case the debugger does not support
+       * event signalling.
+       */
+      WaitForSingleObject (debugger_wakeup_event, 60000);
+
+      dbgp = &debug_string[0];
+
+      dbgp = copy_chars (dbgp, &dbgs, "Exception code=0x");
+      itoa_buffer[0] = 0;
+      _ui64toa_s (er->ExceptionCode, itoa_buffer, ITOA_BUFFER_SIZE, 16);
+      dbgp = copy_chars (dbgp, &dbgs, itoa_buffer);
+      dbgp = copy_chars (dbgp, &dbgs, " flags=0x");
+      itoa_buffer[0] = 0;
+      _ui64toa_s (er->ExceptionFlags, itoa_buffer, ITOA_BUFFER_SIZE, 16);
+      dbgp = copy_chars (dbgp, &dbgs, itoa_buffer);
+      dbgp = copy_chars (dbgp, &dbgs, " at 0x");
+      itoa_buffer[0] = 0;
+      _ui64toa_s ((guintptr) er->ExceptionAddress, itoa_buffer, ITOA_BUFFER_SIZE, 16);
+      dbgp = copy_chars (dbgp, &dbgs, itoa_buffer);
+
+      switch (er->ExceptionCode)
+        {
+        case EXCEPTION_ACCESS_VIOLATION:
+          dbgp = copy_chars (dbgp, &dbgs, ". Access violation - attempting to ");
+          if (er->ExceptionInformation[0] == 0)
+            dbgp = copy_chars (dbgp, &dbgs, "read data");
+          else if (er->ExceptionInformation[0] == 1)
+            dbgp = copy_chars (dbgp, &dbgs, "write data");
+          else if (er->ExceptionInformation[0] == 8)
+            dbgp = copy_chars (dbgp, &dbgs, "execute data");
+          else
+            dbgp = copy_chars (dbgp, &dbgs, "do something bad");
+          dbgp = copy_chars (dbgp, &dbgs, " at address 0x");
+          itoa_buffer[0] = 0;
+          _ui64toa_s (er->ExceptionInformation[1], itoa_buffer, ITOA_BUFFER_SIZE, 16);
+          dbgp = copy_chars (dbgp, &dbgs, itoa_buffer);
+          break;
+        case EXCEPTION_IN_PAGE_ERROR:
+          dbgp = copy_chars (dbgp, &dbgs, ". Page access violation - attempting to ");
+          if (er->ExceptionInformation[0] == 0)
+            dbgp = copy_chars (dbgp, &dbgs, "read from an inaccessible page");
+          else if (er->ExceptionInformation[0] == 1)
+            dbgp = copy_chars (dbgp, &dbgs, "write to an inaccessible page");
+          else if (er->ExceptionInformation[0] == 8)
+            dbgp = copy_chars (dbgp, &dbgs, "execute data in page");
+          else
+            dbgp = copy_chars (dbgp, &dbgs, "do something bad with a page");
+          dbgp = copy_chars (dbgp, &dbgs, " at address 0x");
+          itoa_buffer[0] = 0;
+          _ui64toa_s (er->ExceptionInformation[1], itoa_buffer, ITOA_BUFFER_SIZE, 16);
+          dbgp = copy_chars (dbgp, &dbgs, itoa_buffer);
+          dbgp = copy_chars (dbgp, &dbgs, " with status ");
+          itoa_buffer[0] = 0;
+          _ui64toa_s (er->ExceptionInformation[2], itoa_buffer, ITOA_BUFFER_SIZE, 16);
+          dbgp = copy_chars (dbgp, &dbgs, itoa_buffer);
+          break;
+        default:
+          break;
+        }
+
+      dbgp = copy_chars (dbgp, &dbgs, "\n");
+      OutputDebugStringA (debug_string);
+    }
+
+  /* Now the debugger is present, and we can try
+   * resuming execution, re-triggering the exception,
+   * which will be caught by debugger this time around.
+   */
+  if (IsDebuggerPresent ())
+    return EXCEPTION_CONTINUE_EXECUTION;
+
+  return EXCEPTION_CONTINUE_SEARCH;
+}
+
+static gsize
+parse_catch_list (const wchar_t *catch_buffer,
+                  DWORD         *exceptions,
+                  gsize          num_exceptions)
+{
+  const wchar_t *catch_list = catch_buffer;
+  gsize          result = 0;
+  gsize          i = 0;
+
+  while (catch_list != NULL &&
+         catch_list[0] != 0)
+    {
+      unsigned long  catch_code;
+      wchar_t       *end;
+      errno = 0;
+      catch_code = wcstoul (catch_list, &end, 16);
+      if (errno != NO_ERROR)
+        break;
+      catch_list = end;
+      if (catch_list != NULL && catch_list[0] == L',')
+        catch_list++;
+      if (exceptions && i < num_exceptions)
+        exceptions[i++] = catch_code;
+    }
+
+  return result;
+}
+
+void
+g_crash_handler_win32_init (void)
+{
+  wchar_t      debugger_env[DEBUGGER_BUFFER_SIZE];
+#define CATCH_BUFFER_SIZE 1024
+  wchar_t      catch_buffer[CATCH_BUFFER_SIZE];
+  SECURITY_ATTRIBUTES  sa;
+
+  if (WinVEH_handle != NULL)
+    return;
+
+  /* Do not register an exception handler if we're not supposed to catch any
+   * exceptions. Exception handlers are considered dangerous to use, and can
+   * break advanced exception handling such as in CLRs like C# or other managed
+   * code. See: http://www.windows-tech.info/13/785f590867bd6316.php
+   */
+  debugger_env[0] = 0;
+  if (!GetEnvironmentVariableW (L"G_DEBUGGER", debugger_env, DEBUGGER_BUFFER_SIZE))
+    return;
+
+  /* Create an inheritable event */
+  memset (&sa, 0, sizeof (sa));
+  sa.nLength = sizeof (sa);
+  sa.bInheritHandle = TRUE;
+  debugger_wakeup_event = CreateEvent (&sa, FALSE, FALSE, NULL);
+
+  /* Put process ID and event handle into debugger commandline */
+  if (!g_win32_substitute_pid_and_event (debugger, G_N_ELEMENTS (debugger),
+                                         debugger_env, GetCurrentProcessId (),
+                                         (guintptr) debugger_wakeup_event))
+    {
+      CloseHandle (debugger_wakeup_event);
+      debugger_wakeup_event = 0;
+      debugger[0] = 0;
+      return;
+    }
+  debugger[MAX_PATH] = L'\0';
+
+  catch_buffer[0] = 0;
+  if (GetEnvironmentVariableW (L"G_VEH_CATCH", catch_buffer, CATCH_BUFFER_SIZE))
+    {
+      number_of_exceptions_to_catch = parse_catch_list (catch_buffer, NULL, 0);
+      if (number_of_exceptions_to_catch > 0)
+        {
+          exceptions_to_catch = g_new0 (DWORD, number_of_exceptions_to_catch);
+          parse_catch_list (catch_buffer, exceptions_to_catch, number_of_exceptions_to_catch);
+        }
+    }
+
+  if (GetEnvironmentVariableW (L"G_DEBUGGER_OLD_CONSOLE", (wchar_t *) &debugger_spawn_flags, 1))
+    debugger_spawn_flags = 0;
+  else
+    debugger_spawn_flags = CREATE_NEW_CONSOLE;
+
+  WinVEH_handle = AddVectoredExceptionHandler (0, &g_win32_veh_handler);
+}
+
+void
+g_crash_handler_win32_deinit (void)
+{
+  if (WinVEH_handle != NULL)
+    RemoveVectoredExceptionHandler (WinVEH_handle);
+
+  WinVEH_handle = NULL;
+}
+
+/**
+ * g_win32_find_helper_executable_path:
+ * @executable_name: (transfer none): name of the helper executable to find
+ * (something like gspawn-win64-helper.exe or gdbus.exe for example).
+ * @dll_handle: handle of the DLL to use as searching base path. Pass NULL
+ * to take current process executable as searching base path.
+ *
+ * Find an external executable path and name starting in the same folder
+ * as a specified DLL or current process executable path. Helper executables
+ * (like gspawn-win64-helper.exe, gspawn-win64-helper-console.exe or
+ * gdbus.exe for example) are generally installed in the same folder as the
+ * corresponding DLL file.
+ *
+ * So, if package has been correctly installed, with a dynamic build of GLib,
+ * the helper executable should be in the same directory as the corresponding
+ * DLL file and searching should be straightforward.
+ *
+ * But if built statically, DLL handle is not available and we have to start
+ * searching from the directory holding current executable. It may be very
+ * different from the directory containing the helper program. In order to
+ * find the right helper program automatically in all common situations, we
+ * use this pattern:
+ *
+ * current directory
+ *             |-- ???
+ *             |-- bin
+ *             |    |-- ???
+ *             |-- lib
+ *             |    |-- ???
+ *             |-- glib
+ *             |    |-- ???
+ *             |-- gio
+ *                  |-- ???
+ *
+ * starting at base searching path (DLL or current executable directory) and
+ * getting up until the root path. If we cannot still find the helper program,
+ * we'll rely on PATH as the last resort.
+ *
+ * Returns: (transfer full) (type filename) (nullable): the helper executable
+ * path and name in the GLib filename encoding or NULL in case of error. It
+ * should be deallocated with g_free().
+ */
+gchar *
+g_win32_find_helper_executable_path (const gchar *executable_name, void *dll_handle)
+{
+  static const gchar *const subdirs[] = { "", "bin", "lib", "glib", "gio" };
+  static const gsize nb_subdirs = G_N_ELEMENTS (subdirs);
+
+  DWORD module_path_len;
+  wchar_t module_path[MAX_PATH + 2] = { 0 };
+  gchar *base_searching_path;
+  gchar *p;
+  gchar *executable_path;
+  gsize i;
+
+  g_return_val_if_fail (executable_name && *executable_name, NULL);
+
+  module_path_len = GetModuleFileNameW (dll_handle, module_path, MAX_PATH + 1);
+  /* The > MAX_PATH check prevents truncated module path usage */
+  if (module_path_len == 0 || module_path_len > MAX_PATH)
+    return NULL;
+
+  base_searching_path = g_utf16_to_utf8 (module_path, -1, NULL, NULL, NULL);
+  if (base_searching_path == NULL)
+    return NULL;
+
+  p = strrchr (base_searching_path, G_DIR_SEPARATOR);
+  if (p == NULL)
+    {
+      g_free (base_searching_path);
+      return NULL;
+    }
+  *p = '\0';
+
+  for (;;)
+    {
+      /* Search in subdirectories */
+      for (i = 0; i < nb_subdirs; ++i)
+        {
+          /* As this function is exclusively used on Windows, the
+           * executable_path is always an absolute path. At worse, when
+           * reaching the root of the filesystem, base_searching_path may
+           * equal something like "[Drive letter]:" but never "/" like on
+           * Linux or Mac.
+           * For the peace of mind we still assert this, just in case that
+           * one day someone tries to use this function on Linux or Mac.
+           */
+          executable_path = g_build_filename (base_searching_path, subdirs[i], executable_name, NULL);
+          g_assert (g_path_is_absolute (executable_path));
+          if (g_file_test (executable_path, G_FILE_TEST_IS_REGULAR))
+            break;
+
+          g_free (executable_path);
+          executable_path = NULL;
+        }
+
+      if (executable_path != NULL)
+        break;
+
+      /* Let's get one directory level up */
+      p = strrchr (base_searching_path, G_DIR_SEPARATOR);
+      if (p == NULL)
+        break;
+
+      *p = '\0';
+    }
+  g_free (base_searching_path);
+
+  if (executable_path == NULL)
+    {
+      /* Search in system PATH */
+      executable_path = g_find_program_in_path (executable_name);
+      if (executable_path == NULL)
+        executable_path = g_strdup (executable_name);
+    }
+
+  return executable_path;
+}
+
+/** < private >
+ *
+ * g_win32_file_stream_is_console_output:
+ *
+ * @stream: a FILE stream
+ *
+ * Checks if the given FILE stream refers to a Win32 console
+ * screen buffer.
+ */
+bool
+g_win32_file_stream_is_console_output (FILE *stream)
+{
+  int fd = _fileno (stream);
+
+  if (fd < 0)
+    {
+      /* On Windows, FILE streams can be 'open' but not associated
+       * with any file descriptor. As far as I know, that can only
+       * happen for the standard streams stdin, stdout, and stderr.
+       * Window processes can have NULL standard HANDLEs, but the
+       * C standard states that standard streams must be 'open'
+       * when main is called. So, on Windows, _fileno() is expected
+       * to return values < 0 even without errors.
+       */
+      return false;
+    }
+
+  /* We call _isatty() first because it's a very fast check (just
+   * checking an internal flag). However, the _isatty check comprehends
+   * output devices like serial ports, so we check if the output is
+   * really a win32 console with g_win32_handle_is_console_output.
+   */
+  return _isatty (fd) &&
+         g_win32_handle_is_console_output ((HANDLE)_get_osfhandle (fd));
+}
+
+/** < private >
+ *
+ * g_win32_handle_is_console_output:
+ *
+ * @handle: the given HANDLE
+ *
+ * Checks if the given HANDLE refers to a Win32 console screen
+ * buffer (output HANDLE).
+ */
+bool
+g_win32_handle_is_console_output (HANDLE handle)
+{
+  /* MSDN suggests using GetConsoleMode() to check if a HANDLE refers to
+   * the console. However GetConsoleMode() requires read access rights
+   * (FILE_READ_DATA | FILE_READ_ATTRIBUTES | FILE_READ_EA on Windows 10),
+   * and output HANDLEs may have been opened with write rights only. To
+   * overcome that, we use WriteConsole() with a zero characters count.
+   */
+  const wchar_t *dummy = L"";
+  if (!WriteConsole (handle, dummy, 0, NULL, NULL))
+    {
+      DWORD code = GetLastError ();
+
+      if (code != ERROR_INVALID_FUNCTION && code != ERROR_INVALID_HANDLE)
+        {
+          WIN32_API_FAILED ("WriteConsole");
+        }
+
+      return false;
+    }
+
+  return true;
+}
+
+/*
+ * g_win32_handle_is_socket:
+ * @h: a win32 HANDLE
+ *
+ * Returns: %TRUE if the handle is a `SOCKET`.
+ */
+gboolean
+g_win32_handle_is_socket (HANDLE h)
+{
+  int option = 0;
+  int optlen = sizeof (option);
+
+  /* according to: https://stackoverflow.com/a/50981652/1277510, this is reasonable */
+  if (getsockopt ((SOCKET) h, SOL_SOCKET, SO_DEBUG, (char *) &option, &optlen) == SOCKET_ERROR)
+    return FALSE;
+
+  return TRUE;
+}
+
+/*
+ * g_win32_reopen_noninherited:
+ * @fd: (transfer full): A file descriptor
+ * @mode: _open_osfhandle flags
+ * @error: A location to return an error of type %G_FILE_ERROR
+ *
+ * Reopen the given @fd with `_O_NOINHERIT`.
+ *
+ * The @fd is closed on success.
+ *
+ * Returns: (transfer full): The new file-descriptor, or -1 on error.
+ */
+int
+g_win32_reopen_noninherited (int fd,
+                             int mode,
+                             GError **error)
+{
+  HANDLE h;
+  HANDLE duph;
+  int dupfd, errsv;
+
+  h = (HANDLE) _get_osfhandle (fd);
+  errsv = errno;
+
+  if (h == INVALID_HANDLE_VALUE)
+    {
+      const char *emsg = g_strerror (errsv);
+      g_set_error (error, G_FILE_ERROR, g_file_error_from_errno (errsv),
+                   "_get_osfhandle() failed: %s", emsg);
+      return -1;
+    }
+
+  if (g_win32_handle_is_socket (h))
+    {
+      WSAPROTOCOL_INFO info;
+
+      if (WSADuplicateSocket ((SOCKET) h,
+                              GetCurrentProcessId (),
+                              &info))
+        {
+          gchar *emsg = g_win32_error_message (WSAGetLastError ());
+          g_set_error (error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
+                       "WSADuplicateSocket() failed: %s", emsg);
+          g_free (emsg);
+          return -1;
+        }
+
+      duph = (HANDLE) WSASocket (FROM_PROTOCOL_INFO,
+                                 FROM_PROTOCOL_INFO,
+                                 FROM_PROTOCOL_INFO,
+                                 &info, 0, 0);
+      if (duph == (HANDLE) INVALID_SOCKET)
+        {
+          gchar *emsg = g_win32_error_message (WSAGetLastError ());
+          g_set_error (error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
+                       "WSASocket() failed: %s", emsg);
+          g_free (emsg);
+          return -1;
+        }
+    }
+  else if (DuplicateHandle (GetCurrentProcess (), h,
+                            GetCurrentProcess (), &duph,
+                            0, FALSE, DUPLICATE_SAME_ACCESS) == 0)
+    {
+      char *emsg = g_win32_error_message (GetLastError ());
+      g_set_error (error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
+                   "DuplicateHandle() failed: %s", emsg);
+      g_free (emsg);
+      return -1;
+    }
+
+  /* the duph ownership is transferred to dupfd */
+  dupfd = _open_osfhandle ((gintptr) duph, mode | _O_NOINHERIT);
+  if (dupfd < 0)
+    {
+      g_set_error_literal (error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
+                           "_open_osfhandle() failed");
+      CloseHandle (duph);
+      return -1;
+    }
+
+  if (!g_close (fd, error))
+    {
+      /* ignore extra errors in this case */
+      g_close (dupfd, NULL);
+      return -1;
+    }
+
+  return dupfd;
+}
+
+bool
+g_win32_error_message_in_place (DWORD    code,
+                                wchar_t *buffer,
+                                size_t   wchars_count)
+{
+  const DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM |
+                      FORMAT_MESSAGE_IGNORE_INSERTS;
+  DWORD wchars_written;
+
+  g_assert (wchars_count > 0);
+
+  wchars_written = FormatMessage (flags, NULL, code, 0, buffer, wchars_count - 1, NULL);
+  if (wchars_written == 0)
+    return false;
+
+  g_assert (wchars_written < wchars_count);
+
+  if (wchars_written >= 2)
+    {
+      wchars_written -= (buffer[wchars_written - 1] == L'\n') +
+                        (buffer[wchars_written - 2] == L'\r');
+    }
+
+  buffer[wchars_written] = L'\0';
+
+  return true;
+}
+
+/** < private >
+ *
+ * g_win32_api_failed:
+ *
+ * @where: location in the source code
+ * @api: name of the failing API
+ * @code: a Windows error code or a failing HRESULT
+ *
+ * Prints a warning about the failing API with an extended
+ * error description (see g_win32_error_message).
+ */
+void
+g_win32_api_failed_with_code (const char *where,
+                              const char *api,
+                              DWORD       code)
+{
+  wchar_t description[500];
+
+  if (g_win32_error_message_in_place (code, description, G_N_ELEMENTS (description)))
+    g_warning ("%s failed: %S", api, description);
+  else
+    g_warning ("%s failed with error code %u", api, (unsigned int) code);
+}
+
+/** < private >
+ *
+ * g_win32_api_failed:
+ *
+ * @where: location in the source code
+ * @api: name of the failing API
+ *
+ * Prints a warning about the failing API with an extended
+ * error description (see g_win32_error_message).
+ */
+void
+g_win32_api_failed (const char *where,
+                    const char *api)
+{
+  g_win32_api_failed_with_code (where, api, GetLastError ());
+}

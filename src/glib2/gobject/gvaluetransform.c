@@ -1,10 +1,12 @@
 /* GObject - GLib Type, Object, Parameter and Signal Library
  * Copyright (C) 2001 Red Hat, Inc.
  *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,15 +14,16 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General
- * Public License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307, USA.
+ * Public License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
-#include        <string.h>
 
-#include        "gvalue.h"
-#include        "genums.h"
-#include	"gobjectalias.h"
+#include "config.h"
+
+#include <string.h>
+
+#include "gvalue.h"
+#include "gtype-private.h"
+#include "genums.h"
 
 
 /* same type transforms
@@ -48,7 +51,7 @@ static void                                                                 \
 value_transform_##func_name (const GValue *src_value,                       \
                              GValue       *dest_value)                      \
 {                                                                           \
-  ctype c_value = src_value->data[0].from_member;                           \
+  ctype c_value = (ctype) src_value->data[0].from_member;                   \
   dest_value->data[0].to_member = c_value;                                  \
 } extern void glib_dummy_decl (void)
 DEFINE_CAST (int_s8,            v_int,    gint8,   v_int);
@@ -103,16 +106,8 @@ DEFINE_CAST (uint64_uint,       v_uint64, guint,   v_uint);
 DEFINE_CAST (uint64_long,       v_uint64, glong,   v_long);
 DEFINE_CAST (uint64_ulong,      v_uint64, gulong,  v_ulong);
 DEFINE_CAST (uint64_int64,      v_uint64, gint64,  v_int64);
-#ifdef _MSC_VER
-/* work around error C2520: conversion from unsigned __int64 to double
- * not implemented, use signed __int64
- * If it is supported don't miss to g_value_register_transform_func() below
- */
-#pragma message ("Check if cast from uint64 to double is supported with msvc 6.0")
-#else
 DEFINE_CAST (uint64_float,      v_uint64, gfloat,  v_float);
 DEFINE_CAST (uint64_double,     v_uint64, gdouble, v_double);
-#endif
 DEFINE_CAST (float_s8,          v_float,  gint8,   v_int);
 DEFINE_CAST (float_u8,          v_float,  guint8,  v_uint);
 DEFINE_CAST (float_int,         v_float,  gint,    v_int);
@@ -145,7 +140,7 @@ value_transform_##func_name (const GValue *src_value,                       \
 DEFINE_BOOL_CHECK (int_bool,    v_int);
 DEFINE_BOOL_CHECK (uint_bool,   v_uint);
 DEFINE_BOOL_CHECK (long_bool,   v_long);
-DEFINE_BOOL_CHECK (ulong_bool,  v_uint);
+DEFINE_BOOL_CHECK (ulong_bool,  v_ulong);
 DEFINE_BOOL_CHECK (int64_bool,  v_int64);
 DEFINE_BOOL_CHECK (uint64_bool, v_uint64);
 
@@ -190,15 +185,10 @@ static void
 value_transform_enum_string (const GValue *src_value,
                              GValue       *dest_value)
 {
-  GEnumClass *class = g_type_class_ref (G_VALUE_TYPE (src_value));
-  GEnumValue *enum_value = g_enum_get_value (class, src_value->data[0].v_long);
-  
-  if (enum_value)
-    dest_value->data[0].v_pointer = g_strdup (enum_value->value_name);
-  else
-    dest_value->data[0].v_pointer = g_strdup_printf ("%ld", src_value->data[0].v_long);
-  
-  g_type_class_unref (class);
+  gint v_enum = src_value->data[0].v_long;
+  gchar *str = g_enum_to_string (G_VALUE_TYPE (src_value), v_enum);
+
+  dest_value->data[0].v_pointer = str;
 }
 static void
 value_transform_flags_string (const GValue *src_value,
@@ -206,7 +196,10 @@ value_transform_flags_string (const GValue *src_value,
 {
   GFlagsClass *class = g_type_class_ref (G_VALUE_TYPE (src_value));
   GFlagsValue *flags_value = g_flags_get_first_value (class, src_value->data[0].v_ulong);
-  
+
+  /* Note: this does not use g_flags_to_string()
+   * to keep backwards compatibility.
+   */
   if (flags_value)
     {
       GString *gstring = g_string_new (NULL);
@@ -221,7 +214,7 @@ value_transform_flags_string (const GValue *src_value,
           g_string_append (gstring, flags_value->value_name);
           flags_value = g_flags_get_first_value (class, v_flags);
         }
-      while (flags_value);
+      while (flags_value && v_flags);
       
       if (v_flags)
         dest_value->data[0].v_pointer = g_strdup_printf ("%s | %u",
@@ -241,7 +234,7 @@ value_transform_flags_string (const GValue *src_value,
 /* registration
  */
 void
-g_value_transforms_init (void)
+_g_value_transforms_init (void)
 {
   /* some transformations are a bit questionable,
    * we currently skip those
@@ -373,11 +366,8 @@ g_value_transforms_init (void)
   g_value_register_transform_func (G_TYPE_UINT64,       G_TYPE_UINT64,          value_transform_uint64_uint64);
   g_value_register_transform_func (G_TYPE_UINT64,       G_TYPE_ENUM,            value_transform_uint64_long);
   g_value_register_transform_func (G_TYPE_UINT64,       G_TYPE_FLAGS,           value_transform_uint64_ulong);
-#ifndef _MSC_VER
-  /* required casts unsupported with msvc 5.0 */
   g_value_register_transform_func (G_TYPE_UINT64,       G_TYPE_FLOAT,           value_transform_uint64_float);
   g_value_register_transform_func (G_TYPE_UINT64,       G_TYPE_DOUBLE,          value_transform_uint64_double);
-#endif
   g_value_register_transform_func (G_TYPE_UINT64,       G_TYPE_STRING,          value_transform_uint64_string);
   g_value_register_transform_func (G_TYPE_ENUM,         G_TYPE_CHAR,            value_transform_long_s8);
   g_value_register_transform_func (G_TYPE_ENUM,         G_TYPE_UCHAR,           value_transform_long_u8);

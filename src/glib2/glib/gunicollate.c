@@ -2,33 +2,64 @@
  *
  *  Copyright 2001,2005 Red Hat, Inc.
  *
- * The Gnome Library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  *
- * The Gnome Library is distributed in the hope that it will be useful,
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the Gnome Library; see the file COPYING.LIB.  If not,
- * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- *   Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "config.h"
 
 #include <locale.h>
 #include <string.h>
-#ifdef __STDC_ISO_10646__
+#ifdef HAVE_WCHAR_H
 #include <wchar.h>
 #endif
 
-#include "glib.h"
+#ifdef HAVE_CARBON
+#include <CoreServices/CoreServices.h>
+#endif
+
+#include "gmem.h"
+#include "gunicode.h"
 #include "gunicodeprivate.h"
-#include "galias.h"
+#include "gstring.h"
+#include "gstrfuncs.h"
+#include "gtestutils.h"
+#include "gcharset.h"
+#include "gconvert.h"
+
+#if SIZEOF_WCHAR_T == 4 && defined(__STDC_ISO_10646__)
+#define GUNICHAR_EQUALS_WCHAR_T 1
+#endif
+
+#ifdef _MSC_VER
+/* Workaround for bug in MSVCR80.DLL */
+static gsize
+msc_strxfrm_wrapper (char       *string1,
+		     const char *string2,
+		     gsize       count)
+{
+  if (!string1 || count <= 0)
+    {
+      char tmp;
+
+      return strxfrm (&tmp, string2, 1);
+    }
+  return strxfrm (string1, string2, count);
+}
+#define strxfrm msc_strxfrm_wrapper
+#endif
 
 /**
  * g_utf8_collate:
@@ -36,22 +67,48 @@
  * @str2: a UTF-8 encoded string
  * 
  * Compares two strings for ordering using the linguistically
- * correct rules for the current locale. When sorting a large
- * number of strings, it will be significantly faster to
- * obtain collation keys with g_utf8_collate_key() and 
- * compare the keys with strcmp() when 
- * sorting instead of sorting the original strings.
+ * correct rules for the [current locale](running.html#locale).
+ * When sorting a large number of strings, it will be significantly 
+ * faster to obtain collation keys with g_utf8_collate_key() and 
+ * compare the keys with strcmp() when sorting instead of sorting 
+ * the original strings.
  * 
- * Return value: &lt; 0 if @str1 compares before @str2, 
- *   0 if they compare equal, &gt; 0 if @str1 compares after @str2.
+ * If the two strings are not comparable due to being in different collation
+ * sequences, the result is undefined. This can happen if the strings are in
+ * different language scripts, for example.
+ *
+ * Returns: < 0 if @str1 compares before @str2, 
+ *   0 if they compare equal, > 0 if @str1 compares after @str2.
  **/
 gint
 g_utf8_collate (const gchar *str1,
 		const gchar *str2)
 {
   gint result;
-  
-#ifdef __STDC_ISO_10646__
+
+#ifdef HAVE_CARBON
+
+  UniChar *str1_utf16;
+  UniChar *str2_utf16;
+  glong len1;
+  glong len2;
+  SInt32 retval = 0;
+
+  g_return_val_if_fail (str1 != NULL, 0);
+  g_return_val_if_fail (str2 != NULL, 0);
+
+  str1_utf16 = g_utf8_to_utf16 (str1, -1, NULL, &len1, NULL);
+  str2_utf16 = g_utf8_to_utf16 (str2, -1, NULL, &len2, NULL);
+
+  UCCompareTextDefault (kUCCollateStandardOptions,
+                        str1_utf16, len1, str2_utf16, len2,
+                        NULL, &retval);
+  result = retval;
+
+  g_free (str2_utf16);
+  g_free (str1_utf16);
+
+#elif defined(HAVE_WCHAR_H) && defined(GUNICHAR_EQUALS_WCHAR_T)
 
   gunichar *str1_norm;
   gunichar *str2_norm;
@@ -67,7 +124,7 @@ g_utf8_collate (const gchar *str1,
   g_free (str1_norm);
   g_free (str2_norm);
 
-#else /* !__STDC_ISO_10646__ */
+#else
 
   const gchar *charset;
   gchar *str1_norm;
@@ -104,12 +161,12 @@ g_utf8_collate (const gchar *str1,
   g_free (str1_norm);
   g_free (str2_norm);
 
-#endif /* __STDC_ISO_10646__ */
+#endif
 
   return result;
 }
 
-#ifdef __STDC_ISO_10646__
+#if defined(HAVE_WCHAR_H) && defined(GUNICHAR_EQUALS_WCHAR_T)
 /* We need UTF-8 encoding of numbers to encode the weights if
  * we are using wcsxfrm. However, we aren't encoding Unicode
  * characters, so we can't simply use g_unichar_to_utf8.
@@ -156,7 +213,152 @@ utf8_encode (char *buf, wchar_t val)
 
   return retval;
 }
-#endif /* __STDC_ISO_10646__ */
+#endif
+
+#ifdef HAVE_CARBON
+
+static gchar *
+collate_key_to_string (UCCollationValue *key,
+                       gsize             key_len)
+{
+  gchar *result;
+  gsize result_len;
+  long *lkey = (long *) key;
+
+  /* UCCollationValue format:
+   *
+   * UCCollateOptions (32/64 bits)
+   * SizeInBytes      (32/64 bits)
+   * Value            (8 bits array)
+   *
+   * UCCollateOptions: ordering option mask of the collator
+   * used to create the key. Size changes on 32-bit / 64-bit
+   * hosts. On 64-bits also the extra half-word seems to have
+   * some extra (unknown) meaning.
+   * SizeInBytes: size of the whole structure, in bytes
+   * (including UCCollateOptions and SizeInBytes fields). Size
+   * changes on 32-bit & 64-bit hosts.
+   * Value: array of bytes containing the comparison weights.
+   * Seems to have several sub-strings separated by \001 and \002
+   * chars. Also, experience shows this is directly strcmp-able.
+   */
+
+  result_len = lkey[1];
+  result = g_malloc (result_len + 1);
+  memcpy (result, &lkey[2], result_len);
+  result[result_len] = '\0';
+
+  return result;
+}
+
+static gchar *
+carbon_collate_key_with_collator (const gchar *str,
+                                  gssize       len,
+                                  CollatorRef  collator)
+{
+  UniChar *str_utf16 = NULL;
+  glong len_utf16;
+  OSStatus ret;
+  UCCollationValue staticbuf[512];
+  UCCollationValue *freeme = NULL;
+  UCCollationValue *buf;
+  ItemCount buf_len;
+  ItemCount key_len;
+  ItemCount try_len;
+  gchar *result = NULL;
+
+  str_utf16 = g_utf8_to_utf16 (str, len, NULL, &len_utf16, NULL);
+  try_len = len_utf16 * 5 + 2;
+
+  if (try_len <= sizeof staticbuf)
+    {
+      buf = staticbuf;
+      buf_len = sizeof staticbuf;
+    }
+  else
+    {
+      freeme = g_new (UCCollationValue, try_len);
+      buf = freeme;
+      buf_len = try_len;
+    }
+
+  ret = UCGetCollationKey (collator, str_utf16, len_utf16,
+                           buf_len, &key_len, buf);
+
+  if (ret == kCollateBufferTooSmall)
+    {
+      freeme = g_renew (UCCollationValue, freeme, try_len * 2);
+      buf = freeme;
+      buf_len = try_len * 2;
+      ret = UCGetCollationKey (collator, str_utf16, len_utf16,
+                               buf_len, &key_len, buf);
+    }
+
+  if (ret == 0)
+    result = collate_key_to_string (buf, key_len);
+  else
+    result = g_strdup ("");
+
+  g_free (freeme);
+  g_free (str_utf16);
+  return result;
+}
+
+static gchar *
+carbon_collate_key (const gchar *str,
+                    gssize       len)
+{
+  static CollatorRef collator;
+
+  if (G_UNLIKELY (!collator))
+    {
+      UCCreateCollator (NULL, 0, kUCCollateStandardOptions, &collator);
+
+      if (!collator)
+        {
+          static gboolean been_here;
+          if (!been_here)
+            g_warning ("%s: UCCreateCollator failed", G_STRLOC);
+          been_here = TRUE;
+          return g_strdup ("");
+        }
+    }
+
+  return carbon_collate_key_with_collator (str, len, collator);
+}
+
+static gchar *
+carbon_collate_key_for_filename (const gchar *str,
+                                 gssize       len)
+{
+  static CollatorRef collator;
+
+  if (G_UNLIKELY (!collator))
+    {
+      /* http://developer.apple.com/qa/qa2004/qa1159.html */
+      UCCreateCollator (NULL, 0,
+                        kUCCollateComposeInsensitiveMask
+                         | kUCCollateWidthInsensitiveMask
+                         | kUCCollateCaseInsensitiveMask
+                         | kUCCollateDigitsOverrideMask
+                         | kUCCollateDigitsAsNumberMask
+                         | kUCCollatePunctuationSignificantMask, 
+                        &collator);
+
+      if (!collator)
+        {
+          static gboolean been_here;
+          if (!been_here)
+            g_warning ("%s: UCCreateCollator failed", G_STRLOC);
+          been_here = TRUE;
+          return g_strdup ("");
+        }
+    }
+
+  return carbon_collate_key_with_collator (str, len, collator);
+}
+
+#endif /* HAVE_CARBON */
 
 /**
  * g_utf8_collate_key:
@@ -166,43 +368,56 @@ utf8_encode (char *buf, wchar_t val)
  * Converts a string into a collation key that can be compared
  * with other collation keys produced by the same function using 
  * strcmp(). 
+ *
  * The results of comparing the collation keys of two strings 
- * with strcmp() will always be the same as 
- * comparing the two original keys with g_utf8_collate().
+ * with strcmp() will always be the same as comparing the two 
+ * original keys with g_utf8_collate().
+ *
+ * Note that this function depends on the [current locale](running.html#locale).
+ *
+ * Note that the returned string is not guaranteed to be in any
+ * encoding, especially UTF-8. The returned value is meant to be
+ * used only for comparisons.
  * 
- * Return value: a newly allocated string. This string should
- *   be freed with g_free() when you are done with it.
+ * Returns: (transfer full) (type filename): a newly allocated string.
+ *   The contents of the string are only meant to be used when sorting.
+ *   This string should be freed with g_free() when you are done with it.
  **/
 gchar *
 g_utf8_collate_key (const gchar *str,
 		    gssize       len)
 {
   gchar *result;
-  size_t xfrm_len;
-  
-#ifdef __STDC_ISO_10646__
 
+#ifdef HAVE_CARBON
+
+  g_return_val_if_fail (str != NULL, NULL);
+  result = carbon_collate_key (str, len);
+
+#elif defined(HAVE_WCHAR_H) && defined(GUNICHAR_EQUALS_WCHAR_T)
+
+  gsize xfrm_len;
   gunichar *str_norm;
   wchar_t *result_wc;
-  size_t i;
-  size_t result_len = 0;
+  gsize i;
+  gsize result_len = 0;
 
   g_return_val_if_fail (str != NULL, NULL);
 
   str_norm = _g_utf8_normalize_wc (str, len, G_NORMALIZE_ALL_COMPOSE);
 
-  setlocale (LC_COLLATE, "");
+  g_return_val_if_fail (str_norm != NULL, NULL);
 
   xfrm_len = wcsxfrm (NULL, (wchar_t *)str_norm, 0);
   result_wc = g_new (wchar_t, xfrm_len + 1);
   wcsxfrm (result_wc, (wchar_t *)str_norm, xfrm_len + 1);
 
-  for (i=0; i < xfrm_len; i++)
+  for (i = 0; i < xfrm_len; i++)
     result_len += utf8_encode (NULL, result_wc[i]);
 
   result = g_malloc (result_len + 1);
   result_len = 0;
-  for (i=0; i < xfrm_len; i++)
+  for (i = 0; i < xfrm_len; i++)
     result_len += utf8_encode (result + result_len, result_wc[i]);
 
   result[result_len] = '\0';
@@ -211,8 +426,9 @@ g_utf8_collate_key (const gchar *str,
   g_free (str_norm);
 
   return result;
-#else /* !__STDC_ISO_10646__ */
+#else
 
+  gsize xfrm_len = 0;
   const gchar *charset;
   gchar *str_norm;
 
@@ -220,11 +436,16 @@ g_utf8_collate_key (const gchar *str,
 
   str_norm = g_utf8_normalize (str, len, G_NORMALIZE_ALL_COMPOSE);
 
+  result = NULL;
+
   if (g_get_charset (&charset))
     {
       xfrm_len = strxfrm (NULL, str_norm, 0);
-      result = g_malloc (xfrm_len + 1);
-      strxfrm (result, str_norm, xfrm_len + 1);
+      if (xfrm_len < G_MAXINT - 2)
+        {
+          result = g_malloc (xfrm_len + 1);
+          strxfrm (result, str_norm, xfrm_len + 1);
+        }
     }
   else
     {
@@ -233,7 +454,7 @@ g_utf8_collate_key (const gchar *str,
       if (str_locale)
 	{
 	  xfrm_len = strxfrm (NULL, str_locale, 0);
-	  if (xfrm_len < 0 || xfrm_len >= G_MAXINT - 2)
+	  if (xfrm_len >= G_MAXINT - 2)
 	    {
 	      g_free (str_locale);
 	      str_locale = NULL;
@@ -247,26 +468,27 @@ g_utf8_collate_key (const gchar *str,
 	  
 	  g_free (str_locale);
 	}
-      else
-	{
-	  xfrm_len = strlen (str_norm);
-	  result = g_malloc (xfrm_len + 2);
-	  result[0] = 'B';
-	  memcpy (result + 1, str_norm, xfrm_len);
-	  result[xfrm_len+1] = '\0';
-	}
+    }
+    
+  if (!result) 
+    {
+      xfrm_len = strlen (str_norm);
+      result = g_malloc (xfrm_len + 2);
+      result[0] = 'B';
+      memcpy (result + 1, str_norm, xfrm_len);
+      result[xfrm_len+1] = '\0';
     }
 
   g_free (str_norm);
-#endif /* __STDC_ISO_10646__ */
+#endif
 
   return result;
 }
 
 /* This is a collation key that is very very likely to sort before any
-   collation key that libc strxfrm generates. We use this before any
-   special case (dot or number) to make sure that its sorted before
-   anything else.
+ * collation key that libc strxfrm generates. We use this before any
+ * special case (dot or number) to make sure that its sorted before
+ * anything else.
  */
 #define COLLATION_SENTINEL "\1\1\1"
 
@@ -284,16 +506,24 @@ g_utf8_collate_key (const gchar *str,
  * "event.h" instead of "event.c" "event.h" "eventgenerator.c". Also, we
  * would like to treat numbers intelligently so that "file1" "file10" "file5"
  * is sorted as "file1" "file5" "file10".
+ * 
+ * Note that this function depends on the [current locale](running.html#locale).
  *
- * Return value: a newly allocated string. This string should
- *   be freed with g_free() when you are done with it.
+ * Note that the returned string is not guaranteed to be in any
+ * encoding, especially UTF-8. The returned value is meant to be
+ * used only for comparisons.
+ *
+ * Returns: (transfer full) (type filename): a newly allocated string.
+ *   The contents of the string are only meant to be used when sorting.
+ *   This string should be freed with g_free() when you are done with it.
  *
  * Since: 2.8
  */
-gchar*
+gchar *
 g_utf8_collate_key_for_filename (const gchar *str,
 				 gssize       len)
 {
+#ifndef HAVE_CARBON
   GString *result;
   GString *append;
   const gchar *p;
@@ -465,8 +695,7 @@ g_utf8_collate_key_for_filename (const gchar *str,
   g_string_free (append, TRUE);
 
   return g_string_free (result, FALSE);
+#else /* HAVE_CARBON */
+  return carbon_collate_key_for_filename (str, len);
+#endif
 }
-
-
-#define __G_UNICOLLATE_C__
-#include "galiasdef.c"

@@ -1,10 +1,12 @@
 /* GLIB - Library of useful routines for C programming
  * Copyright (C) 1995-1998  Peter Mattis, Spencer Kimball and Josh MacDonald
  *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,9 +14,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -30,17 +30,22 @@
 
 #include "config.h"
 
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
+#include "gutils.h"
+#include "gutilsprivate.h"
+
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <locale.h>
 #include <string.h>
+#include <ctype.h>		/* For tolower() */
 #include <errno.h>
-#ifdef HAVE_PWD_H
+#include <sys/types.h>
+#include <sys/stat.h>
+#ifdef G_OS_UNIX
 #include <pwd.h>
+#include <sys/utsname.h>
+#include <unistd.h>
 #endif
 #include <sys/types.h>
 #ifdef HAVE_SYS_PARAM_H
@@ -49,30 +54,33 @@
 #ifdef HAVE_CRT_EXTERNS_H 
 #include <crt_externs.h> /* for _NSGetEnviron */
 #endif
-
-/* implement gutils's inline functions
- */
-#define	G_IMPLEMENT_INLINES 1
-#define	__G_UTILS_C__
-#include "glib.h"
-#include "gprintfint.h"
-#include "gthreadinit.h"
-#include "galias.h"
-
-#ifdef	MAXPATHLEN
-#define	G_PATH_LENGTH	MAXPATHLEN
-#elif	defined (PATH_MAX)
-#define	G_PATH_LENGTH	PATH_MAX
-#elif   defined (_PC_PATH_MAX)
-#define	G_PATH_LENGTH	sysconf(_PC_PATH_MAX)
-#else	
-#define G_PATH_LENGTH   2048
+#ifdef HAVE_SYS_AUXV_H
+#include <sys/auxv.h>
 #endif
 
+#include "glib-init.h"
+#include "glib-private.h"
+#include "genviron.h"
+#include "gfileutils.h"
+#include "ggettext.h"
+#include "ghash.h"
+#include "gthread.h"
+#include "gtestutils.h"
+#include "gunicode.h"
+#include "gstrfuncs.h"
+#include "garray.h"
+#include "glibintl.h"
+#include "gstdio.h"
+#include "gquark.h"
+
 #ifdef G_PLATFORM_WIN32
-#  define STRICT		/* Strict typing, please */
+#include "gconvert.h"
+#include "gwin32.h"
+#endif
+
+
+#ifdef G_PLATFORM_WIN32
 #  include <windows.h>
-#  undef STRICT
 #  ifndef GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
 #    define GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT 2
 #    define GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS 4
@@ -83,19 +91,6 @@
 #ifdef G_OS_WIN32
 #  include <direct.h>
 #  include <shlobj.h>
-   /* older SDK (e.g. msvc 5.0) does not have these*/
-#  ifndef CSIDL_INTERNET_CACHE
-#    define CSIDL_INTERNET_CACHE 32
-#  endif
-#  ifndef CSIDL_COMMON_APPDATA
-#    define CSIDL_COMMON_APPDATA 35
-#  endif
-#  ifndef CSIDL_COMMON_DOCUMENTS
-#    define CSIDL_COMMON_DOCUMENTS 46
-#  endif
-#  ifndef CSIDL_PROFILE
-#    define CSIDL_PROFILE 40
-#  endif
 #  include <process.h>
 #endif
 
@@ -103,70 +98,6 @@
 #include <langinfo.h>
 #endif
 
-#ifdef HAVE_BIND_TEXTDOMAIN_CODESET
-#include <libintl.h>
-#endif
-
-const guint glib_major_version = GLIB_MAJOR_VERSION;
-const guint glib_minor_version = GLIB_MINOR_VERSION;
-const guint glib_micro_version = GLIB_MICRO_VERSION;
-const guint glib_interface_age = GLIB_INTERFACE_AGE;
-const guint glib_binary_age = GLIB_BINARY_AGE;
-
-#ifdef G_PLATFORM_WIN32
-
-G_WIN32_DLLMAIN_FOR_DLL_NAME (static, dll_name)
-
-#endif
-
-/**
- * glib_check_version:
- * @required_major: the required major version.
- * @required_minor: the required minor version.
- * @required_micro: the required micro version.
- *
- * Checks that the GLib library in use is compatible with the
- * given version. Generally you would pass in the constants
- * #GLIB_MAJOR_VERSION, #GLIB_MINOR_VERSION, #GLIB_MICRO_VERSION
- * as the three arguments to this function; that produces
- * a check that the library in use is compatible with
- * the version of GLib the application or module was compiled
- * against.
- *
- * Compatibility is defined by two things: first the version
- * of the running library is newer than the version
- * @required_major.required_minor.@required_micro. Second
- * the running library must be binary compatible with the
- * version @required_major.required_minor.@required_micro
- * (same major version.)
- *
- * Return value: %NULL if the GLib library is compatible with the
- *   given version, or a string describing the version mismatch.
- *   The returned string is owned by GLib and must not be modified
- *   or freed.
- *
- * Since: 2.6
- **/
-const gchar *
-glib_check_version (guint required_major,
-                    guint required_minor,
-                    guint required_micro)
-{
-  gint glib_effective_micro = 100 * GLIB_MINOR_VERSION + GLIB_MICRO_VERSION;
-  gint required_effective_micro = 100 * required_minor + required_micro;
-
-  if (required_major > GLIB_MAJOR_VERSION)
-    return "GLib version too old (major mismatch)";
-  if (required_major < GLIB_MAJOR_VERSION)
-    return "GLib version too new (major mismatch)";
-  if (required_effective_micro < glib_effective_micro - GLIB_BINARY_AGE)
-    return "GLib version too new (micro mismatch)";
-  if (required_effective_micro > glib_effective_micro)
-    return "GLib version too old (micro mismatch)";
-  return NULL;
-}
-
-#if !defined (HAVE_MEMMOVE) && !defined (HAVE_WORKING_BCOPY)
 /**
  * g_memmove: 
  * @dest: the destination address to copy the bytes to.
@@ -176,37 +107,8 @@ glib_check_version (guint required_major,
  * Copies a block of memory @len bytes long, from @src to @dest.
  * The source and destination areas may overlap.
  *
- * In order to use this function, you must include 
- * <filename>string.h</filename> yourself, because this macro will 
- * typically simply resolve to memmove() and GLib does not include 
- * <filename>string.h</filename> for you.
+ * Deprecated:2.40: Just use memmove().
  */
-void 
-g_memmove (gpointer      dest, 
-	   gconstpointer src, 
-	   gulong        len)
-{
-  gchar* destptr = dest;
-  const gchar* srcptr = src;
-  if (src + len < dest || dest + len < src)
-    {
-      bcopy (src, dest, len);
-      return;
-    }
-  else if (dest <= src)
-    {
-      while (len--)
-	*(destptr++) = *(srcptr++);
-    }
-  else
-    {
-      destptr += len;
-      srcptr += len;
-      while (len--)
-	*(--destptr) = *(--srcptr);
-    }
-}
-#endif /* !HAVE_MEMMOVE && !HAVE_WORKING_BCOPY */
 
 #ifdef G_OS_WIN32
 #undef g_atexit
@@ -214,7 +116,7 @@ g_memmove (gpointer      dest,
 
 /**
  * g_atexit:
- * @func: the function to call on normal program termination.
+ * @func: (scope async): the function to call on normal program termination.
  * 
  * Specifies a function to be called at normal program termination.
  *
@@ -246,41 +148,25 @@ g_memmove (gpointer      dest,
  * As can be seen from the above, for portability it's best to avoid
  * calling g_atexit() (or atexit()) except in the main executable of a
  * program.
+ *
+ * Deprecated:2.32: It is best to avoid g_atexit().
  */
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 void
 g_atexit (GVoidFunc func)
 {
   gint result;
-  const gchar *error = NULL;
+  int errsv;
 
-  /* keep this in sync with glib.h */
-
-#ifdef	G_NATIVE_ATEXIT
-  result = ATEXIT (func);
-  if (result)
-    error = g_strerror (errno);
-#elif defined (HAVE_ATEXIT)
-#  ifdef NeXT /* @#%@! NeXTStep */
-  result = !atexit ((void (*)(void)) func);
-  if (result)
-    error = g_strerror (errno);
-#  else
   result = atexit ((void (*)(void)) func);
+  errsv = errno;
   if (result)
-    error = g_strerror (errno);
-#  endif /* NeXT */
-#elif defined (HAVE_ON_EXIT)
-  result = on_exit ((void (*)(int, void *)) func, NULL);
-  if (result)
-    error = g_strerror (errno);
-#else
-  result = 0;
-  error = "no implementation";
-#endif /* G_NATIVE_ATEXIT */
-
-  if (error)
-    g_error ("Could not register atexit() function: %s", error);
+    {
+      g_error ("Could not register atexit() function: %s",
+               g_strerror (errsv));
+    }
 }
+G_GNUC_END_IGNORE_DEPRECATIONS
 
 /* Based on execvp() from GNU Libc.
  * Some of this code is cut-and-pasted into gspawn.c
@@ -310,7 +196,7 @@ g_find_program_in_path (const gchar *program)
       strchr (last_dot, '\\') != NULL ||
       strchr (last_dot, '/') != NULL)
     {
-      const gint program_length = strlen (program);
+      const size_t program_length = strlen (program);
       gchar *pathext = g_build_path (";",
 				     ".exe;.cmd;.bat;.com",
 				     g_getenv ("PATHEXT"),
@@ -350,7 +236,7 @@ g_find_program_in_path (const gchar *program)
 
 /**
  * g_find_program_in_path:
- * @program: a program name in the GLib file name encoding
+ * @program: (type filename): a program name in the GLib file name encoding
  * 
  * Locates the first executable named @program in the user's path, in the
  * same way that execvp() would locate it. Returns an allocated string
@@ -360,17 +246,18 @@ g_find_program_in_path (const gchar *program)
  *  
  * On Windows, if @program does not have a file type suffix, tries
  * with the suffixes .exe, .cmd, .bat and .com, and the suffixes in
- * the <envar>PATHEXT</envar> environment variable. 
+ * the `PATHEXT` environment variable. 
  * 
  * On Windows, it looks for the file in the same way as CreateProcess() 
  * would. This means first in the directory where the executing
  * program was loaded from, then in the current directory, then in the
  * Windows 32-bit system directory, then in the Windows directory, and
- * finally in the directories in the <envar>PATH</envar> environment 
- * variable. If the program is found, the return value contains the 
- * full name including the type suffix.
+ * finally in the directories in the `PATH` environment variable. If
+ * the program is found, the return value contains the full name
+ * including the type suffix.
  *
- * Return value: absolute path, or %NULL
+ * Returns: (type filename) (transfer full) (nullable): a newly-allocated
+ *   string with the absolute path, or %NULL
  **/
 #ifdef G_OS_WIN32
 static gchar *
@@ -380,42 +267,117 @@ gchar*
 g_find_program_in_path (const gchar *program)
 #endif
 {
-  const gchar *path, *p;
+  return g_find_program_for_path (program, NULL, NULL);
+}
+
+/**
+ * g_find_program_for_path:
+ * @program: (type filename): a program name in the GLib file name encoding
+ * @path: (type filename) (nullable): the current dir where to search program
+ * @working_dir: (type filename) (nullable): the working dir where to search
+ *   program
+ *
+ * Locates the first executable named @program in @path, in the
+ * same way that execvp() would locate it. Returns an allocated string
+ * with the absolute path name (taking in account the @working_dir), or
+ * %NULL if the program is not found in @path. If @program is already an
+ * absolute path, returns a copy of @program if @program exists and is
+ * executable, and %NULL otherwise.
+ *
+ * On Windows, if @path is %NULL, it looks for the file in the same way as
+ * CreateProcess()  would. This means first in the directory where the
+ * executing program was loaded from, then in the current directory, then in
+ * the Windows 32-bit system directory, then in the Windows directory, and
+ * finally in the directories in the `PATH` environment variable. If
+ * the program is found, the return value contains the full name
+ * including the type suffix.
+ *
+ * Returns: (type filename) (transfer full) (nullable): a newly-allocated
+ *   string with the absolute path, or %NULL
+ * Since: 2.76
+ **/
+char *
+g_find_program_for_path (const char *program,
+                         const char *path,
+                         const char *working_dir)
+{
+  const char *original_path = path;
+  const char *original_program = program;
+  char *program_path = NULL;
+  const gchar *p;
   gchar *name, *freeme;
 #ifdef G_OS_WIN32
   const gchar *path_copy;
   gchar *filename = NULL, *appdir = NULL;
   gchar *sysdir = NULL, *windir = NULL;
+  int n;
+  wchar_t wfilename[MAXPATHLEN], wsysdir[MAXPATHLEN],
+    wwindir[MAXPATHLEN];
 #endif
-  size_t len;
-  size_t pathlen;
+  gsize len;
+  gsize pathlen;
 
   g_return_val_if_fail (program != NULL, NULL);
+
+  /* Use the working dir as program path if provided */
+  if (working_dir && !g_path_is_absolute (program))
+    {
+      program_path = g_build_filename (working_dir, program, NULL);
+      program = program_path;
+    }
 
   /* If it is an absolute path, or a relative path including subdirectories,
    * don't look in PATH.
    */
   if (g_path_is_absolute (program)
-      || strchr (program, G_DIR_SEPARATOR) != NULL
+      || strchr (original_program, G_DIR_SEPARATOR) != NULL
 #ifdef G_OS_WIN32
-      || strchr (program, '/') != NULL
+      || strchr (original_program, '/') != NULL
 #endif
       )
     {
       if (g_file_test (program, G_FILE_TEST_IS_EXECUTABLE) &&
 	  !g_file_test (program, G_FILE_TEST_IS_DIR))
-        return g_strdup (program);
+        {
+          gchar *out = NULL;
+
+          if (g_path_is_absolute (program))
+            {
+              out = g_strdup (program);
+            }
+          else
+            {
+              char *cwd = g_get_current_dir ();
+              out = g_build_filename (cwd, program, NULL);
+              g_free (cwd);
+            }
+
+          g_free (program_path);
+
+          return g_steal_pointer (&out);
+        }
       else
-        return NULL;
+        {
+          g_clear_pointer (&program_path, g_free);
+
+          if (g_path_is_absolute (original_program))
+            return NULL;
+        }
     }
-  
-  path = g_getenv ("PATH");
-#if defined(G_OS_UNIX) || defined(G_OS_BEOS)
+
+  program = original_program;
+
+  if G_LIKELY (original_path == NULL)
+    path = g_getenv ("PATH");
+  else
+    path = original_path;
+
+#if defined(G_OS_UNIX)
   if (path == NULL)
     {
-      /* There is no `PATH' in the environment.  The default
+      /* There is no 'PATH' in the environment.  The default
        * search path in GNU libc is the current directory followed by
-       * the path `confstr' returns for `_CS_PATH'.
+       * the path 'confstr' returns for '_CS_PATH'.
        */
       
       /* In GLib we put . last, for security, and don't use the
@@ -426,82 +388,65 @@ g_find_program_in_path (const gchar *program)
       path = "/bin:/usr/bin:.";
     }
 #else
-  if (G_WIN32_HAVE_WIDECHAR_API ())
+  if G_LIKELY (original_path == NULL)
     {
-      int n;
-      wchar_t wfilename[MAXPATHLEN], wsysdir[MAXPATHLEN],
-	wwindir[MAXPATHLEN];
-      
       n = GetModuleFileNameW (NULL, wfilename, MAXPATHLEN);
       if (n > 0 && n < MAXPATHLEN)
-	filename = g_utf16_to_utf8 (wfilename, -1, NULL, NULL, NULL);
-      
+        filename = g_utf16_to_utf8 (wfilename, -1, NULL, NULL, NULL);
+
       n = GetSystemDirectoryW (wsysdir, MAXPATHLEN);
       if (n > 0 && n < MAXPATHLEN)
-	sysdir = g_utf16_to_utf8 (wsysdir, -1, NULL, NULL, NULL);
-      
+        sysdir = g_utf16_to_utf8 (wsysdir, -1, NULL, NULL, NULL);
+
       n = GetWindowsDirectoryW (wwindir, MAXPATHLEN);
       if (n > 0 && n < MAXPATHLEN)
-	windir = g_utf16_to_utf8 (wwindir, -1, NULL, NULL, NULL);
+        windir = g_utf16_to_utf8 (wwindir, -1, NULL, NULL, NULL);
+
+      if (filename)
+        {
+          appdir = g_path_get_dirname (filename);
+          g_free (filename);
+        }
+
+      path = g_strdup (path);
+
+      if (windir)
+        {
+          const gchar *tem = path;
+          path = g_strconcat (windir, ";", path, NULL);
+          g_free ((gchar *) tem);
+          g_free (windir);
+        }
+
+      if (sysdir)
+        {
+          const gchar *tem = path;
+          path = g_strconcat (sysdir, ";", path, NULL);
+          g_free ((gchar *) tem);
+          g_free (sysdir);
+        }
+
+      {
+        const gchar *tem = path;
+        path = g_strconcat (".;", path, NULL);
+        g_free ((gchar *) tem);
+      }
+
+      if (appdir)
+        {
+          const gchar *tem = path;
+          path = g_strconcat (appdir, ";", path, NULL);
+          g_free ((gchar *) tem);
+          g_free (appdir);
+        }
+
+      path_copy = path;
     }
   else
     {
-      int n;
-      gchar cpfilename[MAXPATHLEN], cpsysdir[MAXPATHLEN],
-	cpwindir[MAXPATHLEN];
-      
-      n = GetModuleFileNameA (NULL, cpfilename, MAXPATHLEN);
-      if (n > 0 && n < MAXPATHLEN)
-	filename = g_locale_to_utf8 (cpfilename, -1, NULL, NULL, NULL);
-      
-      n = GetSystemDirectoryA (cpsysdir, MAXPATHLEN);
-      if (n > 0 && n < MAXPATHLEN)
-	sysdir = g_locale_to_utf8 (cpsysdir, -1, NULL, NULL, NULL);
-      
-      n = GetWindowsDirectoryA (cpwindir, MAXPATHLEN);
-      if (n > 0 && n < MAXPATHLEN)
-	windir = g_locale_to_utf8 (cpwindir, -1, NULL, NULL, NULL);
-    }
-  
-  if (filename)
-    {
-      appdir = g_path_get_dirname (filename);
-      g_free (filename);
-    }
-  
-  path = g_strdup (path);
-
-  if (windir)
-    {
-      const gchar *tem = path;
-      path = g_strconcat (windir, ";", path, NULL);
-      g_free ((gchar *) tem);
-      g_free (windir);
-    }
-  
-  if (sysdir)
-    {
-      const gchar *tem = path;
-      path = g_strconcat (sysdir, ";", path, NULL);
-      g_free ((gchar *) tem);
-      g_free (sysdir);
-    }
-  
-  {
-    const gchar *tem = path;
-    path = g_strconcat (".;", path, NULL);
-    g_free ((gchar *) tem);
-  }
-  
-  if (appdir)
-    {
-      const gchar *tem = path;
-      path = g_strconcat (appdir, ";", path, NULL);
-      g_free ((gchar *) tem);
-      g_free (appdir);
+      path_copy = g_strdup (path);
     }
 
-  path_copy = path;
 #endif
   
   len = strlen (program) + 1;
@@ -518,32 +463,53 @@ g_find_program_in_path (const gchar *program)
   do
     {
       char *startp;
+      char *startp_path = NULL;
 
       path = p;
       p = my_strchrnul (path, G_SEARCHPATH_SEPARATOR);
 
       if (p == path)
         /* Two adjacent colons, or a colon at the beginning or the end
-         * of `PATH' means to search the current directory.
+         * of 'PATH' means to search the current directory.
          */
         startp = name + 1;
       else
         startp = memcpy (name - (p - path), path, p - path);
 
+      /* Use the working dir as program path if provided */
+      if (working_dir && !g_path_is_absolute (startp))
+        {
+          startp_path = g_build_filename (working_dir, startp, NULL);
+          startp = startp_path;
+        }
+
       if (g_file_test (startp, G_FILE_TEST_IS_EXECUTABLE) &&
 	  !g_file_test (startp, G_FILE_TEST_IS_DIR))
         {
           gchar *ret;
-          ret = g_strdup (startp);
+          if (g_path_is_absolute (startp)) {
+            ret = g_strdup (startp);
+          } else {
+            gchar *cwd = NULL;
+            cwd = g_get_current_dir ();
+            ret = g_build_filename (cwd, startp, NULL);
+            g_free (cwd);
+          }
+
+          g_free (program_path);
+          g_free (startp_path);
           g_free (freeme);
 #ifdef G_OS_WIN32
 	  g_free ((gchar *) path_copy);
 #endif
           return ret;
         }
+
+      g_free (startp_path);
     }
   while (*p++ != '\0');
-  
+
+  g_free (program_path);
   g_free (freeme);
 #ifdef G_OS_WIN32
   g_free ((gchar *) path_copy);
@@ -552,952 +518,130 @@ g_find_program_in_path (const gchar *program)
   return NULL;
 }
 
-/**
- * g_parse_debug_string:
- * @string: a list of debug options separated by ':' or "all" 
- *     to set all flags.
- * @keys: pointer to an array of #GDebugKey which associate 
- *     strings with bit flags.
- * @nkeys: the number of #GDebugKey<!-- -->s in the array.
- *
- * Parses a string containing debugging options separated 
- * by ':' into a %guint containing bit flags. This is used 
- * within GDK and GTK+ to parse the debug options passed on the
- * command line or through environment variables.
- *
- * Returns: the combined set of bit flags.
+/* The functions below are defined this way for compatibility reasons.
+ * See the note in gutils.h.
  */
-guint	     
-g_parse_debug_string  (const gchar     *string, 
-		       const GDebugKey *keys, 
-		       guint	        nkeys)
-{
-  guint i;
-  guint result = 0;
-  
-  g_return_val_if_fail (string != NULL, 0);
-
-  /* this function is used by gmem.c/gslice.c initialization code,
-   * so introducing malloc dependencies here would require adaptions
-   * of those code portions.
-   */
-  
-  if (!g_ascii_strcasecmp (string, "all"))
-    {
-      for (i=0; i<nkeys; i++)
-	result |= keys[i].value;
-    }
-  else
-    {
-      const gchar *p = string;
-      const gchar *q;
-      gboolean done = FALSE;
-      
-      while (*p && !done)
-	{
-	  q = strchr (p, ':');
-	  if (!q)
-	    {
-	      q = p + strlen(p);
-	      done = TRUE;
-	    }
-	  
-	  for (i=0; i<nkeys; i++)
-	    if (g_ascii_strncasecmp (keys[i].key, p, q - p) == 0 &&
-		keys[i].key[q - p] == '\0')
-	      result |= keys[i].value;
-	  
-	  p = q + 1;
-	}
-    }
-  
-  return result;
-}
 
 /**
- * g_basename:
- * @file_name: the name of the file.
- * 
- * Gets the name of the file without any leading directory components.  
- * It returns a pointer into the given file name string.
- * 
- * Return value: the name of the file without any leading directory components.
+ * g_bit_nth_lsf:
+ * @mask: a #gulong containing flags
+ * @nth_bit: the index of the bit to start the search from
  *
- * Deprecated:2.2: Use g_path_get_basename() instead, but notice that
- * g_path_get_basename() allocates new memory for the returned string, unlike
- * this function which returns a pointer into the argument.
- **/
-G_CONST_RETURN gchar*
-g_basename (const gchar	   *file_name)
-{
-  register gchar *base;
-  
-  g_return_val_if_fail (file_name != NULL, NULL);
-  
-  base = strrchr (file_name, G_DIR_SEPARATOR);
-
-#ifdef G_OS_WIN32
-  {
-    gchar *q = strrchr (file_name, '/');
-    if (base == NULL || (q != NULL && q > base))
-	base = q;
-  }
-#endif
-
-  if (base)
-    return base + 1;
-
-#ifdef G_OS_WIN32
-  if (g_ascii_isalpha (file_name[0]) && file_name[1] == ':')
-    return (gchar*) file_name + 2;
-#endif /* G_OS_WIN32 */
-  
-  return (gchar*) file_name;
-}
-
-/**
- * g_path_get_basename:
- * @file_name: the name of the file.
+ * Find the position of the first bit set in @mask, searching
+ * from (but not including) @nth_bit upwards. Bits are numbered
+ * from 0 (least significant) to sizeof(#gulong) * 8 - 1 (31 or 63,
+ * usually). To start searching from the 0th bit, set @nth_bit to -1.
  *
- * Gets the last component of the filename. If @file_name ends with a 
- * directory separator it gets the component before the last slash. If 
- * @file_name consists only of directory separators (and on Windows, 
- * possibly a drive letter), a single separator is returned. If
- * @file_name is empty, it gets ".".
- *
- * Return value: a newly allocated string containing the last component of 
- *   the filename.
+ * Returns: the index of the first bit set which is higher than @nth_bit, or -1
+ *    if no higher bits are set
  */
-gchar*
-g_path_get_basename (const gchar   *file_name)
+gint
+(g_bit_nth_lsf) (gulong mask,
+                 gint   nth_bit)
 {
-  register gssize base;             
-  register gssize last_nonslash;    
-  gsize len;    
-  gchar *retval;
- 
-  g_return_val_if_fail (file_name != NULL, NULL);
-
-  if (file_name[0] == '\0')
-    /* empty string */
-    return g_strdup (".");
-  
-  last_nonslash = strlen (file_name) - 1;
-
-  while (last_nonslash >= 0 && G_IS_DIR_SEPARATOR (file_name [last_nonslash]))
-    last_nonslash--;
-
-  if (last_nonslash == -1)
-    /* string only containing slashes */
-    return g_strdup (G_DIR_SEPARATOR_S);
-
-#ifdef G_OS_WIN32
-  if (last_nonslash == 1 && g_ascii_isalpha (file_name[0]) && file_name[1] == ':')
-    /* string only containing slashes and a drive */
-    return g_strdup (G_DIR_SEPARATOR_S);
-#endif /* G_OS_WIN32 */
-
-  base = last_nonslash;
-
-  while (base >=0 && !G_IS_DIR_SEPARATOR (file_name [base]))
-    base--;
-
-#ifdef G_OS_WIN32
-  if (base == -1 && g_ascii_isalpha (file_name[0]) && file_name[1] == ':')
-    base = 1;
-#endif /* G_OS_WIN32 */
-
-  len = last_nonslash - base;
-  retval = g_malloc (len + 1);
-  memcpy (retval, file_name + base + 1, len);
-  retval [len] = '\0';
-  return retval;
+  return g_bit_nth_lsf_impl (mask, nth_bit);
 }
 
 /**
- * g_path_is_absolute:
- * @file_name: a file name.
+ * g_bit_nth_msf:
+ * @mask: a #gulong containing flags
+ * @nth_bit: the index of the bit to start the search from
  *
- * Returns %TRUE if the given @file_name is an absolute file name,
- * i.e. it contains a full path from the root directory such as "/usr/local"
- * on UNIX or "C:\windows" on Windows systems.
+ * Find the position of the first bit set in @mask, searching
+ * from (but not including) @nth_bit downwards. Bits are numbered
+ * from 0 (least significant) to sizeof(#gulong) * 8 - 1 (31 or 63,
+ * usually). To start searching from the last bit, set @nth_bit to
+ * -1 or GLIB_SIZEOF_LONG * 8.
  *
- * Returns: %TRUE if @file_name is an absolute path. 
+ * Returns: the index of the first bit set which is lower than @nth_bit, or -1
+ *    if no lower bits are set
  */
-gboolean
-g_path_is_absolute (const gchar *file_name)
+gint
+(g_bit_nth_msf) (gulong mask,
+                 gint   nth_bit)
 {
-  g_return_val_if_fail (file_name != NULL, FALSE);
-  
-  if (G_IS_DIR_SEPARATOR (file_name[0]))
-    return TRUE;
-
-#ifdef G_OS_WIN32
-  /* Recognize drive letter on native Windows */
-  if (g_ascii_isalpha (file_name[0]) && 
-      file_name[1] == ':' && G_IS_DIR_SEPARATOR (file_name[2]))
-    return TRUE;
-#endif /* G_OS_WIN32 */
-
-  return FALSE;
+  return g_bit_nth_msf_impl (mask, nth_bit);
 }
 
+
 /**
- * g_path_skip_root:
- * @file_name: a file name.
+ * g_bit_storage:
+ * @number: a #guint
  *
- * Returns a pointer into @file_name after the root component, i.e. after
- * the "/" in UNIX or "C:\" under Windows. If @file_name is not an absolute
- * path it returns %NULL.
+ * Gets the number of bits used to hold @number,
+ * e.g. if @number is 4, 3 bits are needed.
  *
- * Returns: a pointer into @file_name after the root component.
+ * Returns: the number of bits used to hold @number
  */
-G_CONST_RETURN gchar*
-g_path_skip_root (const gchar *file_name)
+guint
+(g_bit_storage) (gulong number)
 {
-  g_return_val_if_fail (file_name != NULL, NULL);
-  
-#ifdef G_PLATFORM_WIN32
-  /* Skip \\server\share or //server/share */
-  if (G_IS_DIR_SEPARATOR (file_name[0]) &&
-      G_IS_DIR_SEPARATOR (file_name[1]) &&
-      file_name[2] &&
-      !G_IS_DIR_SEPARATOR (file_name[2]))
-    {
-      gchar *p;
-
-      p = strchr (file_name + 2, G_DIR_SEPARATOR);
-#ifdef G_OS_WIN32
-      {
-	gchar *q = strchr (file_name + 2, '/');
-	if (p == NULL || (q != NULL && q < p))
-	  p = q;
-      }
-#endif
-      if (p &&
-	  p > file_name + 2 &&
-	  p[1])
-	{
-	  file_name = p + 1;
-
-	  while (file_name[0] && !G_IS_DIR_SEPARATOR (file_name[0]))
-	    file_name++;
-
-	  /* Possibly skip a backslash after the share name */
-	  if (G_IS_DIR_SEPARATOR (file_name[0]))
-	    file_name++;
-
-	  return (gchar *)file_name;
-	}
-    }
-#endif
-  
-  /* Skip initial slashes */
-  if (G_IS_DIR_SEPARATOR (file_name[0]))
-    {
-      while (G_IS_DIR_SEPARATOR (file_name[0]))
-	file_name++;
-      return (gchar *)file_name;
-    }
-
-#ifdef G_OS_WIN32
-  /* Skip X:\ */
-  if (g_ascii_isalpha (file_name[0]) && file_name[1] == ':' && G_IS_DIR_SEPARATOR (file_name[2]))
-    return (gchar *)file_name + 3;
-#endif
-
-  return NULL;
-}
-
-/**
- * g_path_get_dirname:
- * @file_name: the name of the file.
- *
- * Gets the directory components of a file name.  If the file name has no
- * directory components "." is returned.  The returned string should be
- * freed when no longer needed.
- * 
- * Returns: the directory components of the file.
- */
-gchar*
-g_path_get_dirname (const gchar	   *file_name)
-{
-  register gchar *base;
-  register gsize len;    
-  
-  g_return_val_if_fail (file_name != NULL, NULL);
-  
-  base = strrchr (file_name, G_DIR_SEPARATOR);
-#ifdef G_OS_WIN32
-  {
-    gchar *q = strrchr (file_name, '/');
-    if (base == NULL || (q != NULL && q > base))
-	base = q;
-  }
-#endif
-  if (!base)
-    {
-#ifdef G_OS_WIN32
-      if (g_ascii_isalpha (file_name[0]) && file_name[1] == ':')
-	{
-	  gchar drive_colon_dot[4];
-
-	  drive_colon_dot[0] = file_name[0];
-	  drive_colon_dot[1] = ':';
-	  drive_colon_dot[2] = '.';
-	  drive_colon_dot[3] = '\0';
-
-	  return g_strdup (drive_colon_dot);
-	}
-#endif
-    return g_strdup (".");
-    }
-
-  while (base > file_name && G_IS_DIR_SEPARATOR (*base))
-    base--;
-
-#ifdef G_OS_WIN32
-  /* base points to the char before the last slash.
-   *
-   * In case file_name is the root of a drive (X:\) or a child of the
-   * root of a drive (X:\foo), include the slash.
-   *
-   * In case file_name is the root share of an UNC path
-   * (\\server\share), add a slash, returning \\server\share\ .
-   *
-   * In case file_name is a direct child of a share in an UNC path
-   * (\\server\share\foo), include the slash after the share name,
-   * returning \\server\share\ .
-   */
-  if (base == file_name + 1 && g_ascii_isalpha (file_name[0]) && file_name[1] == ':')
-    base++;
-  else if (G_IS_DIR_SEPARATOR (file_name[0]) &&
-	   G_IS_DIR_SEPARATOR (file_name[1]) &&
-	   file_name[2] &&
-	   !G_IS_DIR_SEPARATOR (file_name[2]) &&
-	   base >= file_name + 2)
-    {
-      const gchar *p = file_name + 2;
-      while (*p && !G_IS_DIR_SEPARATOR (*p))
-	p++;
-      if (p == base + 1)
-	{
-	  len = (guint) strlen (file_name) + 1;
-	  base = g_new (gchar, len + 1);
-	  strcpy (base, file_name);
-	  base[len-1] = G_DIR_SEPARATOR;
-	  base[len] = 0;
-	  return base;
-	}
-      if (G_IS_DIR_SEPARATOR (*p))
-	{
-	  p++;
-	  while (*p && !G_IS_DIR_SEPARATOR (*p))
-	    p++;
-	  if (p == base + 1)
-	    base++;
-	}
-    }
-#endif
-
-  len = (guint) 1 + base - file_name;
-  
-  base = g_new (gchar, len + 1);
-  g_memmove (base, file_name, len);
-  base[len] = 0;
-  
-  return base;
-}
-
-/**
- * g_get_current_dir:
- *
- * Gets the current directory.
- * The returned string should be freed when no longer needed. The encoding 
- * of the returned string is system defined. On Windows, it is always UTF-8.
- * 
- * Returns: the current directory.
- */
-gchar*
-g_get_current_dir (void)
-{
-#ifdef G_OS_WIN32
-
-  gchar *dir = NULL;
-
-  if (G_WIN32_HAVE_WIDECHAR_API ())
-    {
-      wchar_t dummy[2], *wdir;
-      int len;
-
-      len = GetCurrentDirectoryW (2, dummy);
-      wdir = g_new (wchar_t, len);
-
-      if (GetCurrentDirectoryW (len, wdir) == len - 1)
-	dir = g_utf16_to_utf8 (wdir, -1, NULL, NULL, NULL);
-
-      g_free (wdir);
-    }
-  else
-    {
-      gchar dummy[2], *cpdir;
-      int len;
-
-      len = GetCurrentDirectoryA (2, dummy);
-      cpdir = g_new (gchar, len);
-
-      if (GetCurrentDirectoryA (len, cpdir) == len - 1)
-	dir = g_locale_to_utf8 (cpdir, -1, NULL, NULL, NULL);
-
-      g_free (cpdir);
-    }
-
-  if (dir == NULL)
-    dir = g_strdup ("\\");
-
-  return dir;
-
-#else
-
-  gchar *buffer = NULL;
-  gchar *dir = NULL;
-  static gulong max_len = 0;
-
-  if (max_len == 0) 
-    max_len = (G_PATH_LENGTH == -1) ? 2048 : G_PATH_LENGTH;
-  
-  /* We don't use getcwd(3) on SUNOS, because, it does a popen("pwd")
-   * and, if that wasn't bad enough, hangs in doing so.
-   */
-#if	(defined (sun) && !defined (__SVR4)) || !defined(HAVE_GETCWD)
-  buffer = g_new (gchar, max_len + 1);
-  *buffer = 0;
-  dir = getwd (buffer);
-#else	/* !sun || !HAVE_GETCWD */
-  while (max_len < G_MAXULONG / 2)
-    {
-      buffer = g_new (gchar, max_len + 1);
-      *buffer = 0;
-      dir = getcwd (buffer, max_len);
-
-      if (dir || errno != ERANGE)
-	break;
-
-      g_free (buffer);
-      max_len *= 2;
-    }
-#endif	/* !sun || !HAVE_GETCWD */
-  
-  if (!dir || !*buffer)
-    {
-      /* hm, should we g_error() out here?
-       * this can happen if e.g. "./" has mode \0000
-       */
-      buffer[0] = G_DIR_SEPARATOR;
-      buffer[1] = 0;
-    }
-
-  dir = g_strdup (buffer);
-  g_free (buffer);
-  
-  return dir;
-#endif /* !Win32 */
-}
-
-/**
- * g_getenv:
- * @variable: the environment variable to get, in the GLib file name encoding.
- * 
- * Returns the value of an environment variable. The name and value
- * are in the GLib file name encoding. On UNIX, this means the actual
- * bytes which might or might not be in some consistent character set
- * and encoding. On Windows, it is in UTF-8. On Windows, in case the
- * environment variable's value contains references to other
- * environment variables, they are expanded.
- * 
- * Return value: the value of the environment variable, or %NULL if
- * the environment variable is not found. The returned string may be
- * overwritten by the next call to g_getenv(), g_setenv() or
- * g_unsetenv().
- **/
-G_CONST_RETURN gchar*
-g_getenv (const gchar *variable)
-{
-#ifndef G_OS_WIN32
-
-  g_return_val_if_fail (variable != NULL, NULL);
-
-  return getenv (variable);
-
-#else /* G_OS_WIN32 */
-
-  GQuark quark;
-  gchar *value;
-
-  g_return_val_if_fail (variable != NULL, NULL);
-  g_return_val_if_fail (g_utf8_validate (variable, -1, NULL), NULL);
-
-  /* On Windows NT, it is relatively typical that environment
-   * variables contain references to other environment variables. If
-   * so, use ExpandEnvironmentStrings(). (In an ideal world, such
-   * environment variables would be stored in the Registry as
-   * REG_EXPAND_SZ type values, and would then get automatically
-   * expanded before a program sees them. But there is broken software
-   * that stores environment variables as REG_SZ values even if they
-   * contain references to other environment variables.)
-   */
-
-  if (G_WIN32_HAVE_WIDECHAR_API ())
-    {
-      wchar_t dummy[2], *wname, *wvalue;
-      int len;
-      
-      wname = g_utf8_to_utf16 (variable, -1, NULL, NULL, NULL);
-
-      len = GetEnvironmentVariableW (wname, dummy, 2);
-
-      if (len == 0)
-	{
-	  g_free (wname);
-	  return NULL;
-	}
-      else if (len == 1)
-	len = 2;
-
-      wvalue = g_new (wchar_t, len);
-
-      if (GetEnvironmentVariableW (wname, wvalue, len) != len - 1)
-	{
-	  g_free (wname);
-	  g_free (wvalue);
-	  return NULL;
-	}
-
-      if (wcschr (wvalue, L'%') != NULL)
-	{
-	  wchar_t *tem = wvalue;
-
-	  len = ExpandEnvironmentStringsW (wvalue, dummy, 2);
-
-	  if (len > 0)
-	    {
-	      wvalue = g_new (wchar_t, len);
-
-	      if (ExpandEnvironmentStringsW (tem, wvalue, len) != len)
-		{
-		  g_free (wvalue);
-		  wvalue = tem;
-		}
-	      else
-		g_free (tem);
-	    }
-	}
-
-      value = g_utf16_to_utf8 (wvalue, -1, NULL, NULL, NULL);
-
-      g_free (wname);
-      g_free (wvalue);
-    }
-  else
-    {
-      gchar dummy[3], *cpname, *cpvalue;
-      int len;
-      
-      cpname = g_locale_from_utf8 (variable, -1, NULL, NULL, NULL);
-
-      g_return_val_if_fail (cpname != NULL, NULL);
-
-      len = GetEnvironmentVariableA (cpname, dummy, 2);
-
-      if (len == 0)
-	{
-	  g_free (cpname);
-	  return NULL;
-	}
-      else if (len == 1)
-	len = 2;
-
-      cpvalue = g_new (gchar, len);
-
-      if (GetEnvironmentVariableA (cpname, cpvalue, len) != len - 1)
-	{
-	  g_free (cpname);
-	  g_free (cpvalue);
-	  return NULL;
-	}
-
-      if (strchr (cpvalue, '%') != NULL)
-	{
-	  gchar *tem = cpvalue;
-
-	  len = ExpandEnvironmentStringsA (cpvalue, dummy, 3);
-
-	  if (len > 0)
-	    {
-	      cpvalue = g_new (gchar, len);
-
-	      if (ExpandEnvironmentStringsA (tem, cpvalue, len) != len)
-		{
-		  g_free (cpvalue);
-		  cpvalue = tem;
-		}
-	      else
-		g_free (tem);
-	    }
-	}
-
-      value = g_locale_to_utf8 (cpvalue, -1, NULL, NULL, NULL);
-
-      g_free (cpname);
-      g_free (cpvalue);
-    }
-
-  quark = g_quark_from_string (value);
-  g_free (value);
-  
-  return g_quark_to_string (quark);
-
-#endif /* G_OS_WIN32 */
-}
-
-/* _g_getenv_nomalloc
- * this function does a getenv() without doing any kind of allocation
- * through glib. it's suitable for chars <= 127 only (both, for the
- * variable name and the contents) and for contents < 1024 chars in
- * length. also, it aliases "" to a NULL return value.
- **/
-const gchar*
-_g_getenv_nomalloc (const gchar *variable,
-                    gchar        buffer[1024])
-{
-  const gchar *retval = getenv (variable);
-  if (retval && retval[0])
-    {
-      gint l = strlen (retval);
-      if (l < 1024)
-        {
-          strncpy (buffer, retval, l);
-          buffer[l] = 0;
-          return buffer;
-        }
-    }
-  return NULL;
-}
-
-/**
- * g_setenv:
- * @variable: the environment variable to set, must not contain '='.
- * @value: the value for to set the variable to.
- * @overwrite: whether to change the variable if it already exists.
- *
- * Sets an environment variable. Both the variable's name and value
- * should be in the GLib file name encoding. On UNIX, this means that
- * they can be any sequence of bytes. On Windows, they should be in
- * UTF-8.
- *
- * Note that on some systems, when variables are overwritten, the memory 
- * used for the previous variables and its value isn't reclaimed.
- *
- * Returns: %FALSE if the environment variable couldn't be set.
- *
- * Since: 2.4
- */
-gboolean
-g_setenv (const gchar *variable, 
-	  const gchar *value, 
-	  gboolean     overwrite)
-{
-#ifndef G_OS_WIN32
-
-  gint result;
-#ifndef HAVE_SETENV
-  gchar *string;
-#endif
-
-  g_return_val_if_fail (variable != NULL, FALSE);
-  g_return_val_if_fail (strchr (variable, '=') == NULL, FALSE);
-
-#ifdef HAVE_SETENV
-  result = setenv (variable, value, overwrite);
-#else
-  if (!overwrite && getenv (variable) != NULL)
-    return TRUE;
-  
-  /* This results in a leak when you overwrite existing
-   * settings. It would be fairly easy to fix this by keeping
-   * our own parallel array or hash table.
-   */
-  string = g_strconcat (variable, "=", value, NULL);
-  result = putenv (string);
-#endif
-  return result == 0;
-
-#else /* G_OS_WIN32 */
-
-  gboolean retval;
-
-  g_return_val_if_fail (variable != NULL, FALSE);
-  g_return_val_if_fail (strchr (variable, '=') == NULL, FALSE);
-  g_return_val_if_fail (g_utf8_validate (variable, -1, NULL), FALSE);
-  g_return_val_if_fail (g_utf8_validate (value, -1, NULL), FALSE);
-
-  if (!overwrite && g_getenv (variable) != NULL)
-    return TRUE;
-
-  /* We want to (if possible) set both the environment variable copy
-   * kept by the C runtime and the one kept by the system.
-   *
-   * We can't use only the C runtime's putenv or _wputenv() as that
-   * won't work for arbitrary Unicode strings in a "non-Unicode" app
-   * (with main() and not wmain()). In a "main()" app the C runtime
-   * initializes the C runtime's environment table by converting the
-   * real (wide char) environment variables to system codepage, thus
-   * breaking those that aren't representable in the system codepage.
-   *
-   * As the C runtime's putenv() will also set the system copy, we do
-   * the putenv() first, then call SetEnvironmentValueW ourselves.
-   */
-
-  if (G_WIN32_HAVE_WIDECHAR_API ())
-    {
-      wchar_t *wname = g_utf8_to_utf16 (variable, -1, NULL, NULL, NULL);
-      wchar_t *wvalue = g_utf8_to_utf16 (value, -1, NULL, NULL, NULL);
-      gchar *tem = g_strconcat (variable, "=", value, NULL);
-      wchar_t *wassignment = g_utf8_to_utf16 (tem, -1, NULL, NULL, NULL);
-      
-      g_free (tem);
-      _wputenv (wassignment);
-      g_free (wassignment);
-
-      retval = (SetEnvironmentVariableW (wname, wvalue) != 0);
-
-      g_free (wname);
-      g_free (wvalue);
-    }
-  else
-    {
-      /* In the non-Unicode case (Win9x), just putenv() is good
-       * enough.
-       */
-      gchar *tem = g_strconcat (variable, "=", value, NULL);
-      gchar *cpassignment = g_locale_from_utf8 (tem, -1, NULL, NULL, NULL);
-
-      g_free (tem);
-      
-      retval = (putenv (cpassignment) == 0);
-
-      g_free (cpassignment);
-    }
-
-  return retval;
-
-#endif /* G_OS_WIN32 */
-}
-
-#ifdef HAVE__NSGETENVIRON
-#define environ (*_NSGetEnviron())
-#elif !defined(G_OS_WIN32)
-
-/* According to the Single Unix Specification, environ is not in 
- * any system header, although unistd.h often declares it.
- */
-extern char **environ;
-#endif
-
-/**
- * g_unsetenv:
- * @variable: the environment variable to remove, must not contain '='.
- * 
- * Removes an environment variable from the environment.
- *
- * Note that on some systems, when variables are overwritten, the memory 
- * used for the previous variables and its value isn't reclaimed.
- * Furthermore, this function can't be guaranteed to operate in a 
- * threadsafe way.
- *
- * Since: 2.4 
- **/
-void
-g_unsetenv (const gchar *variable)
-{
-#ifndef G_OS_WIN32
-
-#ifdef HAVE_UNSETENV
-  g_return_if_fail (variable != NULL);
-  g_return_if_fail (strchr (variable, '=') == NULL);
-
-  unsetenv (variable);
-#else /* !HAVE_UNSETENV */
-  int len;
-  gchar **e, **f;
-
-  g_return_if_fail (variable != NULL);
-  g_return_if_fail (strchr (variable, '=') == NULL);
-
-  len = strlen (variable);
-  
-  /* Mess directly with the environ array.
-   * This seems to be the only portable way to do this.
-   *
-   * Note that we remove *all* environment entries for
-   * the variable name, not just the first.
-   */
-  e = f = environ;
-  while (*e != NULL) 
-    {
-      if (strncmp (*e, variable, len) != 0 || (*e)[len] != '=') 
-	{
-	  *f = *e;
-	  f++;
-	}
-      e++;
-    }
-  *f = NULL;
-#endif /* !HAVE_UNSETENV */
-
-#else  /* G_OS_WIN32 */
-
-  g_return_if_fail (variable != NULL);
-  g_return_if_fail (strchr (variable, '=') == NULL);
-  g_return_if_fail (g_utf8_validate (variable, -1, NULL));
-
-  if (G_WIN32_HAVE_WIDECHAR_API ())
-    {
-      wchar_t *wname = g_utf8_to_utf16 (variable, -1, NULL, NULL, NULL);
-      gchar *tem = g_strconcat (variable, "=", NULL);
-      wchar_t *wassignment = g_utf8_to_utf16 (tem, -1, NULL, NULL, NULL);
-      
-      g_free (tem);
-      _wputenv (wassignment);
-      g_free (wassignment);
-
-      SetEnvironmentVariableW (wname, NULL);
-
-      g_free (wname);
-    }
-  else
-    {
-      /* In the non-Unicode case (Win9x), just putenv() is good
-       * enough.
-       */
-      gchar *tem = g_strconcat (variable, "=", NULL);
-      gchar *cpassignment = g_locale_from_utf8 (tem, -1, NULL, NULL, NULL);
-
-      g_free (tem);
-      
-      putenv (cpassignment);
-
-      g_free (cpassignment);
-    }
-
-#endif /* G_OS_WIN32 */
-}
-
-/**
- * g_listenv:
- *
- * Gets the names of all variables set in the environment.
- * 
- * Returns: a %NULL-terminated list of strings which must be freed
- * with g_strfreev().
- *
- * Since: 2.8
- */
-gchar **
-g_listenv (void)
-{
-  gchar **result, *eq;
-  gint len, i, j;
-
-  len = g_strv_length (environ);
-  result = g_new0 (gchar *, len + 1);
-  
-  j = 0;
-  for (i = 0; i < len; i++)
-    {
-      eq = strchr (environ[i], '=');
-      if (eq)
-	result[j++] = g_strndup (environ[i], eq - environ[i]);
-    }
-
-  result[j] = NULL;
-
-  return result;
+  return g_bit_storage_impl (number);
 }
 
 G_LOCK_DEFINE_STATIC (g_utils_global);
 
-static	gchar	*g_tmp_dir = NULL;
-static	gchar	*g_user_name = NULL;
-static	gchar	*g_real_name = NULL;
-static	gchar	*g_home_dir = NULL;
-static	gchar	*g_host_name = NULL;
+typedef struct
+{
+  gchar *user_name;
+  gchar *real_name;
+  gchar *home_dir;
+} UserDatabaseEntry;
 
-#ifdef G_OS_WIN32
-/* System codepage versions of the above, kept at file level so that they,
- * too, are produced only once.
- */
-static	gchar	*g_tmp_dir_cp = NULL;
-static	gchar	*g_user_name_cp = NULL;
-static	gchar	*g_real_name_cp = NULL;
-static	gchar	*g_home_dir_cp = NULL;
-#endif
-
+/* These must all be read/written with @g_utils_global held. */
 static  gchar   *g_user_data_dir = NULL;
 static  gchar  **g_system_data_dirs = NULL;
 static  gchar   *g_user_cache_dir = NULL;
 static  gchar   *g_user_config_dir = NULL;
+static  gchar   *g_user_state_dir = NULL;
+static  gchar   *g_user_runtime_dir = NULL;
 static  gchar  **g_system_config_dirs = NULL;
+static  gchar  **g_user_special_dirs = NULL;
+static  gchar   *g_tmp_dir = NULL;
+
+/* fifteen minutes of fame for everybody */
+#define G_USER_DIRS_EXPIRE      15 * 60
 
 #ifdef G_OS_WIN32
 
 static gchar *
-get_special_folder (int csidl)
+get_special_folder (REFKNOWNFOLDERID known_folder_guid_ptr)
 {
-  union {
-    char c[MAX_PATH+1];
-    wchar_t wc[MAX_PATH+1];
-  } path;
+  wchar_t *wcp = NULL;
+  gchar *result = NULL;
   HRESULT hr;
-  LPITEMIDLIST pidl = NULL;
-  BOOL b;
-  gchar *retval = NULL;
 
-  hr = SHGetSpecialFolderLocation (NULL, csidl, &pidl);
-  if (hr == S_OK)
-    {
-      if (G_WIN32_HAVE_WIDECHAR_API ())
-	{
-	  b = SHGetPathFromIDListW (pidl, path.wc);
-	  if (b)
-	    retval = g_utf16_to_utf8 (path.wc, -1, NULL, NULL, NULL);
-	}
-      else
-	{
-	  b = SHGetPathFromIDListA (pidl, path.c);
-	  if (b)
-	    retval = g_locale_to_utf8 (path.c, -1, NULL, NULL, NULL);
-	}
-      CoTaskMemFree (pidl);
-    }
-  return retval;
+  hr = SHGetKnownFolderPath (known_folder_guid_ptr, 0, NULL, &wcp);
+
+  if (SUCCEEDED (hr))
+    result = g_utf16_to_utf8 (wcp, -1, NULL, NULL, NULL);
+
+  CoTaskMemFree (wcp);
+
+  return result;
 }
 
 static char *
 get_windows_directory_root (void)
 {
-  char windowsdir[MAX_PATH];
+  wchar_t wwindowsdir[MAX_PATH];
 
-  if (GetWindowsDirectory (windowsdir, sizeof (windowsdir)))
+  if (GetWindowsDirectoryW (wwindowsdir, G_N_ELEMENTS (wwindowsdir)))
     {
       /* Usually X:\Windows, but in terminal server environments
        * might be an UNC path, AFAIK.
        */
-      char *p = (char *) g_path_skip_root (windowsdir);
+      char *windowsdir = g_utf16_to_utf8 (wwindowsdir, -1, NULL, NULL, NULL);
+      char *p;
+
+      if (windowsdir == NULL)
+	return g_strdup ("C:\\");
+
+      p = (char *) g_path_skip_root (windowsdir);
       if (G_IS_DIR_SEPARATOR (p[-1]) && p[-2] != ':')
 	p--;
       *p = '\0';
-      return g_strdup (windowsdir);
+      return windowsdir;
     }
   else
     return g_strdup ("C:\\");
@@ -1506,285 +650,140 @@ get_windows_directory_root (void)
 #endif
 
 /* HOLDS: g_utils_global_lock */
-static void
-g_get_any_init_do (void)
+static UserDatabaseEntry *
+g_get_user_database_entry (void)
 {
-  gchar hostname[100];
+  static UserDatabaseEntry *entry;
 
-  g_tmp_dir = g_strdup (g_getenv ("TMPDIR"));
-  if (!g_tmp_dir)
-    g_tmp_dir = g_strdup (g_getenv ("TMP"));
-  if (!g_tmp_dir)
-    g_tmp_dir = g_strdup (g_getenv ("TEMP"));
-
-#ifdef G_OS_WIN32
-  if (!g_tmp_dir)
-    g_tmp_dir = get_windows_directory_root ();
-#else  
-#ifdef P_tmpdir
-  if (!g_tmp_dir)
+  if (g_once_init_enter_pointer (&entry))
     {
-      gsize k;    
-      g_tmp_dir = g_strdup (P_tmpdir);
-      k = strlen (g_tmp_dir);
-      if (k > 1 && G_IS_DIR_SEPARATOR (g_tmp_dir[k - 1]))
-	g_tmp_dir[k - 1] = '\0';
-    }
-#endif
-  
-  if (!g_tmp_dir)
-    {
-      g_tmp_dir = g_strdup ("/tmp");
-    }
-#endif	/* !G_OS_WIN32 */
-  
-#ifdef G_OS_WIN32
-  /* We check $HOME first for Win32, though it is a last resort for Unix
-   * where we prefer the results of getpwuid().
-   */
-  g_home_dir = g_strdup (g_getenv ("HOME"));
+      static UserDatabaseEntry e;
 
-  /* Only believe HOME if it is an absolute path and exists */
-  if (g_home_dir)
-    {
-      if (!(g_path_is_absolute (g_home_dir) &&
-	    g_file_test (g_home_dir, G_FILE_TEST_IS_DIR)))
-	{
-	  g_free (g_home_dir);
-	  g_home_dir = NULL;
-	}
-    }
-  
-  /* In case HOME is Unix-style (it happens), convert it to
-   * Windows style.
-   */
-  if (g_home_dir)
-    {
-      gchar *p;
-      while ((p = strchr (g_home_dir, '/')) != NULL)
-	*p = '\\';
-    }
+#ifdef G_OS_UNIX
+      {
+        struct passwd *pw = NULL;
+        gpointer buffer = NULL;
+        gint error;
+        const char *logname;
 
-  if (!g_home_dir)
-    {
-      /* USERPROFILE is probably the closest equivalent to $HOME? */
-      if (g_getenv ("USERPROFILE") != NULL)
-	g_home_dir = g_strdup (g_getenv ("USERPROFILE"));
-    }
+#  if defined (HAVE_GETPWUID_R)
+        struct passwd pwd;
+#    ifdef _SC_GETPW_R_SIZE_MAX
+        /* This returns the maximum length */
+        glong bufsize = sysconf (_SC_GETPW_R_SIZE_MAX);
 
-  if (!g_home_dir)
-    g_home_dir = get_special_folder (CSIDL_PROFILE);
-  
-  if (!g_home_dir)
-    g_home_dir = get_windows_directory_root ();
-#endif /* G_OS_WIN32 */
-  
-#ifdef HAVE_PWD_H
-  {
-    struct passwd *pw = NULL;
-    gpointer buffer = NULL;
-    gint error;
-    gchar *logname;
-
-#  if defined (HAVE_POSIX_GETPWUID_R) || defined (HAVE_NONPOSIX_GETPWUID_R)
-    struct passwd pwd;
-#    ifdef _SC_GETPW_R_SIZE_MAX  
-    /* This reurns the maximum length */
-    glong bufsize = sysconf (_SC_GETPW_R_SIZE_MAX);
-    
-    if (bufsize < 0)
-      bufsize = 64;
+        if (bufsize < 0)
+          bufsize = 64;
 #    else /* _SC_GETPW_R_SIZE_MAX */
-    glong bufsize = 64;
+        glong bufsize = 64;
 #    endif /* _SC_GETPW_R_SIZE_MAX */
 
-    logname = (gchar *) g_getenv ("LOGNAME");
-        
-    do
-      {
-	g_free (buffer);
-	/* we allocate 6 extra bytes to work around a bug in 
-	 * Mac OS < 10.3. See #156446
-	 */
-	buffer = g_malloc (bufsize + 6);
-	errno = 0;
-	
-#    ifdef HAVE_POSIX_GETPWUID_R
-	if (logname) {
-	  error = getpwnam_r (logname, &pwd, buffer, bufsize, &pw);
-	  if (!pw || (pw->pw_uid != getuid ())) {
-	    /* LOGNAME is lying, fall back to looking up the uid */
-	    error = getpwuid_r (getuid (), &pwd, buffer, bufsize, &pw);
-	  }
-	} else {
-	  error = getpwuid_r (getuid (), &pwd, buffer, bufsize, &pw);
-	}
-	error = error < 0 ? errno : error;
-#    else /* HAVE_NONPOSIX_GETPWUID_R */
-   /* HPUX 11 falls into the HAVE_POSIX_GETPWUID_R case */
-#      if defined(_AIX) || defined(__hpux)
-	error = getpwuid_r (getuid (), &pwd, buffer, bufsize);
-	pw = error == 0 ? &pwd : NULL;
-#      else /* !_AIX */
-	if (logname) {
-	  pw = getpwnam_r (logname, &pwd, buffer, bufsize);
-	  if (!pw || (pw->pw_uid != getuid ())) {
-	    /* LOGNAME is lying, fall back to looking up the uid */
-	    pw = getpwuid_r (getuid (), &pwd, buffer, bufsize);
-	  }
-	} else {
-	  pw = getpwuid_r (getuid (), &pwd, buffer, bufsize);
-	}
-	error = pw ? 0 : errno;
-#      endif /* !_AIX */            
-#    endif /* HAVE_NONPOSIX_GETPWUID_R */
-	
-	if (!pw)
-	  {
-	    /* we bail out prematurely if the user id can't be found
-	     * (should be pretty rare case actually), or if the buffer
-	     * should be sufficiently big and lookups are still not
-	     * successfull.
-	     */
-	    if (error == 0 || error == ENOENT)
-	      {
-		g_warning ("getpwuid_r(): failed due to unknown user id (%lu)",
-			   (gulong) getuid ());
-		break;
-	      }
-	    if (bufsize > 32 * 1024)
-	      {
-		g_warning ("getpwuid_r(): failed due to: %s.",
-			   g_strerror (error));
-		break;
-	      }
-	    
-	    bufsize *= 2;
-	  }
-      }
-    while (!pw);
-#  endif /* HAVE_POSIX_GETPWUID_R || HAVE_NONPOSIX_GETPWUID_R */
-    
-    if (!pw)
-      {
-	setpwent ();
-	pw = getpwuid (getuid ());
-	endpwent ();
-      }
-    if (pw)
-      {
-	g_user_name = g_strdup (pw->pw_name);
+        logname = g_getenv ("LOGNAME");
 
-	if (pw->pw_gecos && *pw->pw_gecos != '\0') 
-	  {
-	    gchar **gecos_fields;
-	    gchar **name_parts;
+        do
+          {
+            g_free (buffer);
+            /* we allocate 6 extra bytes to work around a bug in
+             * Mac OS < 10.3. See #156446
+             */
+            buffer = g_malloc (bufsize + 6);
+            errno = 0;
 
-	    /* split the gecos field and substitute '&' */
-	    gecos_fields = g_strsplit (pw->pw_gecos, ",", 0);
-	    name_parts = g_strsplit (gecos_fields[0], "&", 0);
-	    pw->pw_name[0] = g_ascii_toupper (pw->pw_name[0]);
-	    g_real_name = g_strjoinv (pw->pw_name, name_parts);
-	    g_strfreev (gecos_fields);
-	    g_strfreev (name_parts);
-	  }
+            if (logname) {
+              error = getpwnam_r (logname, &pwd, buffer, bufsize, &pw);
+              if (!pw || (pw->pw_uid != getuid ())) {
+                /* LOGNAME is lying, fall back to looking up the uid */
+                error = getpwuid_r (getuid (), &pwd, buffer, bufsize, &pw);
+              }
+            } else {
+              error = getpwuid_r (getuid (), &pwd, buffer, bufsize, &pw);
+            }
+            error = error < 0 ? errno : error;
 
-	if (!g_home_dir)
-	  g_home_dir = g_strdup (pw->pw_dir);
-      }
-    g_free (buffer);
-  }
-  
-#else /* !HAVE_PWD_H */
-  
-#ifdef G_OS_WIN32
-  if (G_WIN32_HAVE_WIDECHAR_API ())
-    {
-      guint len = UNLEN+1;
-      wchar_t buffer[UNLEN+1];
-      
-      if (GetUserNameW (buffer, (LPDWORD) &len))
-	{
-	  g_user_name = g_utf16_to_utf8 (buffer, -1, NULL, NULL, NULL);
-	  g_real_name = g_strdup (g_user_name);
-	}
-    }
-  else
-    {
-      guint len = UNLEN+1;
-      char buffer[UNLEN+1];
-      
-      if (GetUserNameA (buffer, (LPDWORD) &len))
-	{
-	  g_user_name = g_locale_to_utf8 (buffer, -1, NULL, NULL, NULL);
-	  g_real_name = g_strdup (g_user_name);
-	}
-    }
-#endif /* G_OS_WIN32 */
+            if (!pw)
+              {
+                /* we bail out prematurely if the user id can't be found
+                 * (should be pretty rare case actually), or if the buffer
+                 * should be sufficiently big and lookups are still not
+                 * successful.
+                 */
+                if (error == 0 || error == ENOENT)
+                  {
+                    g_warning ("getpwuid_r(): failed due to unknown user id (%lu)",
+                               (gulong) getuid ());
+                    break;
+                  }
+                if (bufsize > 32 * 1024)
+                  {
+                    g_warning ("getpwuid_r(): failed due to: %s.",
+                               g_strerror (error));
+                    break;
+                  }
 
-#endif /* !HAVE_PWD_H */
+                bufsize *= 2;
+              }
+          }
+        while (!pw);
+#  endif /* HAVE_GETPWUID_R */
 
-#ifndef G_OS_WIN32
-  if (!g_home_dir)
-    g_home_dir = g_strdup (g_getenv ("HOME"));
+        if (!pw)
+          {
+            pw = getpwuid (getuid ());
+          }
+        if (pw)
+          {
+            e.user_name = g_strdup (pw->pw_name);
+
+#ifndef __BIONIC__
+            if (pw->pw_gecos && *pw->pw_gecos != '\0' && pw->pw_name)
+              {
+                gchar **gecos_fields;
+                gchar **name_parts;
+                gchar *uppercase_pw_name;
+
+                /* split the gecos field and substitute '&' */
+                gecos_fields = g_strsplit (pw->pw_gecos, ",", 0);
+                name_parts = g_strsplit (gecos_fields[0], "&", 0);
+                uppercase_pw_name = g_strdup (pw->pw_name);
+                uppercase_pw_name[0] = g_ascii_toupper (uppercase_pw_name[0]);
+                e.real_name = g_strjoinv (uppercase_pw_name, name_parts);
+                g_strfreev (gecos_fields);
+                g_strfreev (name_parts);
+                g_free (uppercase_pw_name);
+              }
 #endif
 
-#ifdef __EMX__
-  /* change '\\' in %HOME% to '/' */
-  g_strdelimit (g_home_dir, "\\",'/');
-#endif
-  if (!g_user_name)
-    g_user_name = g_strdup ("somebody");
-  if (!g_real_name)
-    g_real_name = g_strdup ("Unknown");
+            if (!e.home_dir)
+              e.home_dir = g_strdup (pw->pw_dir);
+          }
+        g_free (buffer);
+      }
 
-  {
-#ifndef G_OS_WIN32
-    gboolean hostname_fail = (gethostname (hostname, sizeof (hostname)) == -1);
-#else
-    DWORD size = sizeof (hostname);
-    gboolean hostname_fail = (!GetComputerName (hostname, &size));
-#endif
-    g_host_name = g_strdup (hostname_fail ? "localhost" : hostname);
-  }
+#endif /* G_OS_UNIX */
 
 #ifdef G_OS_WIN32
-  g_tmp_dir_cp = g_locale_from_utf8 (g_tmp_dir, -1, NULL, NULL, NULL);
-  g_user_name_cp = g_locale_from_utf8 (g_user_name, -1, NULL, NULL, NULL);
-  g_real_name_cp = g_locale_from_utf8 (g_real_name, -1, NULL, NULL, NULL);
+      {
+        guint len = UNLEN+1;
+        wchar_t buffer[UNLEN+1];
 
-  if (!g_tmp_dir_cp)
-    g_tmp_dir_cp = g_strdup ("\\");
-  if (!g_user_name_cp)
-    g_user_name_cp = g_strdup ("somebody");
-  if (!g_real_name_cp)
-    g_real_name_cp = g_strdup ("Unknown");
-
-  /* home_dir might be NULL, unlike tmp_dir, user_name and
-   * real_name.
-   */
-  if (g_home_dir)
-    g_home_dir_cp = g_locale_from_utf8 (g_home_dir, -1, NULL, NULL, NULL);
-  else
-    g_home_dir_cp = NULL;
+        if (GetUserNameW (buffer, (LPDWORD) &len))
+          {
+            e.user_name = g_utf16_to_utf8 (buffer, -1, NULL, NULL, NULL);
+            e.real_name = g_strdup (e.user_name);
+          }
+      }
 #endif /* G_OS_WIN32 */
-}
 
-static inline void
-g_get_any_init (void)
-{
-  if (!g_tmp_dir)
-    g_get_any_init_do ();
-}
+      if (!e.user_name)
+        e.user_name = g_strdup ("somebody");
+      if (!e.real_name)
+        e.real_name = g_strdup ("Unknown");
 
-static inline void
-g_get_any_init_locked (void)
-{
-  G_LOCK (g_utils_global);
-  g_get_any_init ();
-  G_UNLOCK (g_utils_global);
-}
+      g_once_init_leave_pointer (&entry, &e);
+    }
 
+  return entry;
+}
 
 /**
  * g_get_user_name:
@@ -1794,67 +793,247 @@ g_get_any_init_locked (void)
  * encoding, or something else, and there is no guarantee that it is even
  * consistent on a machine. On Windows, it is always UTF-8.
  *
- * Returns: the user name of the current user.
+ * Returns: (type filename) (transfer none): the user name of the current user.
  */
-G_CONST_RETURN gchar*
+const gchar *
 g_get_user_name (void)
 {
-  g_get_any_init_locked ();
-  return g_user_name;
+  UserDatabaseEntry *entry;
+
+  entry = g_get_user_database_entry ();
+
+  return entry->user_name;
 }
 
 /**
  * g_get_real_name:
  *
- * Gets the real name of the user. This usually comes from the user's entry 
- * in the <filename>passwd</filename> file. The encoding of the returned 
- * string is system-defined. (On Windows, it is, however, always UTF-8.) 
- * If the real user name cannot be determined, the string "Unknown" is 
+ * Gets the real name of the user. This usually comes from the user's
+ * entry in the `passwd` file. The encoding of the returned string is
+ * system-defined. (On Windows, it is, however, always UTF-8.) If the
+ * real user name cannot be determined, the string "Unknown" is 
  * returned.
  *
- * Returns: the user's real name.
+ * Returns: (type filename) (transfer none): the user's real name.
  */
-G_CONST_RETURN gchar*
+const gchar *
 g_get_real_name (void)
 {
-  g_get_any_init_locked ();
-  return g_real_name;
+  UserDatabaseEntry *entry;
+
+  entry = g_get_user_database_entry ();
+
+  return entry->real_name;
+}
+
+/* Protected by @g_utils_global_lock. */
+static gchar *g_home_dir = NULL;  /* (owned) (nullable before initialised) */
+
+static gchar *
+g_build_home_dir (void)
+{
+  gchar *home_dir;
+
+  /* We first check HOME and use it if it is set */
+  home_dir = g_strdup (g_getenv ("HOME"));
+
+#ifdef G_OS_WIN32
+  /* Only believe HOME if it is an absolute path and exists.
+   *
+   * We only do this check on Windows for a couple of reasons.
+   * Historically, we only did it there because we used to ignore $HOME
+   * on UNIX.  There are concerns about enabling it now on UNIX because
+   * of things like autofs.  In short, if the user has a bogus value in
+   * $HOME then they get what they pay for...
+   */
+  if (home_dir != NULL)
+    {
+      if (!(g_path_is_absolute (home_dir) &&
+            g_file_test (home_dir, G_FILE_TEST_IS_DIR)))
+        g_clear_pointer (&home_dir, g_free);
+    }
+
+  /* In case HOME is Unix-style (it happens), convert it to
+   * Windows style.
+   */
+  if (home_dir != NULL)
+    {
+      gchar *p;
+      while ((p = strchr (home_dir, '/')) != NULL)
+        *p = '\\';
+    }
+
+  if (home_dir == NULL)
+    {
+      /* USERPROFILE is probably the closest equivalent to $HOME? */
+      if (g_getenv ("USERPROFILE") != NULL)
+        home_dir = g_strdup (g_getenv ("USERPROFILE"));
+    }
+
+  if (home_dir == NULL)
+    home_dir = get_special_folder (&FOLDERID_Profile);
+
+  if (home_dir == NULL)
+    home_dir = get_windows_directory_root ();
+#endif /* G_OS_WIN32 */
+
+  if (home_dir == NULL)
+    {
+      /* If we didn't get it from any of those methods, we will have
+       * to read the user database entry.
+       */
+      UserDatabaseEntry *entry = g_get_user_database_entry ();
+      home_dir = g_strdup (entry->home_dir);
+    }
+
+  /* If we have been denied access to /etc/passwd (for example, by an
+   * overly-zealous LSM), make up a junk value. The return value at this
+   * point is explicitly documented as ‘undefined’. */
+  if (home_dir == NULL)
+    {
+      g_warning ("Could not find home directory: $HOME is not set, and "
+                 "user database could not be read.");
+      home_dir = g_strdup ("/");
+    }
+
+  return g_steal_pointer (&home_dir);
+}
+
+static const gchar *
+g_get_home_dir_unlocked (void)
+{
+  if (g_home_dir == NULL)
+    g_home_dir = g_build_home_dir ();
+
+  return g_home_dir;
 }
 
 /**
  * g_get_home_dir:
  *
- * Gets the current user's home directory. 
+ * Gets the current user's home directory.
  *
- * Note that in contrast to traditional UNIX tools, this function 
- * prefers <filename>passwd</filename> entries over the <envar>HOME</envar> 
- * environment variable.
+ * As with most UNIX tools, this function will return the value of the
+ * `HOME` environment variable if it is set to an existing absolute path
+ * name, falling back to the `passwd` file in the case that it is unset.
  *
- * Returns: the current user's home directory.
+ * If the path given in `HOME` is non-absolute, does not exist, or is
+ * not a directory, the result is undefined.
+ *
+ * Before version 2.36 this function would ignore the `HOME` environment
+ * variable, taking the value from the `passwd` database instead. This was
+ * changed to increase the compatibility of GLib with other programs (and
+ * the XDG basedir specification) and to increase testability of programs
+ * based on GLib (by making it easier to run them from test frameworks).
+ *
+ * If your program has a strong requirement for either the new or the
+ * old behaviour (and if you don't wish to increase your GLib
+ * dependency to ensure that the new behaviour is in effect) then you
+ * should either directly check the `HOME` environment variable yourself
+ * or unset it before calling any functions in GLib.
+ *
+ * Returns: (type filename) (transfer none): the current user's home directory
  */
-G_CONST_RETURN gchar*
+const gchar *
 g_get_home_dir (void)
 {
-  g_get_any_init_locked ();
-  return g_home_dir;
+  const gchar *home_dir;
+
+  G_LOCK (g_utils_global);
+
+  home_dir = g_get_home_dir_unlocked ();
+
+  G_UNLOCK (g_utils_global);
+
+  return home_dir;
+}
+
+void
+_g_unset_cached_tmp_dir (void)
+{
+  G_LOCK (g_utils_global);
+  /* We have to leak the old value, as user code could be retaining pointers
+   * to it. */
+  g_ignore_leak (g_tmp_dir);
+  g_tmp_dir = NULL;
+  G_UNLOCK (g_utils_global);
 }
 
 /**
  * g_get_tmp_dir:
  *
- * Gets the directory to use for temporary files. This is found from 
- * inspecting the environment variables <envar>TMPDIR</envar>, 
- * <envar>TMP</envar>, and <envar>TEMP</envar> in that order. If none 
- * of those are defined "/tmp" is returned on UNIX and "C:\" on Windows. 
- * The encoding of the returned string is system-defined. On Windows, 
- * it is always UTF-8. The return value is never %NULL.
+ * Gets the directory to use for temporary files.
  *
- * Returns: the directory to use for temporary files.
+ * On UNIX, this is taken from the `TMPDIR` environment variable.
+ * If the variable is not set, `P_tmpdir` is
+ * used, as defined by the system C library. Failing that, a
+ * hard-coded default of "/tmp" is returned.
+ *
+ * On Windows, the `TEMP` environment variable is used, with the
+ * root directory of the Windows installation (eg: "C:\") used
+ * as a default.
+ *
+ * The encoding of the returned string is system-defined. On Windows,
+ * it is always UTF-8. The return value is never %NULL or the empty
+ * string.
+ *
+ * Returns: (type filename) (transfer none): the directory to use for temporary files.
  */
-G_CONST_RETURN gchar*
+const gchar *
 g_get_tmp_dir (void)
 {
-  g_get_any_init_locked ();
+  G_LOCK (g_utils_global);
+
+  if (g_tmp_dir == NULL)
+    {
+      gchar *tmp;
+
+      tmp = g_strdup (g_getenv ("G_TEST_TMPDIR"));
+
+      if (tmp == NULL || *tmp == '\0')
+        {
+          g_free (tmp);
+          tmp = g_strdup (g_getenv (
+#ifdef G_OS_WIN32
+            "TEMP"
+#else /* G_OS_WIN32 */
+            "TMPDIR"
+#endif /* G_OS_WIN32 */
+          ));
+        }
+
+#ifdef G_OS_WIN32
+      if (tmp == NULL || *tmp == '\0')
+        {
+          g_free (tmp);
+          tmp = get_windows_directory_root ();
+        }
+#else /* G_OS_WIN32 */
+
+#ifdef P_tmpdir
+      if (tmp == NULL || *tmp == '\0')
+        {
+          gsize k;
+          g_free (tmp);
+          tmp = g_strdup (P_tmpdir);
+          k = strlen (tmp);
+          if (k > 1 && G_IS_DIR_SEPARATOR (tmp[k - 1]))
+            tmp[k - 1] = '\0';
+        }
+#endif /* P_tmpdir */
+
+      if (tmp == NULL || *tmp == '\0')
+        {
+          g_free (tmp);
+          tmp = g_strdup ("/tmp");
+        }
+#endif /* !G_OS_WIN32 */
+
+      g_tmp_dir = g_steal_pointer (&tmp);
+    }
+
+  G_UNLOCK (g_utils_global);
+
   return g_tmp_dir;
 }
 
@@ -1874,94 +1053,150 @@ g_get_tmp_dir (void)
  * name can be determined, a default fixed string "localhost" is
  * returned.
  *
- * Returns: the host name of the machine.
+ * The encoding of the returned string is UTF-8.
+ *
+ * Returns: (transfer none): the host name of the machine.
  *
  * Since: 2.8
  */
 const gchar *
 g_get_host_name (void)
 {
-  g_get_any_init_locked ();
-  return g_host_name;
+  static gchar *hostname;
+
+  if (g_once_init_enter_pointer (&hostname))
+    {
+      gboolean failed;
+      gchar *utmp = NULL;
+
+#ifndef G_OS_WIN32
+      gsize size;
+      /* The number 256 * 256 is taken from the value of _POSIX_HOST_NAME_MAX,
+       * which is 255. Since we use _POSIX_HOST_NAME_MAX + 1 (= 256) in the
+       * fallback case, we pick 256 * 256 as the size of the larger buffer here.
+       * It should be large enough. It doesn't looks reasonable to name a host
+       * with a string that is longer than 64 KiB.
+       */
+      const gsize size_large = (gsize) 256 * 256;
+      gchar *tmp;
+
+#ifdef _SC_HOST_NAME_MAX
+      {
+        glong max;
+
+        max = sysconf (_SC_HOST_NAME_MAX);
+        if (max > 0 && (gsize) max <= G_MAXSIZE - 1)
+          size = (gsize) max + 1;
+        else
+#ifdef HOST_NAME_MAX
+          size = HOST_NAME_MAX + 1;
+#else
+          size = _POSIX_HOST_NAME_MAX + 1;
+#endif /* HOST_NAME_MAX */
+      }
+#else
+      /* Fallback to some reasonable value */
+      size = 256;
+#endif /* _SC_HOST_NAME_MAX */
+      tmp = g_malloc (size);
+      failed = (gethostname (tmp, size) == -1);
+      if (failed && size < size_large)
+        {
+          /* Try again with a larger buffer if 'size' may be too small. */
+          g_free (tmp);
+          tmp = g_malloc (size_large);
+          failed = (gethostname (tmp, size_large) == -1);
+        }
+
+      if (failed)
+        g_clear_pointer (&tmp, g_free);
+      utmp = tmp;
+#else
+      wchar_t tmp[MAX_COMPUTERNAME_LENGTH + 1];
+      DWORD size = sizeof (tmp) / sizeof (tmp[0]);
+      failed = (!GetComputerNameW (tmp, &size));
+      if (!failed)
+        utmp = g_utf16_to_utf8 (tmp, size, NULL, NULL, NULL);
+      if (utmp == NULL)
+        failed = TRUE;
+#endif
+
+      g_once_init_leave_pointer (&hostname, failed ? g_strdup ("localhost") : utmp);
+    }
+
+  return hostname;
 }
 
-G_LOCK_DEFINE_STATIC (g_prgname);
-static gchar *g_prgname = NULL;
+static const gchar *g_prgname = NULL; /* always a quark */
 
 /**
  * g_get_prgname:
  *
- * Gets the name of the program. This name should <emphasis>not</emphasis> 
- * be localized, contrast with g_get_application_name().
- * (If you are using GDK or GTK+ the program name is set in gdk_init(), 
- * which is called by gtk_init(). The program name is found by taking 
- * the last component of <literal>argv[0]</literal>.)
+ * Gets the name of the program. This name should not be localized,
+ * in contrast to g_get_application_name().
  *
- * Returns: the name of the program. The returned string belongs 
- * to GLib and must not be modified or freed.
+ * If you are using #GApplication the program name is set in
+ * g_application_run(). In case of GDK or GTK it is set in
+ * gdk_init(), which is called by gtk_init() and the
+ * #GtkApplication::startup handler. The program name is found by
+ * taking the last component of @argv[0].
+ *
+ * Returns: (nullable) (transfer none): the name of the program,
+ *   or %NULL if it has not been set yet. The returned string belongs
+ *   to GLib and must not be modified or freed.
  */
-gchar*
+const gchar*
 g_get_prgname (void)
 {
-  gchar* retval;
-
-  G_LOCK (g_prgname);
-#ifdef G_OS_WIN32
-  if (g_prgname == NULL)
-    {
-      static gboolean beenhere = FALSE;
-
-      if (!beenhere)
-	{
-	  gchar *utf8_buf = NULL;
-
-	  beenhere = TRUE;
-	  if (G_WIN32_HAVE_WIDECHAR_API ())
-	    {
-	      wchar_t buf[MAX_PATH+1];
-	      if (GetModuleFileNameW (GetModuleHandle (NULL),
-				      buf, G_N_ELEMENTS (buf)) > 0)
-		utf8_buf = g_utf16_to_utf8 (buf, -1, NULL, NULL, NULL);
-	    }
-	  else
-	    {
-	      gchar buf[MAX_PATH+1];
-	      if (GetModuleFileNameA (GetModuleHandle (NULL),
-				      buf, G_N_ELEMENTS (buf)) > 0)
-		utf8_buf = g_locale_to_utf8 (buf, -1, NULL, NULL, NULL);
-	    }
-	  if (utf8_buf)
-	    {
-	      g_prgname = g_path_get_basename (utf8_buf);
-	      g_free (utf8_buf);
-	    }
-	}
-    }
-#endif
-  retval = g_prgname;
-  G_UNLOCK (g_prgname);
-
-  return retval;
+  return g_atomic_pointer_get (&g_prgname);
 }
 
 /**
  * g_set_prgname:
  * @prgname: the name of the program.
  *
- * Sets the name of the program. This name should <emphasis>not</emphasis> 
- * be localized, contrast with g_set_application_name(). Note that for 
- * thread-safety reasons this function can only be called once.
+ * Sets the name of the program. This name should not be localized,
+ * in contrast to g_set_application_name().
+ *
+ * If you are using #GApplication the program name is set in
+ * g_application_run(). In case of GDK or GTK it is set in
+ * gdk_init(), which is called by gtk_init() and the
+ * #GtkApplication::startup handler. By default, the program name is
+ * found by taking the last component of @argv[0].
+ *
+ * Since GLib 2.72, this function can be called multiple times
+ * and is fully thread safe. Prior to GLib 2.72, this function
+ * could only be called once per process.
+ *
+ * See the [GTK documentation](https://docs.gtk.org/gtk4/migrating-3to4.html#set-a-proper-application-id)
+ * for requirements on integrating g_set_prgname() with GTK applications.
  */
 void
 g_set_prgname (const gchar *prgname)
 {
-  G_LOCK (g_prgname);
-  g_free (g_prgname);
-  g_prgname = g_strdup (prgname);
-  G_UNLOCK (g_prgname);
+  prgname = g_intern_string (prgname);
+  g_atomic_pointer_set (&g_prgname, prgname);
 }
 
-G_LOCK_DEFINE_STATIC (g_application_name);
+/**
+ * g_set_prgname_once:
+ * @prgname: the name of the program.
+ *
+ * If g_get_prgname() is not set, this is the same as setting
+ * the name via g_set_prgname() and %TRUE is returned. Otherwise,
+ * does nothing and returns %FALSE. This is thread-safe.
+ *
+ * Returns: whether g_prgname was initialized by the call.
+ */
+gboolean
+g_set_prgname_once (const gchar *prgname)
+{
+  /* if @prgname is NULL, then this has the same effect as calling
+   * (g_get_prgname()==NULL). */
+  prgname = g_intern_string (prgname);
+  return g_atomic_pointer_compare_and_exchange (&g_prgname, NULL, prgname);
+}
+
 static gchar *g_application_name = NULL;
 
 /**
@@ -1975,23 +1210,22 @@ static gchar *g_application_name = NULL;
  * g_get_prgname() (which may be %NULL if g_set_prgname() has also not
  * been called).
  * 
- * Return value: human-readable application name. may return %NULL
+ * Returns: (transfer none) (nullable): human-readable application
+ *   name. May return %NULL
  *
  * Since: 2.2
  **/
-G_CONST_RETURN gchar*
+const gchar *
 g_get_application_name (void)
 {
-  gchar* retval;
+  const char *retval;
 
-  G_LOCK (g_application_name);
-  retval = g_application_name;
-  G_UNLOCK (g_application_name);
+  retval = g_atomic_pointer_get (&g_application_name);
 
-  if (retval == NULL)
-    return g_get_prgname ();
-  
-  return retval;
+  if (retval)
+    return retval;
+
+  return g_get_prgname ();
 }
 
 /**
@@ -2010,21 +1244,655 @@ g_get_application_name (void)
  * The application name will be used in contexts such as error messages,
  * or when displaying an application's name in the task list.
  * 
+ * Since: 2.2
  **/
 void
 g_set_application_name (const gchar *application_name)
 {
-  gboolean already_set = FALSE;
-	
-  G_LOCK (g_application_name);
-  if (g_application_name)
-    already_set = TRUE;
-  else
-    g_application_name = g_strdup (application_name);
-  G_UNLOCK (g_application_name);
+  char *name;
 
-  if (already_set)
-    g_warning ("g_set_application() name called multiple times");
+  g_return_if_fail (application_name);
+
+  name = g_strdup (application_name);
+
+  if (!g_atomic_pointer_compare_and_exchange (&g_application_name, NULL, name))
+    {
+      g_warning ("g_set_application_name() called multiple times");
+      g_free (name);
+    }
+}
+
+#ifdef G_OS_WIN32
+/* For the past versions we can just
+ * hardcode all the names.
+ */
+static const struct winver
+{
+  gint major;
+  gint minor;
+  gint sp;
+  const char *version;
+  const char *spversion;
+} versions[] =
+{
+  {6, 2, 0, "8", ""},
+  {6, 1, 1, "7", " SP1"},
+  {6, 1, 0, "7", ""},
+  {6, 0, 2, "Vista", " SP2"},
+  {6, 0, 1, "Vista", " SP1"},
+  {6, 0, 0, "Vista", ""},
+  {5, 1, 3, "XP", " SP3"},
+  {5, 1, 2, "XP", " SP2"},
+  {5, 1, 1, "XP", " SP1"},
+  {5, 1, 0, "XP", ""},
+  {0, 0, 0, NULL, NULL},
+};
+
+static gchar *
+get_registry_str (HKEY root_key, const wchar_t *path, const wchar_t *value_name)
+{
+  HKEY key_handle;
+  DWORD req_value_data_size;
+  DWORD req_value_data_size2;
+  LONG status;
+  DWORD value_type_w;
+  DWORD value_type_w2;
+  char *req_value_data;
+  gchar *result;
+
+  status = RegOpenKeyExW (root_key, path, 0, KEY_READ, &key_handle);
+  if (status != ERROR_SUCCESS)
+    return NULL;
+
+  req_value_data_size = 0;
+  status = RegQueryValueExW (key_handle,
+                             value_name,
+                             NULL,
+                             &value_type_w,
+                             NULL,
+                             &req_value_data_size);
+
+  if (status != ERROR_MORE_DATA && status != ERROR_SUCCESS)
+    {
+      RegCloseKey (key_handle);
+
+      return NULL;
+    }
+
+  req_value_data = g_malloc (req_value_data_size);
+  req_value_data_size2 = req_value_data_size;
+
+  status = RegQueryValueExW (key_handle,
+                             value_name,
+                             NULL,
+                             &value_type_w2,
+                             (gpointer) req_value_data,
+                             &req_value_data_size2);
+
+  result = NULL;
+
+  if (status == ERROR_SUCCESS && value_type_w2 == REG_SZ)
+    result = g_utf16_to_utf8 ((gunichar2 *) req_value_data,
+                              req_value_data_size / sizeof (gunichar2),
+                              NULL,
+                              NULL,
+                              NULL);
+
+  g_free (req_value_data);
+  RegCloseKey (key_handle);
+
+  return result;
+}
+
+/* Windows 8.1 can be either plain or with Update 1,
+ * depending on its build number (9200 or 9600).
+ */
+static gchar *
+get_windows_8_1_update (void)
+{
+  gchar *current_build;
+  gchar *result = NULL;
+
+  current_build = get_registry_str (HKEY_LOCAL_MACHINE,
+                                    L"SOFTWARE"
+                                    L"\\Microsoft"
+                                    L"\\Windows NT"
+                                    L"\\CurrentVersion",
+                                    L"CurrentBuild");
+
+  if (current_build != NULL)
+    {
+      wchar_t *end;
+      long build = wcstol ((const wchar_t *) current_build, &end, 10);
+
+      if (build <= INT_MAX &&
+          build >= INT_MIN &&
+          errno == 0 &&
+          *end == L'\0')
+        {
+          if (build >= 9600)
+            result = g_strdup ("Update 1");
+        }
+    }
+
+  g_clear_pointer (&current_build, g_free);
+
+  return result;
+}
+
+static gchar *
+get_windows_version (gboolean with_windows)
+{
+  GString *version = g_string_new (NULL);
+  gboolean is_win_server = FALSE;
+
+  if (g_win32_check_windows_version (10, 0, 0, G_WIN32_OS_ANY))
+    {
+      gchar *win10_release;
+      gboolean is_win11 = FALSE;
+      OSVERSIONINFOEXW osinfo;
+
+      /* Are we on Windows 2016/2019/2022 Server? */
+      is_win_server = g_win32_check_windows_version (10, 0, 0, G_WIN32_OS_SERVER);
+
+      /*
+       * This always succeeds if we get here, since the
+       * g_win32_check_windows_version() already did this!
+       * We want the OSVERSIONINFOEXW here for more even
+       * fine-grained versioning items
+       */
+      _g_win32_call_rtl_version (&osinfo);
+
+      if (!is_win_server)
+        {
+          /*
+           * Windows 11 is actually Windows 10.0.22000+,
+           * so look at the build number
+           */
+          is_win11 = (osinfo.dwBuildNumber >= 22000);
+        }
+      else
+        {
+          /*
+           * Windows 2022 Server is actually Windows 10.0.20348+,
+           * Windows 2019 Server is actually Windows 10.0.17763+,
+           * Windows 2016 Server is actually Windows 10.0.14393+,
+           * so look at the build number
+           */
+          g_string_append (version, "Server");
+          if (osinfo.dwBuildNumber >= 20348)
+            g_string_append (version, " 2022");
+          else if (osinfo.dwBuildNumber >= 17763)
+            g_string_append (version, " 2019");
+          else
+            g_string_append (version, " 2016");
+        }
+
+      if (is_win11)
+        g_string_append (version, "11");
+      else if (!is_win_server)
+        g_string_append (version, "10");
+
+      /* Windows 10/Server 2016+ is identified by its ReleaseId or
+       * DisplayVersion (since 20H2), such as
+       * 1511, 1607, 1703, 1709, 1803, 1809 or 1903 etc.
+       * The first version of Windows 10 has no release number.
+       */
+      win10_release = get_registry_str (HKEY_LOCAL_MACHINE,
+                                        L"SOFTWARE"
+                                        L"\\Microsoft"
+                                        L"\\Windows NT"
+                                        L"\\CurrentVersion",
+                                        L"ReleaseId");
+
+      if (win10_release != NULL)
+        {
+          if (g_strcmp0 (win10_release, "2009") != 0)
+            g_string_append_printf (version, " %s", win10_release);
+          else
+            {
+              g_free (win10_release);
+
+              win10_release = get_registry_str (HKEY_LOCAL_MACHINE,
+                                                L"SOFTWARE"
+                                                L"\\Microsoft"
+                                                L"\\Windows NT"
+                                                L"\\CurrentVersion",
+                                                L"DisplayVersion");
+
+              if (win10_release != NULL)
+                g_string_append_printf (version, " %s", win10_release);
+              else
+                g_string_append_printf (version, " 2009");
+            }
+        }
+
+      g_free (win10_release);
+    }
+  else if (g_win32_check_windows_version (6, 3, 0, G_WIN32_OS_ANY))
+    {
+      gchar *win81_update;
+
+      if (g_win32_check_windows_version (6, 3, 0, G_WIN32_OS_WORKSTATION))
+        g_string_append (version, "8.1");
+      else
+        g_string_append (version, "Server 2012 R2");
+
+      win81_update = get_windows_8_1_update ();
+
+      if (win81_update != NULL)
+        g_string_append_printf (version, " %s", win81_update);
+
+      g_free (win81_update);
+    }
+  else
+    {
+      gint i;
+
+      for (i = 0; versions[i].major > 0; i++)
+        {
+          if (!g_win32_check_windows_version (versions[i].major, versions[i].minor, versions[i].sp, G_WIN32_OS_ANY))
+            continue;
+
+          g_string_append (version, versions[i].version);
+
+          if (g_win32_check_windows_version (versions[i].major, versions[i].minor, versions[i].sp, G_WIN32_OS_SERVER))
+            {
+              /*
+               * This condition should now always hold, since Windows
+               * 7+/Server 2008 R2+ is now required
+               */
+              if (versions[i].major == 6)
+                {
+                  g_string_append (version, "Server");
+                  if (versions[i].minor == 2)
+                    g_string_append (version, " 2012");
+                  else if (versions[i].minor == 1)
+                    g_string_append (version, " 2008 R2");
+                  else
+                    g_string_append (version, " 2008");
+                }
+            }
+
+          g_string_append (version, versions[i].spversion);
+
+          break;
+        }
+    }
+
+  if (version->len == 0)
+    {
+      g_string_free (version, TRUE);
+
+      return NULL;
+    }
+
+  if (with_windows)
+    g_string_prepend (version, "Windows ");
+
+  return g_string_free (version, FALSE);
+}
+#endif
+
+#if defined (G_OS_UNIX) && !defined (__APPLE__)
+static gchar *
+get_os_info_from_os_release (const gchar *key_name,
+                             const gchar *buffer)
+{
+  GStrv lines;
+  gchar *prefix;
+  size_t i;
+  gchar *result = NULL;
+
+  lines = g_strsplit (buffer, "\n", -1);
+  prefix = g_strdup_printf ("%s=", key_name);
+  for (i = 0; lines[i] != NULL; i++)
+    {
+      const gchar *line = lines[i];
+      const gchar *value;
+
+      if (g_str_has_prefix (line, prefix))
+        {
+          value = line + strlen (prefix);
+          result = g_shell_unquote (value, NULL);
+          if (result == NULL)
+            result = g_strdup (value);
+          break;
+        }
+    }
+  g_strfreev (lines);
+  g_free (prefix);
+
+#ifdef __linux__
+  /* Default values in spec */
+  if (result == NULL)
+    {
+      if (g_str_equal (key_name, G_OS_INFO_KEY_NAME))
+        return g_strdup ("Linux");
+      if (g_str_equal (key_name, G_OS_INFO_KEY_ID))
+        return g_strdup ("linux");
+      if (g_str_equal (key_name, G_OS_INFO_KEY_PRETTY_NAME))
+        return g_strdup ("Linux");
+    }
+#endif
+
+  return g_steal_pointer (&result);
+}
+
+static gchar *
+get_os_info_from_uname (const gchar *key_name)
+{
+  struct utsname info;
+
+  if (uname (&info) == -1)
+    return NULL;
+
+  if (strcmp (key_name, G_OS_INFO_KEY_NAME) == 0)
+    return g_strdup (info.sysname);
+  else if (strcmp (key_name, G_OS_INFO_KEY_VERSION) == 0)
+    return g_strdup (info.release);
+  else if (strcmp (key_name, G_OS_INFO_KEY_PRETTY_NAME) == 0)
+    return g_strdup_printf ("%s %s", info.sysname, info.release);
+  else if (strcmp (key_name, G_OS_INFO_KEY_ID) == 0)
+    {
+      gchar *result = g_ascii_strdown (info.sysname, -1);
+
+      g_strcanon (result, "abcdefghijklmnopqrstuvwxyz0123456789_-.", '_');
+      return g_steal_pointer (&result);
+    }
+  else if (strcmp (key_name, G_OS_INFO_KEY_VERSION_ID) == 0)
+    {
+      /* We attempt to convert the version string to the format returned by
+       * config.guess, which is the script used to generate target triplets
+       * in GNU autotools. There are a lot of rules in the script. We only
+       * implement a few rules which are easy to understand here.
+       *
+       * config.guess can be found at https://savannah.gnu.org/projects/config.
+       */
+      gchar *result;
+
+      if (strcmp (info.sysname, "NetBSD") == 0)
+        {
+          /* sed -e 's,[-_].*,,' */
+          gssize len = G_MAXSSIZE;
+          const gchar *c;
+
+          if ((c = strchr (info.release, '-')) != NULL)
+            len = MIN (len, c - info.release);
+          if ((c = strchr (info.release, '_')) != NULL)
+            len = MIN (len, c - info.release);
+          if (len == G_MAXSSIZE)
+            len = -1;
+
+          result = g_ascii_strdown (info.release, len);
+        }
+      else if (strcmp (info.sysname, "GNU") == 0)
+        {
+          /* sed -e 's,/.*$,,' */
+          gssize len = -1;
+          const gchar *c = strchr (info.release, '/');
+
+          if (c != NULL)
+            len = c - info.release;
+
+          result = g_ascii_strdown (info.release, len);
+        }
+      else if (g_str_has_prefix (info.sysname, "GNU/") ||
+               strcmp (info.sysname, "FreeBSD") == 0 ||
+               strcmp (info.sysname, "DragonFly") == 0)
+        {
+          /* sed -e 's,[-(].*,,' */
+          gssize len = G_MAXSSIZE;
+          const gchar *c;
+
+          if ((c = strchr (info.release, '-')) != NULL)
+            len = MIN (len, c - info.release);
+          if ((c = strchr (info.release, '(')) != NULL)
+            len = MIN (len, c - info.release);
+          if (len == G_MAXSSIZE)
+            len = -1;
+
+          result = g_ascii_strdown (info.release, len);
+        }
+      else
+        result = g_ascii_strdown (info.release, -1);
+
+      g_strcanon (result, "abcdefghijklmnopqrstuvwxyz0123456789_-.", '_');
+      return g_steal_pointer (&result);
+    }
+  else
+    return NULL;
+}
+#endif  /* defined (G_OS_UNIX) && !defined (__APPLE__) */
+
+/**
+ * g_get_os_info:
+ * @key_name: a key for the OS info being requested, for example %G_OS_INFO_KEY_NAME.
+ *
+ * Get information about the operating system.
+ *
+ * On Linux this comes from the `/etc/os-release` file. On other systems, it may
+ * come from a variety of sources. You can either use the standard key names
+ * like %G_OS_INFO_KEY_NAME or pass any UTF-8 string key name. For example,
+ * `/etc/os-release` provides a number of other less commonly used values that may
+ * be useful. No key is guaranteed to be provided, so the caller should always
+ * check if the result is %NULL.
+ *
+ * Returns: (nullable): The associated value for the requested key or %NULL if
+ *   this information is not provided.
+ *
+ * Since: 2.64
+ **/
+gchar *
+g_get_os_info (const gchar *key_name)
+{
+#if defined (__APPLE__)
+  if (g_strcmp0 (key_name, G_OS_INFO_KEY_NAME) == 0)
+    return g_strdup ("macOS");
+  else
+    return NULL;
+#elif defined (G_OS_UNIX)
+  const gchar * const os_release_files[] = { "/etc/os-release", "/usr/lib/os-release" };
+  gsize i;
+  gchar *buffer = NULL;
+  gchar *result = NULL;
+
+  g_return_val_if_fail (key_name != NULL, NULL);
+
+  for (i = 0; i < G_N_ELEMENTS (os_release_files); i++)
+    {
+      GError *error = NULL;
+      gboolean file_missing;
+
+      if (g_file_get_contents (os_release_files[i], &buffer, NULL, &error))
+        break;
+
+      file_missing = g_error_matches (error, G_FILE_ERROR, G_FILE_ERROR_NOENT);
+      g_clear_error (&error);
+
+      if (!file_missing)
+        return NULL;
+    }
+
+  if (buffer != NULL)
+    result = get_os_info_from_os_release (key_name, buffer);
+  else
+    result = get_os_info_from_uname (key_name);
+
+  g_free (buffer);
+  return g_steal_pointer (&result);
+#elif defined (G_OS_WIN32)
+  if (g_strcmp0 (key_name, G_OS_INFO_KEY_NAME) == 0)
+    return g_strdup ("Windows");
+  else if (g_strcmp0 (key_name, G_OS_INFO_KEY_ID) == 0)
+    return g_strdup ("windows");
+  else if (g_strcmp0 (key_name, G_OS_INFO_KEY_PRETTY_NAME) == 0)
+    /* Windows XP SP2 or Windows 10 1903 or Windows 7 Server SP1 */
+    return get_windows_version (TRUE);
+  else if (g_strcmp0 (key_name, G_OS_INFO_KEY_VERSION) == 0)
+    /* XP SP2 or 10 1903 or 7 Server SP1 */
+    return get_windows_version (FALSE);
+  else if (g_strcmp0 (key_name, G_OS_INFO_KEY_VERSION_ID) == 0)
+    {
+      /* xp_sp2 or 10_1903 or 7_server_sp1 */
+      gchar *result;
+      gchar *version = get_windows_version (FALSE);
+
+      if (version == NULL)
+        return NULL;
+
+      result = g_ascii_strdown (version, -1);
+      g_free (version);
+
+      return g_strcanon (result, "abcdefghijklmnopqrstuvwxyz0123456789_-.", '_');
+    }
+  else if (g_strcmp0 (key_name, G_OS_INFO_KEY_HOME_URL) == 0)
+    return g_strdup ("https://microsoft.com/windows/");
+  else if (g_strcmp0 (key_name, G_OS_INFO_KEY_DOCUMENTATION_URL) == 0)
+    return g_strdup ("https://docs.microsoft.com/");
+  else if (g_strcmp0 (key_name, G_OS_INFO_KEY_SUPPORT_URL) == 0)
+    return g_strdup ("https://support.microsoft.com/");
+  else if (g_strcmp0 (key_name, G_OS_INFO_KEY_BUG_REPORT_URL) == 0)
+    return g_strdup ("https://support.microsoft.com/contactus/");
+  else if (g_strcmp0 (key_name, G_OS_INFO_KEY_PRIVACY_POLICY_URL) == 0)
+    return g_strdup ("https://privacy.microsoft.com/");
+  else
+    return NULL;
+#endif
+}
+
+/* Set @global_str to a copy of @new_value if it’s currently unset or has a
+ * different value. If its current value matches @new_value, do nothing. If
+ * replaced, we have to leak the old value as client code could still have
+ * pointers to it. */
+static void
+set_str_if_different (gchar       **global_str,
+                      const gchar  *type,
+                      const gchar  *new_value)
+{
+  if (*global_str == NULL ||
+      !g_str_equal (new_value, *global_str))
+    {
+      g_debug ("g_set_user_dirs: Setting %s to %s", type, new_value);
+
+      /* We have to leak the old value, as user code could be retaining pointers
+       * to it. */
+      g_ignore_leak (*global_str);
+      *global_str = g_strdup (new_value);
+    }
+}
+
+static void
+set_strv_if_different (gchar                ***global_strv,
+                       const gchar            *type,
+                       const gchar  * const   *new_value)
+{
+  if (*global_strv == NULL ||
+      !g_strv_equal (new_value, (const gchar * const *) *global_strv))
+    {
+      gchar *new_value_str = g_strjoinv (":", (gchar **) new_value);
+      g_debug ("g_set_user_dirs: Setting %s to %s", type, new_value_str);
+      g_free (new_value_str);
+
+      /* We have to leak the old value, as user code could be retaining pointers
+       * to it. */
+      g_ignore_strv_leak (*global_strv);
+      *global_strv = g_strdupv ((gchar **) new_value);
+    }
+}
+
+/*
+ * g_set_user_dirs:
+ * @first_dir_type: Type of the first directory to set
+ * @...: Value to set the first directory to, followed by additional type/value
+ *    pairs, followed by %NULL
+ *
+ * Set one or more ‘user’ directories to custom values. This is intended to be
+ * used by test code (particularly with the %G_TEST_OPTION_ISOLATE_DIRS option)
+ * to override the values returned by the following functions, so that test
+ * code can be run without touching an installed system and user data:
+ *
+ *  - g_get_home_dir() — use type `HOME`, pass a string
+ *  - g_get_user_cache_dir() — use type `XDG_CACHE_HOME`, pass a string
+ *  - g_get_system_config_dirs() — use type `XDG_CONFIG_DIRS`, pass a
+ *    %NULL-terminated string array
+ *  - g_get_user_config_dir() — use type `XDG_CONFIG_HOME`, pass a string
+ *  - g_get_system_data_dirs() — use type `XDG_DATA_DIRS`, pass a
+ *    %NULL-terminated string array
+ *  - g_get_user_data_dir() — use type `XDG_DATA_HOME`, pass a string
+ *  - g_get_user_runtime_dir() — use type `XDG_RUNTIME_DIR`, pass a string
+ *
+ * The list must be terminated with a %NULL type. All of the values must be
+ * non-%NULL — passing %NULL as a value won’t reset a directory. If a reference
+ * to a directory from the calling environment needs to be kept, copy it before
+ * the first call to g_set_user_dirs(). g_set_user_dirs() can be called multiple
+ * times.
+ *
+ * Since: 2.60
+ */
+/*< private > */
+void
+g_set_user_dirs (const gchar *first_dir_type,
+                 ...)
+{
+  va_list args;
+  const gchar *dir_type;
+
+  G_LOCK (g_utils_global);
+
+  va_start (args, first_dir_type);
+
+  for (dir_type = first_dir_type; dir_type != NULL; dir_type = va_arg (args, const gchar *))
+    {
+      gconstpointer dir_value = va_arg (args, gconstpointer);
+      g_assert (dir_value != NULL);
+
+      if (g_str_equal (dir_type, "HOME"))
+        set_str_if_different (&g_home_dir, dir_type, dir_value);
+      else if (g_str_equal (dir_type, "XDG_CACHE_HOME"))
+        set_str_if_different (&g_user_cache_dir, dir_type, dir_value);
+      else if (g_str_equal (dir_type, "XDG_CONFIG_DIRS"))
+        set_strv_if_different (&g_system_config_dirs, dir_type, dir_value);
+      else if (g_str_equal (dir_type, "XDG_CONFIG_HOME"))
+        set_str_if_different (&g_user_config_dir, dir_type, dir_value);
+      else if (g_str_equal (dir_type, "XDG_DATA_DIRS"))
+        set_strv_if_different (&g_system_data_dirs, dir_type, dir_value);
+      else if (g_str_equal (dir_type, "XDG_DATA_HOME"))
+        set_str_if_different (&g_user_data_dir, dir_type, dir_value);
+      else if (g_str_equal (dir_type, "XDG_STATE_HOME"))
+        set_str_if_different (&g_user_state_dir, dir_type, dir_value);
+      else if (g_str_equal (dir_type, "XDG_RUNTIME_DIR"))
+        set_str_if_different (&g_user_runtime_dir, dir_type, dir_value);
+      else
+        g_assert_not_reached ();
+    }
+
+  va_end (args);
+
+  G_UNLOCK (g_utils_global);
+}
+
+static gchar *
+g_build_user_data_dir (void)
+{
+  gchar *data_dir = NULL;
+  const gchar *data_dir_env = g_getenv ("XDG_DATA_HOME");
+
+  if (data_dir_env && data_dir_env[0])
+    data_dir = g_strdup (data_dir_env);
+#ifdef G_OS_WIN32
+  else
+    data_dir = get_special_folder (&FOLDERID_LocalAppData);
+#endif
+  if (!data_dir || !data_dir[0])
+    {
+      gchar *home_dir = g_build_home_dir ();
+      g_free (data_dir);
+      data_dir = g_build_filename (home_dir, ".local", "share", NULL);
+      g_free (home_dir);
+    }
+
+  return g_steal_pointer (&data_dir);
 }
 
 /**
@@ -2033,51 +1901,72 @@ g_set_application_name (const gchar *application_name)
  * Returns a base directory in which to access application data such
  * as icons that is customized for a particular user.  
  *
- * On UNIX platforms this is determined using the mechanisms described in
- * the <ulink url="http://www.freedesktop.org/Standards/basedir-spec">
- * XDG Base Directory Specification</ulink>
- * 
- * Return value: a string owned by GLib that must not be modified 
- *               or freed.
+ * On UNIX platforms this is determined using the mechanisms described
+ * in the
+ * [XDG Base Directory Specification](http://www.freedesktop.org/Standards/basedir-spec).
+ * In this case the directory retrieved will be `XDG_DATA_HOME`.
+ *
+ * On Windows it follows XDG Base Directory Specification if `XDG_DATA_HOME`
+ * is defined. If `XDG_DATA_HOME` is undefined, the folder to use for local (as
+ * opposed to roaming) application data is used instead. See the
+ * [documentation for `FOLDERID_LocalAppData`](https://docs.microsoft.com/en-us/windows/win32/shell/knownfolderid).
+ * Note that in this case on Windows it will be the same
+ * as what g_get_user_config_dir() returns.
+ *
+ * The return value is cached and modifying it at runtime is not supported, as
+ * it’s not thread-safe to modify environment variables at runtime.
+ *
+ * Returns: (type filename) (transfer none): a string owned by GLib that must
+ *   not be modified or freed.
+ *
  * Since: 2.6
  **/
-G_CONST_RETURN gchar*
+const gchar *
 g_get_user_data_dir (void)
 {
-  gchar *data_dir;  
+  const gchar *user_data_dir;
 
   G_LOCK (g_utils_global);
 
-  if (!g_user_data_dir)
-    {
-#ifdef G_OS_WIN32
-      data_dir = get_special_folder (CSIDL_PERSONAL);
-#else
-      data_dir = (gchar *) g_getenv ("XDG_DATA_HOME");
-
-      if (data_dir && data_dir[0])
-        data_dir = g_strdup (data_dir);
-#endif
-      if (!data_dir || !data_dir[0])
-	{
-	  g_get_any_init ();
-
-	  if (g_home_dir)
-	    data_dir = g_build_filename (g_home_dir, ".local", 
-					 "share", NULL);
-	  else
-	    data_dir = g_build_filename (g_tmp_dir, g_user_name, ".local", 
-					 "share", NULL);
-	}
-
-      g_user_data_dir = data_dir;
-    }
-  else
-    data_dir = g_user_data_dir;
+  if (g_user_data_dir == NULL)
+    g_user_data_dir = g_build_user_data_dir ();
+  user_data_dir = g_user_data_dir;
 
   G_UNLOCK (g_utils_global);
 
-  return data_dir;
+  return user_data_dir;
+}
+
+static gchar *
+g_build_user_config_dir (void)
+{
+  gchar *config_dir = NULL;
+  const gchar *config_dir_env = g_getenv ("XDG_CONFIG_HOME");
+
+  if (config_dir_env && config_dir_env[0])
+    config_dir = g_strdup (config_dir_env);
+#ifdef G_OS_WIN32
+  else
+    config_dir = get_special_folder (&FOLDERID_LocalAppData);
+#endif
+  if (!config_dir || !config_dir[0])
+    {
+      gchar *home_dir = g_build_home_dir ();
+      g_free (config_dir);
+      config_dir = g_build_filename (home_dir, ".config", NULL);
+      g_free (home_dir);
+    }
+
+  return g_steal_pointer (&config_dir);
+}
+
+static const char *
+g_get_user_config_dir_unlocked (void)
+{
+  if (g_user_config_dir == NULL)
+    g_user_config_dir = g_build_user_config_dir ();
+
+  return g_user_config_dir;
 }
 
 /**
@@ -2086,48 +1975,60 @@ g_get_user_data_dir (void)
  * Returns a base directory in which to store user-specific application 
  * configuration information such as user preferences and settings. 
  *
- * On UNIX platforms this is determined using the mechanisms described in
- * the <ulink url="http://www.freedesktop.org/Standards/basedir-spec">
- * XDG Base Directory Specification</ulink>
- * 
- * Return value: a string owned by GLib that must not be modified 
- *               or freed.
+ * On UNIX platforms this is determined using the mechanisms described
+ * in the
+ * [XDG Base Directory Specification](http://www.freedesktop.org/Standards/basedir-spec).
+ * In this case the directory retrieved will be `XDG_CONFIG_HOME`.
+ *
+ * On Windows it follows XDG Base Directory Specification if `XDG_CONFIG_HOME` is defined.
+ * If `XDG_CONFIG_HOME` is undefined, the folder to use for local (as opposed
+ * to roaming) application data is used instead. See the
+ * [documentation for `FOLDERID_LocalAppData`](https://docs.microsoft.com/en-us/windows/win32/shell/knownfolderid).
+ * Note that in this case on Windows it will be  the same
+ * as what g_get_user_data_dir() returns.
+ *
+ * The return value is cached and modifying it at runtime is not supported, as
+ * it’s not thread-safe to modify environment variables at runtime.
+ *
+ * Returns: (type filename) (transfer none): a string owned by GLib that
+ *   must not be modified or freed.
  * Since: 2.6
  **/
-G_CONST_RETURN gchar*
+const gchar *
 g_get_user_config_dir (void)
 {
-  gchar *config_dir;  
+  const gchar *user_config_dir;
 
   G_LOCK (g_utils_global);
 
-  if (!g_user_config_dir)
-    {
-#ifdef G_OS_WIN32
-      config_dir = get_special_folder (CSIDL_APPDATA);
-#else
-      config_dir = (gchar *) g_getenv ("XDG_CONFIG_HOME");
-
-      if (config_dir && config_dir[0])
-	config_dir = g_strdup (config_dir);
-#endif
-      if (!config_dir || !config_dir[0])
-	{
-	  g_get_any_init ();
-
-	  if (g_home_dir)
-	    config_dir = g_build_filename (g_home_dir, ".config", NULL);
-	  else
-	    config_dir = g_build_filename (g_tmp_dir, g_user_name, ".config", NULL);
-	}
-      g_user_config_dir = config_dir;
-    }
-  else
-    config_dir = g_user_config_dir;
+  user_config_dir = g_get_user_config_dir_unlocked ();
 
   G_UNLOCK (g_utils_global);
 
-  return config_dir;
+  return user_config_dir;
+}
+
+static gchar *
+g_build_user_cache_dir (void)
+{
+  gchar *cache_dir = NULL;
+  const gchar *cache_dir_env = g_getenv ("XDG_CACHE_HOME");
+
+  if (cache_dir_env && cache_dir_env[0])
+    cache_dir = g_strdup (cache_dir_env);
+#ifdef G_OS_WIN32
+  else
+    cache_dir = get_special_folder (&FOLDERID_InternetCache);
+#endif
+  if (!cache_dir || !cache_dir[0])
+    {
+      gchar *home_dir = g_build_home_dir ();
+      g_free (cache_dir);
+      cache_dir = g_build_filename (home_dir, ".cache", NULL);
+      g_free (home_dir);
+    }
+
+  return g_steal_pointer (&cache_dir);
 }
 
 /**
@@ -2136,48 +2037,367 @@ g_get_user_config_dir (void)
  * Returns a base directory in which to store non-essential, cached
  * data specific to particular user.
  *
- * On UNIX platforms this is determined using the mechanisms described in
- * the <ulink url="http://www.freedesktop.org/Standards/basedir-spec">
- * XDG Base Directory Specification</ulink>
- * 
- * Return value: a string owned by GLib that must not be modified 
- *               or freed.
+ * On UNIX platforms this is determined using the mechanisms described
+ * in the
+ * [XDG Base Directory Specification](http://www.freedesktop.org/Standards/basedir-spec).
+ * In this case the directory retrieved will be `XDG_CACHE_HOME`.
+ *
+ * On Windows it follows XDG Base Directory Specification if `XDG_CACHE_HOME` is defined.
+ * If `XDG_CACHE_HOME` is undefined, the directory that serves as a common
+ * repository for temporary Internet files is used instead. A typical path is
+ * `C:\Documents and Settings\username\Local Settings\Temporary Internet Files`.
+ * See the [documentation for `FOLDERID_InternetCache`](https://docs.microsoft.com/en-us/windows/win32/shell/knownfolderid).
+ *
+ * The return value is cached and modifying it at runtime is not supported, as
+ * it’s not thread-safe to modify environment variables at runtime.
+ *
+ * Returns: (type filename) (transfer none): a string owned by GLib that
+ *   must not be modified or freed.
  * Since: 2.6
  **/
-G_CONST_RETURN gchar*
+const gchar *
 g_get_user_cache_dir (void)
 {
-  gchar *cache_dir;  
+  const gchar *user_cache_dir;
 
   G_LOCK (g_utils_global);
 
-  if (!g_user_cache_dir)
-    {
-#ifdef G_OS_WIN32
-      cache_dir = get_special_folder (CSIDL_INTERNET_CACHE); /* XXX correct? */
-#else
-      cache_dir = (gchar *) g_getenv ("XDG_CACHE_HOME");
-
-      if (cache_dir && cache_dir[0])
-          cache_dir = g_strdup (cache_dir);
-#endif
-      if (!cache_dir || !cache_dir[0])
-	{
-	  g_get_any_init ();
-	
-	  if (g_home_dir)
-	    cache_dir = g_build_filename (g_home_dir, ".cache", NULL);
-	  else
-	    cache_dir = g_build_filename (g_tmp_dir, g_user_name, ".cache", NULL);
-	}
-      g_user_cache_dir = cache_dir;
-    }
-  else
-    cache_dir = g_user_cache_dir;
+  if (g_user_cache_dir == NULL)
+    g_user_cache_dir = g_build_user_cache_dir ();
+  user_cache_dir = g_user_cache_dir;
 
   G_UNLOCK (g_utils_global);
 
-  return cache_dir;
+  return user_cache_dir;
+}
+
+static gchar *
+g_build_user_state_dir (void)
+{
+  gchar *state_dir = NULL;
+  const gchar *state_dir_env = g_getenv ("XDG_STATE_HOME");
+
+  if (state_dir_env && state_dir_env[0])
+    state_dir = g_strdup (state_dir_env);
+#ifdef G_OS_WIN32
+  else
+    state_dir = get_special_folder (&FOLDERID_LocalAppData);
+#endif
+  if (!state_dir || !state_dir[0])
+    {
+      gchar *home_dir = g_build_home_dir ();
+      g_free (state_dir);
+      state_dir = g_build_filename (home_dir, ".local/state", NULL);
+      g_free (home_dir);
+    }
+
+  return g_steal_pointer (&state_dir);
+}
+
+/**
+ * g_get_user_state_dir:
+ *
+ * Returns a base directory in which to store state files specific to
+ * particular user.
+ *
+ * On UNIX platforms this is determined using the mechanisms described
+ * in the
+ * [XDG Base Directory Specification](http://www.freedesktop.org/Standards/basedir-spec).
+ * In this case the directory retrieved will be `XDG_STATE_HOME`.
+ *
+ * On Windows it follows XDG Base Directory Specification if `XDG_STATE_HOME` is defined.
+ * If `XDG_STATE_HOME` is undefined, the folder to use for local (as opposed
+ * to roaming) application data is used instead. See the
+ * [documentation for `FOLDERID_LocalAppData`](https://docs.microsoft.com/en-us/windows/win32/shell/knownfolderid).
+ * Note that in this case on Windows it will be the same
+ * as what g_get_user_data_dir() returns.
+ *
+ * The return value is cached and modifying it at runtime is not supported, as
+ * it’s not thread-safe to modify environment variables at runtime.
+ *
+ * Returns: (type filename) (transfer none): a string owned by GLib that
+ *   must not be modified or freed.
+ *
+ * Since: 2.72
+ **/
+const gchar *
+g_get_user_state_dir (void)
+{
+  const gchar *user_state_dir;
+
+  G_LOCK (g_utils_global);
+
+  if (g_user_state_dir == NULL)
+    g_user_state_dir = g_build_user_state_dir ();
+  user_state_dir = g_user_state_dir;
+
+  G_UNLOCK (g_utils_global);
+
+  return user_state_dir;
+}
+
+static gchar *
+g_build_user_runtime_dir (void)
+{
+  gchar *runtime_dir = NULL;
+  const gchar *runtime_dir_env = g_getenv ("XDG_RUNTIME_DIR");
+
+  if (runtime_dir_env && runtime_dir_env[0])
+    {
+      runtime_dir = g_strdup (runtime_dir_env);
+
+      /* If the XDG_RUNTIME_DIR environment variable is set, we are being told by
+       * the OS that this directory exists and is appropriately configured
+       * already.
+       */
+    }
+  else
+    {
+      runtime_dir = g_build_user_cache_dir ();
+
+      /* Fallback case: the directory may not yet exist.
+       *
+       * The user should be able to rely on the directory existing
+       * when the function returns.  Probably it already does, but
+       * let's make sure.  Just do mkdir() directly since it will be
+       * no more expensive than a stat() in the case that the
+       * directory already exists and is a lot easier.
+       *
+       * $XDG_CACHE_HOME is probably ~/.cache/ so as long as $HOME
+       * exists this will work.  If the user changed $XDG_CACHE_HOME
+       * then they can make sure that it exists...
+       */
+      (void) g_mkdir (runtime_dir, 0700);
+    }
+
+  return g_steal_pointer (&runtime_dir);
+}
+
+/**
+ * g_get_user_runtime_dir:
+ *
+ * Returns a directory that is unique to the current user on the local
+ * system.
+ *
+ * This is determined using the mechanisms described
+ * in the 
+ * [XDG Base Directory Specification](http://www.freedesktop.org/Standards/basedir-spec).
+ * This is the directory
+ * specified in the `XDG_RUNTIME_DIR` environment variable.
+ * In the case that this variable is not set, we return the value of
+ * g_get_user_cache_dir(), after verifying that it exists.
+ *
+ * The return value is cached and modifying it at runtime is not supported, as
+ * it’s not thread-safe to modify environment variables at runtime.
+ *
+ * Returns: (type filename): a string owned by GLib that must not be
+ *     modified or freed.
+ *
+ * Since: 2.28
+ **/
+const gchar *
+g_get_user_runtime_dir (void)
+{
+  const gchar *user_runtime_dir;
+
+  G_LOCK (g_utils_global);
+
+  if (g_user_runtime_dir == NULL)
+    g_user_runtime_dir = g_build_user_runtime_dir ();
+  user_runtime_dir = g_user_runtime_dir;
+
+  G_UNLOCK (g_utils_global);
+
+  return user_runtime_dir;
+}
+
+#ifdef HAVE_COCOA
+
+/* Implemented in gosxutils.m */
+void load_user_special_dirs_macos (gchar **table);
+
+static void
+load_user_special_dirs_unlocked (void)
+{
+  load_user_special_dirs_macos (g_user_special_dirs);
+}
+
+#elif defined(G_OS_WIN32)
+
+static void
+load_user_special_dirs_unlocked (void)
+{
+  g_user_special_dirs[G_USER_DIRECTORY_DESKTOP] = get_special_folder (&FOLDERID_Desktop);
+  g_user_special_dirs[G_USER_DIRECTORY_DOCUMENTS] = get_special_folder (&FOLDERID_Documents);
+
+  g_user_special_dirs[G_USER_DIRECTORY_DOWNLOAD] = get_special_folder (&FOLDERID_Downloads);
+  if (g_user_special_dirs[G_USER_DIRECTORY_DOWNLOAD] == NULL)
+    g_user_special_dirs[G_USER_DIRECTORY_DOWNLOAD] = get_special_folder (&FOLDERID_Desktop);
+
+  g_user_special_dirs[G_USER_DIRECTORY_MUSIC] = get_special_folder (&FOLDERID_Music);
+  g_user_special_dirs[G_USER_DIRECTORY_PICTURES] = get_special_folder (&FOLDERID_Pictures);
+
+  g_user_special_dirs[G_USER_DIRECTORY_PUBLIC_SHARE] = get_special_folder (&FOLDERID_Public);
+  if (g_user_special_dirs[G_USER_DIRECTORY_PUBLIC_SHARE] == NULL)
+    g_user_special_dirs[G_USER_DIRECTORY_PUBLIC_SHARE] = get_special_folder (&FOLDERID_PublicDocuments);
+
+  g_user_special_dirs[G_USER_DIRECTORY_TEMPLATES] = get_special_folder (&FOLDERID_Templates);
+  g_user_special_dirs[G_USER_DIRECTORY_VIDEOS] = get_special_folder (&FOLDERID_Videos);
+}
+
+#else /* default is unix */
+
+#include "gutilsprivate.c"
+
+/* adapted from xdg-user-dir-lookup.c
+ *
+ * Copyright (C) 2007 Red Hat Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation files
+ * (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge,
+ * publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions: 
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software. 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+static void
+load_user_special_dirs_unlocked (void)
+{
+  const gchar *config_dir = NULL;
+  const gchar *home_dir;
+  gchar *config_file;
+  char *data = NULL;
+
+  config_dir = g_get_user_config_dir_unlocked ();
+  config_file = g_build_filename (config_dir,
+                                  "user-dirs.dirs",
+                                  NULL);
+  home_dir = g_get_home_dir_unlocked ();
+
+  if (g_file_get_contents (config_file, &data, NULL, NULL))
+    load_user_special_dirs_from_string (data, home_dir, g_user_special_dirs);
+
+  /* Special-case desktop for historical compatibility */
+  if (g_user_special_dirs[G_USER_DIRECTORY_DESKTOP] == NULL)
+    g_user_special_dirs[G_USER_DIRECTORY_DESKTOP] = g_build_filename (home_dir, "Desktop", NULL);
+
+  g_free (data);
+  g_free (config_file);
+}
+
+#endif /* platform-specific load_user_special_dirs implementations */
+
+
+/**
+ * g_reload_user_special_dirs_cache:
+ *
+ * Resets the cache used for g_get_user_special_dir(), so
+ * that the latest on-disk version is used. Call this only
+ * if you just changed the data on disk yourself.
+ *
+ * Due to thread safety issues this may cause leaking of strings
+ * that were previously returned from g_get_user_special_dir()
+ * that can't be freed. We ensure to only leak the data for
+ * the directories that actually changed value though.
+ *
+ * Since: 2.22
+ */
+void
+g_reload_user_special_dirs_cache (void)
+{
+  int i;
+
+  G_LOCK (g_utils_global);
+
+  if (g_user_special_dirs != NULL)
+    {
+      /* save a copy of the pointer, to check if some memory can be preserved */
+      char **old_g_user_special_dirs = g_user_special_dirs;
+      char *old_val;
+
+      /* recreate and reload our cache */
+      g_user_special_dirs = g_new0 (gchar *, G_USER_N_DIRECTORIES);
+      load_user_special_dirs_unlocked ();
+
+      /* only leak changed directories */
+      for (i = 0; i < G_USER_N_DIRECTORIES; i++)
+        {
+          old_val = old_g_user_special_dirs[i];
+
+          if (g_user_special_dirs[i] == NULL ||
+              g_strcmp0 (old_val, g_user_special_dirs[i]) != 0)
+            {
+              g_ignore_leak (old_val);
+            }
+          else
+            {
+              /* don't leak */
+              g_free (g_user_special_dirs[i]);
+              g_user_special_dirs[i] = old_val;
+            }
+        }
+
+      /* free the old array */
+      g_free (old_g_user_special_dirs);
+    }
+
+  G_UNLOCK (g_utils_global);
+}
+
+/**
+ * g_get_user_special_dir:
+ * @directory: the logical id of special directory
+ *
+ * Returns the full path of a special directory using its logical id.
+ *
+ * On UNIX this is done using the XDG special user directories.
+ * For compatibility with existing practise, %G_USER_DIRECTORY_DESKTOP
+ * falls back to `$HOME/Desktop` when XDG special user directories have
+ * not been set up. 
+ *
+ * Depending on the platform, the user might be able to change the path
+ * of the special directory without requiring the session to restart; GLib
+ * will not reflect any change once the special directories are loaded.
+ *
+ * Returns: (type filename) (nullable): the path to the specified special
+ *   directory, or %NULL if the logical id was not found. The returned string is
+ *   owned by GLib and should not be modified or freed.
+ *
+ * Since: 2.14
+ */
+const gchar *
+g_get_user_special_dir (GUserDirectory directory)
+{
+  const gchar *user_special_dir;
+
+  g_return_val_if_fail (directory >= G_USER_DIRECTORY_DESKTOP &&
+                        directory < G_USER_N_DIRECTORIES, NULL);
+
+  G_LOCK (g_utils_global);
+
+  if (G_UNLIKELY (g_user_special_dirs == NULL))
+    {
+      g_user_special_dirs = g_new0 (gchar *, G_USER_N_DIRECTORIES);
+      load_user_special_dirs_unlocked ();
+    }
+  user_special_dir = g_user_special_dirs[directory];
+
+  G_UNLOCK (g_utils_global);
+
+  return user_special_dir;
 }
 
 #ifdef G_OS_WIN32
@@ -2189,26 +2409,14 @@ get_module_for_address (gconstpointer address)
 {
   /* Holds the g_utils_global lock */
 
-  static gboolean beenhere = FALSE;
-  typedef BOOL (WINAPI *t_GetModuleHandleExA) (DWORD, LPCTSTR, HMODULE *);
-  static t_GetModuleHandleExA p_GetModuleHandleExA = NULL;
-  HMODULE hmodule;
+  HMODULE hmodule = NULL;
 
   if (!address)
     return NULL;
 
-  if (!beenhere)
-    {
-      p_GetModuleHandleExA =
-	(t_GetModuleHandleExA) GetProcAddress (LoadLibrary ("kernel32.dll"),
-					       "GetModuleHandleExA");
-      beenhere = TRUE;
-    }
-
-  if (p_GetModuleHandleExA == NULL ||
-      !(*p_GetModuleHandleExA) (GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
-				GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-				address, &hmodule))
+  if (!GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
+			   GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+			   address, &hmodule))
     {
       MEMORY_BASIC_INFORMATION mbi;
       VirtualQuery (address, &mbi, sizeof (mbi));
@@ -2222,55 +2430,35 @@ static gchar *
 get_module_share_dir (gconstpointer address)
 {
   HMODULE hmodule;
-  gchar *filename = NULL;
-  gchar *p, *retval;
+  gchar *filename;
+  gchar *retval;
 
   hmodule = get_module_for_address (address);
   if (hmodule == NULL)
     return NULL;
 
-  if (G_WIN32_IS_NT_BASED ())
-    {
-      wchar_t wfilename[MAX_PATH];
-      if (GetModuleFileNameW (hmodule, wfilename, G_N_ELEMENTS (wfilename)))
-	filename = g_utf16_to_utf8 (wfilename, -1, NULL, NULL, NULL);
-    }
-  else
-    {
-      char cpfilename[MAX_PATH];
-      if (GetModuleFileNameA (hmodule, cpfilename, G_N_ELEMENTS (cpfilename)))
-	filename = g_locale_to_utf8 (cpfilename, -1, NULL, NULL, NULL);
-    }
-
-  if (filename == NULL)
-    return NULL;
-
-  if ((p = strrchr (filename, G_DIR_SEPARATOR)) != NULL)
-    *p = '\0';
-
-  p = strrchr (filename, G_DIR_SEPARATOR);
-  if (p && (g_ascii_strcasecmp (p + 1, "bin") == 0))
-    *p = '\0';
-
+  filename = g_win32_get_package_installation_directory_of_module (hmodule);
   retval = g_build_filename (filename, "share", NULL);
   g_free (filename);
 
   return retval;
 }
 
-G_CONST_RETURN gchar * G_CONST_RETURN *
-g_win32_get_system_data_dirs_for_module (gconstpointer address)
+static const gchar * const *
+g_win32_get_system_data_dirs_for_module_real (void (*address_of_function)(void))
 {
   GArray *data_dirs;
   HMODULE hmodule;
   static GHashTable *per_module_data_dirs = NULL;
   gchar **retval;
   gchar *p;
-      
-  if (address)
+  gchar *exe_root;
+
+  hmodule = NULL;
+  if (address_of_function)
     {
       G_LOCK (g_utils_global);
-      hmodule = get_module_for_address (address);
+      hmodule = get_module_for_address (address_of_function);
       if (hmodule != NULL)
 	{
 	  if (per_module_data_dirs == NULL)
@@ -2282,7 +2470,7 @@ g_win32_get_system_data_dirs_for_module (gconstpointer address)
 	      if (retval != NULL)
 		{
 		  G_UNLOCK (g_utils_global);
-		  return (G_CONST_RETURN gchar * G_CONST_RETURN *) retval;
+		  return (const gchar * const *) retval;
 		}
 	    }
 	}
@@ -2291,26 +2479,26 @@ g_win32_get_system_data_dirs_for_module (gconstpointer address)
   data_dirs = g_array_new (TRUE, TRUE, sizeof (char *));
 
   /* Documents and Settings\All Users\Application Data */
-  p = get_special_folder (CSIDL_COMMON_APPDATA);
+  p = get_special_folder (&FOLDERID_ProgramData);
   if (p)
     g_array_append_val (data_dirs, p);
-  
+
   /* Documents and Settings\All Users\Documents */
-  p = get_special_folder (CSIDL_COMMON_DOCUMENTS);
+  p = get_special_folder (&FOLDERID_PublicDocuments);
   if (p)
     g_array_append_val (data_dirs, p);
-	
+
   /* Using the above subfolders of Documents and Settings perhaps
    * makes sense from a Windows perspective.
    *
-   * But looking at the actual use cases of this function in GTK+
+   * But looking at the actual use cases of this function in GTK
    * and GNOME software, what we really want is the "share"
    * subdirectory of the installation directory for the package
    * our caller is a part of.
    *
-   * The address parameter, if non-NULL, points to a function in the
-   * calling module. Use that to determine that module's installation
-   * folder, and use its "share" subfolder.
+   * The address_of_function parameter, if non-NULL, points to a
+   * function in the calling module. Use that to determine that
+   * module's installation folder, and use its "share" subfolder.
    *
    * Additionally, also use the "share" subfolder of the installation
    * locations of GLib and the .exe file being run.
@@ -2322,31 +2510,110 @@ g_win32_get_system_data_dirs_for_module (gconstpointer address)
    * function.
    */
 
-  p = get_module_share_dir (address);
+  p = get_module_share_dir (address_of_function);
   if (p)
     g_array_append_val (data_dirs, p);
     
-  p = g_win32_get_package_installation_subdirectory (NULL, dll_name, "share");
-  if (p)
-    g_array_append_val (data_dirs, p);
+  if (glib_dll != NULL)
+    {
+      gchar *glib_root = g_win32_get_package_installation_directory_of_module (glib_dll);
+      p = g_build_filename (glib_root, "share", NULL);
+      if (p)
+	g_array_append_val (data_dirs, p);
+      g_free (glib_root);
+    }
   
-  p = g_win32_get_package_installation_subdirectory (NULL, NULL, "share");
+  exe_root = g_win32_get_package_installation_directory_of_module (NULL);
+  p = g_build_filename (exe_root, "share", NULL);
   if (p)
     g_array_append_val (data_dirs, p);
+  g_free (exe_root);
 
   retval = (gchar **) g_array_free (data_dirs, FALSE);
 
-  if (address)
+  if (address_of_function)
     {
       if (hmodule != NULL)
 	g_hash_table_insert (per_module_data_dirs, hmodule, retval);
       G_UNLOCK (g_utils_global);
     }
 
-  return (G_CONST_RETURN gchar * G_CONST_RETURN *) retval;
+  return (const gchar * const *) retval;
+}
+
+const gchar * const *
+g_win32_get_system_data_dirs_for_module (void (*address_of_function)(void))
+{
+  gboolean should_call_g_get_system_data_dirs;
+
+  should_call_g_get_system_data_dirs = TRUE;
+  /* These checks are the same as the ones that g_build_system_data_dirs() does.
+   * Please keep them in sync.
+   */
+  G_LOCK (g_utils_global);
+
+  if (!g_system_data_dirs)
+    {
+      const gchar *data_dirs = g_getenv ("XDG_DATA_DIRS");
+
+      if (!data_dirs || !data_dirs[0])
+        should_call_g_get_system_data_dirs = FALSE;
+    }
+
+  G_UNLOCK (g_utils_global);
+
+  /* There is a subtle difference between g_win32_get_system_data_dirs_for_module (NULL),
+   * which is what GLib code can normally call,
+   * and g_win32_get_system_data_dirs_for_module (&_g_win32_get_system_data_dirs),
+   * which is what the inline function used by non-GLib code calls.
+   * The former gets prefix relative to currently-running executable,
+   * the latter - relative to the module that calls _g_win32_get_system_data_dirs()
+   * (disguised as g_get_system_data_dirs()), which could be an executable or
+   * a DLL that is located somewhere else.
+   * This is why that inline function in gutils.h exists, and why we can't just
+   * call g_get_system_data_dirs() from there - because we need to get the address
+   * local to the non-GLib caller-module.
+   */
+
+  /*
+   * g_get_system_data_dirs() will fall back to calling
+   * g_win32_get_system_data_dirs_for_module_real(NULL) if XDG_DATA_DIRS is NULL
+   * or an empty string. The checks above ensure that we do not call it in such
+   * cases and use the address_of_function that we've been given by the inline function.
+   * The reason we're calling g_get_system_data_dirs /at all/ is to give
+   * XDG_DATA_DIRS precedence (if it is set).
+   */
+  if (should_call_g_get_system_data_dirs)
+    return g_get_system_data_dirs ();
+
+  return g_win32_get_system_data_dirs_for_module_real (address_of_function);
 }
 
 #endif
+
+static gchar **
+g_build_system_data_dirs (void)
+{
+  gchar **data_dir_vector = NULL;
+  gchar *data_dirs = (gchar *) g_getenv ("XDG_DATA_DIRS");
+
+  /* These checks are the same as the ones that g_win32_get_system_data_dirs_for_module()
+   * does. Please keep them in sync.
+   */
+#ifndef G_OS_WIN32
+  if (!data_dirs || !data_dirs[0])
+    data_dirs = "/usr/local/share/:/usr/share/";
+
+  data_dir_vector = g_strsplit (data_dirs, G_SEARCHPATH_SEPARATOR_S, 0);
+#else
+  if (!data_dirs || !data_dirs[0])
+    data_dir_vector = g_strdupv ((gchar **) g_win32_get_system_data_dirs_for_module_real (NULL));
+  else
+    data_dir_vector = g_strsplit (data_dirs, G_SEARCHPATH_SEPARATOR_S, 0);
+#endif
+
+  return g_steal_pointer (&data_dir_vector);
+}
 
 /**
  * g_get_system_data_dirs:
@@ -2354,15 +2621,18 @@ g_win32_get_system_data_dirs_for_module (gconstpointer address)
  * Returns an ordered list of base directories in which to access 
  * system-wide application data.
  *
- * On UNIX platforms this is determined using the mechanisms described in
- * the <ulink url="http://www.freedesktop.org/Standards/basedir-spec">
- * XDG Base Directory Specification</ulink>
- * 
- * On Windows the first elements in the list are the Application Data
+ * On UNIX platforms this is determined using the mechanisms described
+ * in the
+ * [XDG Base Directory Specification](http://www.freedesktop.org/Standards/basedir-spec)
+ * In this case the list of directories retrieved will be `XDG_DATA_DIRS`.
+ *
+ * On Windows it follows XDG Base Directory Specification if `XDG_DATA_DIRS` is defined.
+ * If `XDG_DATA_DIRS` is undefined,
+ * the first elements in the list are the Application Data
  * and Documents folders for All Users. (These can be determined only
  * on Windows 2000 or later and are not present in the list on other
- * Windows versions.) See documentation for CSIDL_COMMON_APPDATA and
- * CSIDL_COMMON_DOCUMENTS.
+ * Windows versions.) See documentation for FOLDERID_ProgramData and
+ * FOLDERID_PublicDocuments.
  *
  * Then follows the "share" subfolder in the installation folder for
  * the package containing the DLL that calls this function, if it can
@@ -2380,38 +2650,61 @@ g_win32_get_system_data_dirs_for_module (gconstpointer address)
  * Note that on Windows the returned list can vary depending on where
  * this function is called.
  *
- * Return value: a %NULL-terminated array of strings owned by GLib that must 
- *               not be modified or freed.
+ * The return value is cached and modifying it at runtime is not supported, as
+ * it’s not thread-safe to modify environment variables at runtime.
+ *
+ * Returns: (array zero-terminated=1) (element-type filename) (transfer none):
+ *     a %NULL-terminated array of strings owned by GLib that must not be
+ *     modified or freed.
+ * 
  * Since: 2.6
  **/
-G_CONST_RETURN gchar * G_CONST_RETURN * 
+const gchar * const * 
 g_get_system_data_dirs (void)
 {
-  gchar **data_dir_vector;
+  const gchar * const *system_data_dirs;
 
   G_LOCK (g_utils_global);
 
-  if (!g_system_data_dirs)
-    {
-#ifdef G_OS_WIN32
-      data_dir_vector = (gchar **) g_win32_get_system_data_dirs_for_module (NULL);
-#else
-      gchar *data_dirs = (gchar *) g_getenv ("XDG_DATA_DIRS");
-
-      if (!data_dirs || !data_dirs[0])
-          data_dirs = "/usr/local/share/:/usr/share/";
-
-      data_dir_vector = g_strsplit (data_dirs, G_SEARCHPATH_SEPARATOR_S, 0);
-#endif
-
-      g_system_data_dirs = data_dir_vector;
-    }
-  else
-    data_dir_vector = g_system_data_dirs;
+  if (g_system_data_dirs == NULL)
+    g_system_data_dirs = g_build_system_data_dirs ();
+  system_data_dirs = (const gchar * const *) g_system_data_dirs;
 
   G_UNLOCK (g_utils_global);
 
-  return (G_CONST_RETURN gchar * G_CONST_RETURN *) data_dir_vector;
+  return system_data_dirs;
+}
+
+static gchar **
+g_build_system_config_dirs (void)
+{
+  gchar **conf_dir_vector = NULL;
+  const gchar *conf_dirs = g_getenv ("XDG_CONFIG_DIRS");
+#ifdef G_OS_WIN32
+  if (conf_dirs)
+    {
+      conf_dir_vector = g_strsplit (conf_dirs, G_SEARCHPATH_SEPARATOR_S, 0);
+    }
+  else
+    {
+      gchar *special_conf_dirs = get_special_folder (&FOLDERID_ProgramData);
+
+      if (special_conf_dirs)
+        conf_dir_vector = g_strsplit (special_conf_dirs, G_SEARCHPATH_SEPARATOR_S, 0);
+      else
+        /* Return empty list */
+        conf_dir_vector = g_strsplit ("", G_SEARCHPATH_SEPARATOR_S, 0);
+
+      g_free (special_conf_dirs);
+    }
+#else
+  if (!conf_dirs || !conf_dirs[0])
+    conf_dirs = "/etc/xdg";
+
+  conf_dir_vector = g_strsplit (conf_dirs, G_SEARCHPATH_SEPARATOR_S, 0);
+#endif
+
+  return g_steal_pointer (&conf_dir_vector);
 }
 
 /**
@@ -2420,458 +2713,50 @@ g_get_system_data_dirs (void)
  * Returns an ordered list of base directories in which to access 
  * system-wide configuration information.
  *
- * On UNIX platforms this is determined using the mechanisms described in
- * the <ulink url="http://www.freedesktop.org/Standards/basedir-spec">
- * XDG Base Directory Specification</ulink>
+ * On UNIX platforms this is determined using the mechanisms described
+ * in the
+ * [XDG Base Directory Specification](http://www.freedesktop.org/Standards/basedir-spec).
+ * In this case the list of directories retrieved will be `XDG_CONFIG_DIRS`.
+ *
+ * On Windows it follows XDG Base Directory Specification if `XDG_CONFIG_DIRS` is defined.
+ * If `XDG_CONFIG_DIRS` is undefined, the directory that contains application
+ * data for all users is used instead. A typical path is
+ * `C:\Documents and Settings\All Users\Application Data`.
+ * This folder is used for application data
+ * that is not user specific. For example, an application can store
+ * a spell-check dictionary, a database of clip art, or a log file in the
+ * FOLDERID_ProgramData folder. This information will not roam and is available
+ * to anyone using the computer.
+ *
+ * The return value is cached and modifying it at runtime is not supported, as
+ * it’s not thread-safe to modify environment variables at runtime.
+ *
+ * Returns: (array zero-terminated=1) (element-type filename) (transfer none):
+ *     a %NULL-terminated array of strings owned by GLib that must not be
+ *     modified or freed.
  * 
- * Return value: a %NULL-terminated array of strings owned by GLib that must 
- *               not be modified or freed.
  * Since: 2.6
  **/
-G_CONST_RETURN gchar * G_CONST_RETURN *
+const gchar * const *
 g_get_system_config_dirs (void)
 {
-  gchar *conf_dirs, **conf_dir_vector;
+  const gchar * const *system_config_dirs;
 
   G_LOCK (g_utils_global);
 
-  if (!g_system_config_dirs)
-    {
-#ifdef G_OS_WIN32
-      conf_dirs = get_special_folder (CSIDL_COMMON_APPDATA);
-      if (conf_dirs)
-	{
-	  conf_dir_vector = g_strsplit (conf_dirs, G_SEARCHPATH_SEPARATOR_S, 0);
-	  g_free (conf_dirs);
-	}
-      else
-	{
-	  /* Return empty list */
-	  conf_dir_vector = g_strsplit ("", G_SEARCHPATH_SEPARATOR_S, 0);
-	}
-#else
-      conf_dirs = (gchar *) g_getenv ("XDG_CONFIG_DIRS");
+  if (g_system_config_dirs == NULL)
+    g_system_config_dirs = g_build_system_config_dirs ();
+  system_config_dirs = (const gchar * const *) g_system_config_dirs;
 
-      if (!conf_dirs || !conf_dirs[0])
-          conf_dirs = "/etc/xdg";
-
-      conf_dir_vector = g_strsplit (conf_dirs, G_SEARCHPATH_SEPARATOR_S, 0);
-#endif
-
-      g_system_config_dirs = conf_dir_vector;
-    }
-  else
-    conf_dir_vector = g_system_config_dirs;
   G_UNLOCK (g_utils_global);
 
-  return (G_CONST_RETURN gchar * G_CONST_RETURN *) conf_dir_vector;
-}
-
-#ifndef G_OS_WIN32
-
-static GHashTable *alias_table = NULL;
-
-/* read an alias file for the locales */
-static void
-read_aliases (gchar *file)
-{
-  FILE *fp;
-  char buf[256];
-  
-  if (!alias_table)
-    alias_table = g_hash_table_new (g_str_hash, g_str_equal);
-  fp = fopen (file,"r");
-  if (!fp)
-    return;
-  while (fgets (buf, 256, fp))
-    {
-      char *p, *q;
-
-      g_strstrip (buf);
-
-      /* Line is a comment */
-      if ((buf[0] == '#') || (buf[0] == '\0'))
-	continue;
-
-      /* Reads first column */
-      for (p = buf, q = NULL; *p; p++) {
-	if ((*p == '\t') || (*p == ' ') || (*p == ':')) {
-	  *p = '\0';
-	  q = p+1;
-	  while ((*q == '\t') || (*q == ' ')) {
-	    q++;
-	  }
-	  break;
-	}
-      }
-      /* The line only had one column */
-      if (!q || *q == '\0')
-	continue;
-      
-      /* Read second column */
-      for (p = q; *p; p++) {
-	if ((*p == '\t') || (*p == ' ')) {
-	  *p = '\0';
-	  break;
-	}
-      }
-
-      /* Add to alias table if necessary */
-      if (!g_hash_table_lookup (alias_table, buf)) {
-	g_hash_table_insert (alias_table, g_strdup (buf), g_strdup (q));
-      }
-    }
-  fclose (fp);
-}
-
-#endif
-
-static char *
-unalias_lang (char *lang)
-{
-#ifndef G_OS_WIN32
-  char *p;
-  int i;
-
-  if (!alias_table)
-    read_aliases ("/usr/share/locale/locale.alias");
-
-  i = 0;
-  while ((p = g_hash_table_lookup (alias_table, lang)) && (strcmp (p, lang) != 0))
-    {
-      lang = p;
-      if (i++ == 30)
-        {
-          static gboolean said_before = FALSE;
-	  if (!said_before)
-            g_warning ("Too many alias levels for a locale, "
-		       "may indicate a loop");
-	  said_before = TRUE;
-	  return lang;
-	}
-    }
-#endif
-  return lang;
-}
-
-/* Mask for components of locale spec. The ordering here is from
- * least significant to most significant
- */
-enum
-{
-  COMPONENT_CODESET =   1 << 0,
-  COMPONENT_TERRITORY = 1 << 1,
-  COMPONENT_MODIFIER =  1 << 2
-};
-
-/* Break an X/Open style locale specification into components
- */
-static guint
-explode_locale (const gchar *locale,
-		gchar      **language, 
-		gchar      **territory, 
-		gchar      **codeset, 
-		gchar      **modifier)
-{
-  const gchar *uscore_pos;
-  const gchar *at_pos;
-  const gchar *dot_pos;
-
-  guint mask = 0;
-
-  uscore_pos = strchr (locale, '_');
-  dot_pos = strchr (uscore_pos ? uscore_pos : locale, '.');
-  at_pos = strchr (dot_pos ? dot_pos : (uscore_pos ? uscore_pos : locale), '@');
-
-  if (at_pos)
-    {
-      mask |= COMPONENT_MODIFIER;
-      *modifier = g_strdup (at_pos);
-    }
-  else
-    at_pos = locale + strlen (locale);
-
-  if (dot_pos)
-    {
-      mask |= COMPONENT_CODESET;
-      *codeset = g_strndup (dot_pos, at_pos - dot_pos);
-    }
-  else
-    dot_pos = at_pos;
-
-  if (uscore_pos)
-    {
-      mask |= COMPONENT_TERRITORY;
-      *territory = g_strndup (uscore_pos, dot_pos - uscore_pos);
-    }
-  else
-    uscore_pos = dot_pos;
-
-  *language = g_strndup (locale, uscore_pos - locale);
-
-  return mask;
-}
-
-/*
- * Compute all interesting variants for a given locale name -
- * by stripping off different components of the value.
- *
- * For simplicity, we assume that the locale is in
- * X/Open format: language[_territory][.codeset][@modifier]
- *
- * TODO: Extend this to handle the CEN format (see the GNUlibc docs)
- *       as well. We could just copy the code from glibc wholesale
- *       but it is big, ugly, and complicated, so I'm reluctant
- *       to do so when this should handle 99% of the time...
- */
-GSList *
-_g_compute_locale_variants (const gchar *locale)
-{
-  GSList *retval = NULL;
-
-  gchar *language = NULL;
-  gchar *territory = NULL;
-  gchar *codeset = NULL;
-  gchar *modifier = NULL;
-
-  guint mask;
-  guint i;
-
-  g_return_val_if_fail (locale != NULL, NULL);
-
-  mask = explode_locale (locale, &language, &territory, &codeset, &modifier);
-
-  /* Iterate through all possible combinations, from least attractive
-   * to most attractive.
-   */
-  for (i = 0; i <= mask; i++)
-    if ((i & ~mask) == 0)
-      {
-	gchar *val = g_strconcat (language,
-				  (i & COMPONENT_TERRITORY) ? territory : "",
-				  (i & COMPONENT_CODESET) ? codeset : "",
-				  (i & COMPONENT_MODIFIER) ? modifier : "",
-				  NULL);
-	retval = g_slist_prepend (retval, val);
-      }
-
-  g_free (language);
-  if (mask & COMPONENT_CODESET)
-    g_free (codeset);
-  if (mask & COMPONENT_TERRITORY)
-    g_free (territory);
-  if (mask & COMPONENT_MODIFIER)
-    g_free (modifier);
-
-  return retval;
-}
-
-/* The following is (partly) taken from the gettext package.
-   Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.  */
-
-static const gchar *
-guess_category_value (const gchar *category_name)
-{
-  const gchar *retval;
-
-  /* The highest priority value is the `LANGUAGE' environment
-     variable.  This is a GNU extension.  */
-  retval = g_getenv ("LANGUAGE");
-  if ((retval != NULL) && (retval[0] != '\0'))
-    return retval;
-
-  /* `LANGUAGE' is not set.  So we have to proceed with the POSIX
-     methods of looking to `LC_ALL', `LC_xxx', and `LANG'.  On some
-     systems this can be done by the `setlocale' function itself.  */
-
-  /* Setting of LC_ALL overwrites all other.  */
-  retval = g_getenv ("LC_ALL");  
-  if ((retval != NULL) && (retval[0] != '\0'))
-    return retval;
-
-  /* Next comes the name of the desired category.  */
-  retval = g_getenv (category_name);
-  if ((retval != NULL) && (retval[0] != '\0'))
-    return retval;
-
-  /* Last possibility is the LANG environment variable.  */
-  retval = g_getenv ("LANG");
-  if ((retval != NULL) && (retval[0] != '\0'))
-    return retval;
-
-#ifdef G_PLATFORM_WIN32
-  /* g_win32_getlocale() first checks for LC_ALL, LC_MESSAGES and
-   * LANG, which we already did above. Oh well. The main point of
-   * calling g_win32_getlocale() is to get the thread's locale as used
-   * by Windows and the Microsoft C runtime (in the "English_United
-   * States" format) translated into the Unixish format.
-   */
-  retval = g_win32_getlocale ();
-  if ((retval != NULL) && (retval[0] != '\0'))
-    return retval;
-#endif  
-
-  return NULL;
-}
-
-typedef struct _GLanguageNamesCache GLanguageNamesCache;
-
-struct _GLanguageNamesCache {
-  gchar *languages;
-  gchar **language_names;
-};
-
-static void
-language_names_cache_free (gpointer data)
-{
-  GLanguageNamesCache *cache = data;
-  g_free (cache->languages);
-  g_strfreev (cache->language_names);
-  g_free (cache);
-}
-
-/**
- * g_get_language_names:
- * 
- * Computes a list of applicable locale names, which can be used to 
- * e.g. construct locale-dependent filenames or search paths. The returned 
- * list is sorted from most desirable to least desirable and always contains 
- * the default locale "C".
- *
- * For example, if LANGUAGE=de:en_US, then the returned list is
- * "de", "en_US", "en", "C".
- *
- * This function consults the environment variables <envar>LANGUAGE</envar>, 
- * <envar>LC_ALL</envar>, <envar>LC_MESSAGES</envar> and <envar>LANG</envar> 
- * to find the list of locales specified by the user.
- * 
- * Return value: a %NULL-terminated array of strings owned by GLib 
- *    that must not be modified or freed.
- *
- * Since: 2.6
- **/
-G_CONST_RETURN gchar * G_CONST_RETURN * 
-g_get_language_names (void)
-{
-  static GStaticPrivate cache_private = G_STATIC_PRIVATE_INIT;
-  GLanguageNamesCache *cache = g_static_private_get (&cache_private);
-  const gchar *value;
-
-  if (!cache)
-    {
-      cache = g_new0 (GLanguageNamesCache, 1);
-      g_static_private_set (&cache_private, cache, language_names_cache_free);
-    }
-
-  value = guess_category_value ("LC_MESSAGES");
-  if (!value)
-    value = "C";
-
-  if (!(cache->languages && strcmp (cache->languages, value) == 0))
-    {
-      gchar **languages;
-      gchar **alist, **a;
-      GSList *list, *l;
-      gint i;
-
-      g_free (cache->languages);
-      g_strfreev (cache->language_names);
-      cache->languages = g_strdup (value);
-
-      alist = g_strsplit (value, ":", 0);
-      list = NULL;
-      for (a = alist; *a; a++)
-	{
-	  gchar *b = unalias_lang (*a);
-	  list = g_slist_concat (list, _g_compute_locale_variants (b));
-	}
-      g_strfreev (alist);
-      list = g_slist_append (list, g_strdup ("C"));
-
-      cache->language_names = languages = g_new (gchar *, g_slist_length (list) + 1);
-      for (l = list, i = 0; l; l = l->next, i++)
-	languages[i] = l->data;
-      languages[i] = NULL;
-
-      g_slist_free (list);
-    }
-
-  return (G_CONST_RETURN gchar * G_CONST_RETURN *) cache->language_names;
-}
-
-/**
- * g_direct_hash:
- * @v: a #gpointer key
- *
- * Converts a gpointer to a hash value.
- * It can be passed to g_hash_table_new() as the @hash_func parameter, 
- * when using pointers as keys in a #GHashTable.
- *
- * Returns: a hash value corresponding to the key.
- */
-guint
-g_direct_hash (gconstpointer v)
-{
-  return GPOINTER_TO_UINT (v);
-}
-
-/**
- * g_direct_equal:
- * @v1: a key.
- * @v2: a key to compare with @v1.
- *
- * Compares two #gpointer arguments and returns %TRUE if they are equal.
- * It can be passed to g_hash_table_new() as the @key_equal_func
- * parameter, when using pointers as keys in a #GHashTable.
- * 
- * Returns: %TRUE if the two keys match.
- */
-gboolean
-g_direct_equal (gconstpointer v1,
-		gconstpointer v2)
-{
-  return v1 == v2;
-}
-
-/**
- * g_int_equal:
- * @v1: a pointer to a #gint key.
- * @v2: a pointer to a #gint key to compare with @v1.
- *
- * Compares the two #gint values being pointed to and returns 
- * %TRUE if they are equal.
- * It can be passed to g_hash_table_new() as the @key_equal_func
- * parameter, when using pointers to integers as keys in a #GHashTable.
- * 
- * Returns: %TRUE if the two keys match.
- */
-gboolean
-g_int_equal (gconstpointer v1,
-	     gconstpointer v2)
-{
-  return *((const gint*) v1) == *((const gint*) v2);
-}
-
-/**
- * g_int_hash:
- * @v: a pointer to a #gint key
- *
- * Converts a pointer to a #gint to a hash value.
- * It can be passed to g_hash_table_new() as the @hash_func parameter, 
- * when using pointers to integers values as keys in a #GHashTable.
- *
- * Returns: a hash value corresponding to the key.
- */
-guint
-g_int_hash (gconstpointer v)
-{
-  return *(const gint*) v;
+  return system_config_dirs;
 }
 
 /**
  * g_nullify_pointer:
- * @nullify_location: the memory address of the pointer.
- * 
+ * @nullify_location: (not nullable): the memory address of the pointer.
+ *
  * Set the pointer at the specified location to %NULL.
  **/
 void
@@ -2882,216 +2767,498 @@ g_nullify_pointer (gpointer *nullify_location)
   *nullify_location = NULL;
 }
 
-/**
- * g_get_codeset:
- * 
- * Get the codeset for the current locale.
- * 
- * Return value: a newly allocated string containing the name
- * of the codeset. This string must be freed with g_free().
- **/
-gchar *
-g_get_codeset (void)
-{
-  const gchar *charset;
+#define KILOBYTE_FACTOR (G_GOFFSET_CONSTANT (1000))
+#define MEGABYTE_FACTOR (KILOBYTE_FACTOR * KILOBYTE_FACTOR)
+#define GIGABYTE_FACTOR (MEGABYTE_FACTOR * KILOBYTE_FACTOR)
+#define TERABYTE_FACTOR (GIGABYTE_FACTOR * KILOBYTE_FACTOR)
+#define PETABYTE_FACTOR (TERABYTE_FACTOR * KILOBYTE_FACTOR)
+#define EXABYTE_FACTOR  (PETABYTE_FACTOR * KILOBYTE_FACTOR)
 
-  g_get_charset (&charset);
-
-  return g_strdup (charset);
-}
-
-/* This is called from g_thread_init(). It's used to
- * initialize some static data in a threadsafe way.
- */
-void
-_g_utils_thread_init (void)
-{
-  g_get_language_names ();
-}
-
-#ifdef ENABLE_NLS
-
-#include <libintl.h>
-
-#ifdef G_OS_WIN32
+#define KIBIBYTE_FACTOR (G_GOFFSET_CONSTANT (1024))
+#define MEBIBYTE_FACTOR (KIBIBYTE_FACTOR * KIBIBYTE_FACTOR)
+#define GIBIBYTE_FACTOR (MEBIBYTE_FACTOR * KIBIBYTE_FACTOR)
+#define TEBIBYTE_FACTOR (GIBIBYTE_FACTOR * KIBIBYTE_FACTOR)
+#define PEBIBYTE_FACTOR (TEBIBYTE_FACTOR * KIBIBYTE_FACTOR)
+#define EXBIBYTE_FACTOR (PEBIBYTE_FACTOR * KIBIBYTE_FACTOR)
 
 /**
- * _glib_get_locale_dir:
+ * g_format_size:
+ * @size: a size in bytes
  *
- * Return the path to the lib\locale subfolder of the GLib
- * installation folder. The path is in the system codepage. We have to
- * use system codepage as bindtextdomain() doesn't have a UTF-8
- * interface.
+ * Formats a size (for example the size of a file) into a human readable
+ * string.  Sizes are rounded to the nearest size prefix (kB, MB, GB)
+ * and are displayed rounded to the nearest tenth. E.g. the file size
+ * 3292528 bytes will be converted into the string "3.2 MB". The returned string
+ * is UTF-8, and may use a non-breaking space to separate the number and units,
+ * to ensure they aren’t separated when line wrapped.
+ *
+ * The prefix units base is 1000 (i.e. 1 kB is 1000 bytes).
+ *
+ * This string should be freed with g_free() when not needed any longer.
+ *
+ * See g_format_size_full() for more options about how the size might be
+ * formatted.
+ *
+ * Returns: (transfer full): a newly-allocated formatted string containing
+ *   a human readable file size
+ *
+ * Since: 2.30
  */
-static const gchar *
-_glib_get_locale_dir (void)
+gchar *
+g_format_size (guint64 size)
 {
-  gchar *dir, *cp_dir;
-  gchar *retval = NULL;
+  return g_format_size_full (size, G_FORMAT_SIZE_DEFAULT);
+}
 
-  dir = g_win32_get_package_installation_directory (GETTEXT_PACKAGE, dll_name);
-  cp_dir = g_win32_locale_filename_from_utf8 (dir);
-  g_free (dir);
+/**
+ * GFormatSizeFlags:
+ * @G_FORMAT_SIZE_DEFAULT: behave the same as g_format_size()
+ * @G_FORMAT_SIZE_LONG_FORMAT: include the exact number of bytes as part
+ *     of the returned string.  For example, "45.6 kB (45,612 bytes)".
+ * @G_FORMAT_SIZE_IEC_UNITS: use IEC (base 1024) units with "KiB"-style
+ *     suffixes. IEC units should only be used for reporting things with
+ *     a strong "power of 2" basis, like RAM sizes or RAID stripe sizes.
+ *     Network and storage sizes should be reported in the normal SI units.
+ * @G_FORMAT_SIZE_BITS: set the size as a quantity in bits, rather than
+ *     bytes, and return units in bits. For example, ‘Mbit’ rather than ‘MB’.
+ * @G_FORMAT_SIZE_ONLY_VALUE: return only value, without unit; this should
+ *     not be used together with @G_FORMAT_SIZE_LONG_FORMAT
+ *     nor @G_FORMAT_SIZE_ONLY_UNIT. Since: 2.74
+ * @G_FORMAT_SIZE_ONLY_UNIT: return only unit, without value; this should
+ *     not be used together with @G_FORMAT_SIZE_LONG_FORMAT
+ *     nor @G_FORMAT_SIZE_ONLY_VALUE. Since: 2.74
+ *
+ * Flags to modify the format of the string returned by g_format_size_full().
+ */
 
-  if (cp_dir)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+
+/**
+ * g_format_size_full:
+ * @size: a size in bytes
+ * @flags: #GFormatSizeFlags to modify the output
+ *
+ * Formats a size.
+ *
+ * This function is similar to g_format_size() but allows for flags
+ * that modify the output. See #GFormatSizeFlags.
+ *
+ * Returns: (transfer full): a newly-allocated formatted string
+ *   containing a human readable file size
+ *
+ * Since: 2.30
+ */
+gchar *
+g_format_size_full (guint64          size,
+                    GFormatSizeFlags flags)
+{
+  struct Format
+  {
+    guint64 factor;
+    char string[10];
+  };
+
+  typedef enum
+  {
+    FORMAT_BYTES,
+    FORMAT_BYTES_IEC,
+    FORMAT_BITS,
+    FORMAT_BITS_IEC
+  } FormatIndex;
+
+  const struct Format formats[4][6] = {
     {
-      /* Don't use g_build_filename() on pathnames in the system
-       * codepage. In CJK locales cp_dir might end with a double-byte
-       * character whose trailing byte is a backslash.
-       */
-      retval = g_strconcat (cp_dir, "\\lib\\locale", NULL);
-      g_free (cp_dir);
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 kB" */
+      { KILOBYTE_FACTOR, N_("kB") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 MB" */
+      { MEGABYTE_FACTOR, N_("MB") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 GB" */
+      { GIGABYTE_FACTOR, N_("GB") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 TB" */
+      { TERABYTE_FACTOR, N_("TB") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 PB" */
+      { PETABYTE_FACTOR, N_("PB") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 EB" */
+      { EXABYTE_FACTOR,  N_("EB") }
+    },
+    {
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 KiB" */
+      { KIBIBYTE_FACTOR, N_("KiB") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 MiB" */
+      { MEBIBYTE_FACTOR, N_("MiB") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 GiB" */
+      { GIBIBYTE_FACTOR, N_("GiB") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 TiB" */
+      { TEBIBYTE_FACTOR, N_("TiB") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 PiB" */
+      { PEBIBYTE_FACTOR, N_("PiB") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 EiB" */
+      { EXBIBYTE_FACTOR, N_("EiB") }
+    },
+    {
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 kbit" */
+      { KILOBYTE_FACTOR, N_("kbit") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 Mbit" */
+      { MEGABYTE_FACTOR, N_("Mbit") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 Gbit" */
+      { GIGABYTE_FACTOR, N_("Gbit") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 Tbit" */
+      { TERABYTE_FACTOR, N_("Tbit") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 Pbit" */
+      { PETABYTE_FACTOR, N_("Pbit") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 Ebit" */
+      { EXABYTE_FACTOR,  N_("Ebit") }
+    },
+    {
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 Kibit" */
+      { KIBIBYTE_FACTOR, N_("Kibit") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 Mibit" */
+      { MEBIBYTE_FACTOR, N_("Mibit") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 Gibit" */
+      { GIBIBYTE_FACTOR, N_("Gibit") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 Tibit" */
+      { TEBIBYTE_FACTOR, N_("Tibit") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 Pibit" */
+      { PEBIBYTE_FACTOR, N_("Pibit") },
+      /* Translators: A unit symbol for size formatting, showing for example: "13.0 Eibit" */
+      { EXBIBYTE_FACTOR, N_("Eibit") }
+    }
+  };
+
+  GString *string;
+  FormatIndex index;
+
+  g_return_val_if_fail ((flags & (G_FORMAT_SIZE_LONG_FORMAT | G_FORMAT_SIZE_ONLY_VALUE)) != (G_FORMAT_SIZE_LONG_FORMAT | G_FORMAT_SIZE_ONLY_VALUE), NULL);
+  g_return_val_if_fail ((flags & (G_FORMAT_SIZE_LONG_FORMAT | G_FORMAT_SIZE_ONLY_UNIT)) != (G_FORMAT_SIZE_LONG_FORMAT | G_FORMAT_SIZE_ONLY_UNIT), NULL);
+  g_return_val_if_fail ((flags & (G_FORMAT_SIZE_ONLY_VALUE | G_FORMAT_SIZE_ONLY_UNIT)) != (G_FORMAT_SIZE_ONLY_VALUE | G_FORMAT_SIZE_ONLY_UNIT), NULL);
+
+  string = g_string_new (NULL);
+
+  switch (flags & ~(G_FORMAT_SIZE_LONG_FORMAT | G_FORMAT_SIZE_ONLY_VALUE | G_FORMAT_SIZE_ONLY_UNIT))
+    {
+    case G_FORMAT_SIZE_DEFAULT:
+      index = FORMAT_BYTES;
+      break;
+    case (G_FORMAT_SIZE_DEFAULT | G_FORMAT_SIZE_IEC_UNITS):
+      index = FORMAT_BYTES_IEC;
+      break;
+    case G_FORMAT_SIZE_BITS:
+      index = FORMAT_BITS;
+      break;
+    case (G_FORMAT_SIZE_BITS | G_FORMAT_SIZE_IEC_UNITS):
+      index = FORMAT_BITS_IEC;
+      break;
+    default:
+      g_assert_not_reached ();
     }
 
-  if (retval)
-    return retval;
+
+  if (size < formats[index][0].factor)
+    {
+      const char * units;
+
+      if (index == FORMAT_BYTES || index == FORMAT_BYTES_IEC)
+        {
+          units = g_dngettext (GETTEXT_PACKAGE, "byte", "bytes", (guint) size);
+        }
+      else
+        {
+          units = g_dngettext (GETTEXT_PACKAGE, "bit", "bits", (guint) size);
+        }
+
+      if ((flags & G_FORMAT_SIZE_ONLY_UNIT) != 0)
+        g_string_append (string, units);
+      else if ((flags & G_FORMAT_SIZE_ONLY_VALUE) != 0)
+        /* Translators: The "%u" is replaced with the size value, like "13"; it could
+         * be part of "13 bytes", but only the number is requested this time. */
+        g_string_printf (string, C_("format-size", "%u"), (guint) size);
+      else
+        {
+          /* Translators: The first "%u" is replaced with the value, the "%s" with a unit of the value.
+           * The order can be changed with "%$2s %$1u". An example: "13 bytes" */
+          g_string_printf (string, C_("format-size", "%u %s"), (guint) size, units);
+        }
+
+      flags &= ~G_FORMAT_SIZE_LONG_FORMAT;
+    }
   else
-    return g_strdup ("");
-}
-
-#undef GLIB_LOCALE_DIR
-#define GLIB_LOCALE_DIR _glib_get_locale_dir ()
-
-#endif /* G_OS_WIN32 */
-
-G_CONST_RETURN gchar *
-_glib_gettext (const gchar *str)
-{
-  static gboolean _glib_gettext_initialized = FALSE;
-
-  if (!_glib_gettext_initialized)
     {
-      bindtextdomain(GETTEXT_PACKAGE, GLIB_LOCALE_DIR);
-#    ifdef HAVE_BIND_TEXTDOMAIN_CODESET
-      bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
-#    endif
-      _glib_gettext_initialized = TRUE;
+      const gsize n = G_N_ELEMENTS (formats[index]);
+      const gchar * units;
+      gdouble value;
+      gsize i;
+
+      /*
+       * Point the last format (the highest unit) by default
+       * and then then scan all formats, starting with the 2nd one
+       * because the 1st is already managed by with the plural form
+       */
+      const struct Format * f = &formats[index][n - 1];
+
+      for (i = 1; i < n; i++)
+        {
+          if (size < formats[index][i].factor)
+            {
+              f = &formats[index][i - 1];
+              break;
+            }
+        }
+
+      units = _(f->string);
+      value = (gdouble) size / (gdouble) f->factor;
+
+      if ((flags & G_FORMAT_SIZE_ONLY_UNIT) != 0)
+        g_string_append (string, units);
+      else if ((flags & G_FORMAT_SIZE_ONLY_VALUE) != 0)
+        /* Translators: The "%.1f" is replaced with the size value, like "13.0"; it could
+         * be part of "13.0 MB", but only the number is requested this time. */
+        g_string_printf (string, C_("format-size", "%.1f"), value);
+      else
+        {
+          /* Translators: The first "%.1f" is replaced with the value, the "%s" with a unit of the value.
+           * The order can be changed with "%$2s %$1.1f". Keep the no-break space between the value and
+           * the unit symbol. An example: "13.0 MB" */
+          g_string_printf (string, C_("format-size", "%.1f %s"), value, units);
+        }
     }
-  
-  return dgettext (GETTEXT_PACKAGE, str);
+
+  if (flags & G_FORMAT_SIZE_LONG_FORMAT)
+    {
+      /* First problem: we need to use the number of bytes to decide on
+       * the plural form that is used for display, but the number of
+       * bytes potentially exceeds the size of a guint (which is what
+       * ngettext() takes).
+       *
+       * From a pragmatic standpoint, it seems that all known languages
+       * base plural forms on one or both of the following:
+       *
+       *   - the lowest digits of the number
+       *
+       *   - if the number if greater than some small value
+       *
+       * Here's how we fake it:  Draw an arbitrary line at one thousand.
+       * If the number is below that, then fine.  If it is above it,
+       * then we take the modulus of the number by one thousand (in
+       * order to keep the lowest digits) and add one thousand to that
+       * (in order to ensure that 1001 is not treated the same as 1).
+       */
+      guint plural_form = size < 1000 ? size : size % 1000 + 1000;
+
+      /* Second problem: we need to translate the string "%u byte/bit" and
+       * "%u bytes/bits" for pluralisation, but the correct number format to
+       * use for a gsize is different depending on which architecture
+       * we're on.
+       *
+       * Solution: format the number separately and use "%s bytes/bits" on
+       * all platforms.
+       */
+      const gchar *translated_format;
+      gchar *formatted_number;
+
+      if (index == FORMAT_BYTES || index == FORMAT_BYTES_IEC)
+        {
+          /* Translators: the %s in "%s bytes" will always be replaced by a number. */
+          translated_format = g_dngettext (GETTEXT_PACKAGE, "%s byte", "%s bytes", plural_form);
+        }
+      else
+        {
+          /* Translators: the %s in "%s bits" will always be replaced by a number. */
+          translated_format = g_dngettext (GETTEXT_PACKAGE, "%s bit", "%s bits", plural_form);
+        }
+      formatted_number = g_strdup_printf ("%'"G_GUINT64_FORMAT, size);
+
+      g_string_append (string, " (");
+      g_string_append_printf (string, translated_format, formatted_number);
+      g_free (formatted_number);
+      g_string_append (string, ")");
+    }
+
+  return g_string_free (string, FALSE);
 }
 
-#endif /* ENABLE_NLS */
+#pragma GCC diagnostic pop
 
-#ifdef G_OS_WIN32
+/**
+ * g_format_size_for_display:
+ * @size: a size in bytes
+ *
+ * Formats a size (for example the size of a file) into a human
+ * readable string. Sizes are rounded to the nearest size prefix
+ * (KB, MB, GB) and are displayed rounded to the nearest tenth.
+ * E.g. the file size 3292528 bytes will be converted into the
+ * string "3.1 MB".
+ *
+ * The prefix units base is 1024 (i.e. 1 KB is 1024 bytes).
+ *
+ * This string should be freed with g_free() when not needed any longer.
+ *
+ * Returns: (transfer full): a newly-allocated formatted string
+ *   containing a human readable file size
+ *
+ * Since: 2.16
+ *
+ * Deprecated:2.30: This function is broken due to its use of SI
+ *     suffixes to denote IEC units. Use g_format_size() instead.
+ */
+gchar *
+g_format_size_for_display (goffset size)
+{
+  if (size < (goffset) KIBIBYTE_FACTOR)
+    return g_strdup_printf (g_dngettext(GETTEXT_PACKAGE, "%u byte", "%u bytes",(guint) size), (guint) size);
+  else
+    {
+      gdouble displayed_size;
+
+      if (size < (goffset) MEBIBYTE_FACTOR)
+        {
+          displayed_size = (gdouble) size / (gdouble) KIBIBYTE_FACTOR;
+          /* Translators: this is from the deprecated function g_format_size_for_display() which uses 'KB' to
+           * mean 1024 bytes.  I am aware that 'KB' is not correct, but it has been preserved for reasons of
+           * compatibility.  Users will not see this string unless a program is using this deprecated function.
+           * Please translate as literally as possible.
+           */
+          return g_strdup_printf (_("%.1f KB"), displayed_size);
+        }
+      else if (size < (goffset) GIBIBYTE_FACTOR)
+        {
+          displayed_size = (gdouble) size / (gdouble) MEBIBYTE_FACTOR;
+          return g_strdup_printf (_("%.1f MB"), displayed_size);
+        }
+      else if (size < (goffset) TEBIBYTE_FACTOR)
+        {
+          displayed_size = (gdouble) size / (gdouble) GIBIBYTE_FACTOR;
+          return g_strdup_printf (_("%.1f GB"), displayed_size);
+        }
+      else if (size < (goffset) PEBIBYTE_FACTOR)
+        {
+          displayed_size = (gdouble) size / (gdouble) TEBIBYTE_FACTOR;
+          return g_strdup_printf (_("%.1f TB"), displayed_size);
+        }
+      else if (size < (goffset) EXBIBYTE_FACTOR)
+        {
+          displayed_size = (gdouble) size / (gdouble) PEBIBYTE_FACTOR;
+          return g_strdup_printf (_("%.1f PB"), displayed_size);
+        }
+      else
+        {
+          displayed_size = (gdouble) size / (gdouble) EXBIBYTE_FACTOR;
+          return g_strdup_printf (_("%.1f EB"), displayed_size);
+        }
+    }
+}
+
+#if defined (G_OS_WIN32) && !defined (_WIN64)
 
 /* Binary compatibility versions. Not for newly compiled code. */
 
-#undef g_find_program_in_path
+_GLIB_EXTERN const gchar *g_get_user_name_utf8        (void);
+_GLIB_EXTERN const gchar *g_get_real_name_utf8        (void);
+_GLIB_EXTERN const gchar *g_get_home_dir_utf8         (void);
+_GLIB_EXTERN const gchar *g_get_tmp_dir_utf8          (void);
+_GLIB_EXTERN gchar       *g_find_program_in_path_utf8 (const gchar *program);
 
-gchar*
-g_find_program_in_path (const gchar *program)
+gchar *
+g_find_program_in_path_utf8 (const gchar *program)
 {
-  gchar *utf8_program = g_locale_to_utf8 (program, -1, NULL, NULL, NULL);
-  gchar *utf8_retval = g_find_program_in_path_utf8 (utf8_program);
-  gchar *retval;
-
-  g_free (utf8_program);
-  if (utf8_retval == NULL)
-    return NULL;
-  retval = g_locale_from_utf8 (utf8_retval, -1, NULL, NULL, NULL);
-  g_free (utf8_retval);
-
-  return retval;
+  return g_find_program_in_path (program);
 }
 
-#undef g_get_current_dir
-
-gchar*
-g_get_current_dir (void)
-{
-  gchar *utf8_dir = g_get_current_dir_utf8 ();
-  gchar *dir = g_locale_from_utf8 (utf8_dir, -1, NULL, NULL, NULL);
-  g_free (utf8_dir);
-  return dir;
-}
-
-#undef g_getenv
-
-G_CONST_RETURN gchar*
-g_getenv (const gchar *variable)
-{
-  gchar *utf8_variable = g_locale_to_utf8 (variable, -1, NULL, NULL, NULL);
-  const gchar *utf8_value = g_getenv_utf8 (utf8_variable);
-  gchar *value;
-  GQuark quark;
-
-  g_free (utf8_variable);
-  if (!utf8_value)
-    return NULL;
-  value = g_locale_from_utf8 (utf8_value, -1, NULL, NULL, NULL);
-  quark = g_quark_from_string (value);
-  g_free (value);
-
-  return g_quark_to_string (quark);
-}
-
-#undef g_setenv
-
-gboolean
-g_setenv (const gchar *variable, 
-	  const gchar *value, 
-	  gboolean     overwrite)
-{
-  gchar *utf8_variable = g_locale_to_utf8 (variable, -1, NULL, NULL, NULL);
-  gchar *utf8_value = g_locale_to_utf8 (value, -1, NULL, NULL, NULL);
-  gboolean retval = g_setenv_utf8 (utf8_variable, utf8_value, overwrite);
-
-  g_free (utf8_variable);
-  g_free (utf8_value);
-
-  return retval;
-}
-
-#undef g_unsetenv
-
-void
-g_unsetenv (const gchar *variable)
-{
-  gchar *utf8_variable = g_locale_to_utf8 (variable, -1, NULL, NULL, NULL);
-
-  g_unsetenv_utf8 (utf8_variable);
-
-  g_free (utf8_variable);
-}
-
-#undef g_get_user_name
-
-G_CONST_RETURN gchar*
-g_get_user_name (void)
-{
-  g_get_any_init_locked ();
-  return g_user_name_cp;
-}
-
-#undef g_get_real_name
-
-G_CONST_RETURN gchar*
-g_get_real_name (void)
-{
-  g_get_any_init_locked ();
-  return g_real_name_cp;
-}
-
-#undef g_get_home_dir
-
-G_CONST_RETURN gchar*
-g_get_home_dir (void)
-{
-  g_get_any_init_locked ();
-  return g_home_dir_cp;
-}
-
-#undef g_get_tmp_dir
-
-G_CONST_RETURN gchar*
-g_get_tmp_dir (void)
-{
-  g_get_any_init_locked ();
-  return g_tmp_dir_cp;
-}
+const gchar *g_get_user_name_utf8 (void) { return g_get_user_name (); }
+const gchar *g_get_real_name_utf8 (void) { return g_get_real_name (); }
+const gchar *g_get_home_dir_utf8 (void) { return g_get_home_dir (); }
+const gchar *g_get_tmp_dir_utf8 (void) { return g_get_tmp_dir (); }
 
 #endif
 
-#define __G_UTILS_C__
-#include "galiasdef.c"
+/* Private API:
+ *
+ * Returns %TRUE if the current process was executed as setuid
+ */ 
+gboolean
+g_check_setuid (void)
+{
+#if defined(HAVE_SYS_AUXV_H) && defined(HAVE_GETAUXVAL) && defined(AT_SECURE)
+  unsigned long value;
+  int errsv;
+
+  errno = 0;
+  value = getauxval (AT_SECURE);
+  errsv = errno;
+  if (errsv)
+    g_error ("getauxval () failed: %s", g_strerror (errsv));
+  return value;
+#elif defined(HAVE_ISSETUGID) && !defined(__ANDROID__)
+  /* BSD: http://www.freebsd.org/cgi/man.cgi?query=issetugid&sektion=2 */
+
+  /* Android had it in older versions but the new 64 bit ABI does not
+   * have it anymore, and some versions of the 32 bit ABI neither.
+   * https://code.google.com/p/android-developer-preview/issues/detail?id=168
+   */
+  return issetugid ();
+#elif defined(G_OS_UNIX)
+  uid_t ruid, euid, suid; /* Real, effective and saved user ID's */
+  gid_t rgid, egid, sgid; /* Real, effective and saved group ID's */
+
+  static gsize check_setuid_initialised;
+  static gboolean is_setuid;
+
+  if (g_once_init_enter (&check_setuid_initialised))
+    {
+#ifdef HAVE_GETRESUID
+      /* These aren't in the header files, so we prototype them here.
+       */
+      int getresuid(uid_t *ruid, uid_t *euid, uid_t *suid);
+      int getresgid(gid_t *rgid, gid_t *egid, gid_t *sgid);
+      
+      if (getresuid (&ruid, &euid, &suid) != 0 ||
+          getresgid (&rgid, &egid, &sgid) != 0)
+#endif /* HAVE_GETRESUID */
+        {
+          suid = ruid = getuid ();
+          sgid = rgid = getgid ();
+          euid = geteuid ();
+          egid = getegid ();
+        }
+
+      is_setuid = (ruid != euid || ruid != suid ||
+                   rgid != egid || rgid != sgid);
+
+      g_once_init_leave (&check_setuid_initialised, 1);
+    }
+  return is_setuid;
+#else
+  return FALSE;
+#endif
+}
+
+#ifdef G_OS_WIN32
+/**
+ * g_abort:
+ *
+ * A wrapper for the POSIX abort() function.
+ *
+ * On Windows it is a function that makes extra effort (including a call
+ * to abort()) to ensure that a debugger-catchable exception is thrown
+ * before the program terminates.
+ *
+ * See your C library manual for more details about abort().
+ *
+ * Since: 2.50
+ */
+void
+g_abort (void)
+{
+  /* One call to break the debugger
+   * We check if a debugger is actually attached to
+   * avoid a windows error reporting popup window
+   * when run in a test harness / on CI
+   */
+  if (IsDebuggerPresent ())
+    DebugBreak ();
+  /* One call in case CRT changes its abort() behaviour */
+  abort ();
+  /* And one call to bind them all and terminate the program for sure */
+  ExitProcess (127);
+}
+#endif

@@ -422,6 +422,7 @@ run_checks() {
       libnl3) src_dir="$SCRIPT_DIR/src/libnl" ;;
       openssl) src_dir="$SCRIPT_DIR/src/libssl" ;;
       tshark) src_dir="$SCRIPT_DIR/src/wireshark" ;;
+      glib2) src_dir="$SCRIPT_DIR/src/glib2" ;;
     esac
     
     if [ ! -d "$src_dir" ]; then
