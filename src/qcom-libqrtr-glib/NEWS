@@ -1,0 +1,22 @@
+
+Overview of changes in libqrtr 1.2
+----------------------------------------
+
+ * Build fully switched to meson.
+   ** There are no longer source tarballs released, builds should be done
+      exclusively from git repository checkouts, e.g. based on release tags.
+   ** The GNU autotools based build is no longer supported.
+   ** See https://modemmanager.org/docs/libqrtr-glib/building/building-meson/
+
+ * Build now requires:
+   ** glib2 >= 2.56.
+
+ * libqrtr-glib:
+   ** Added new qrtr-types.h header including all types in the library, which
+      avoids cross references between the different objects.
+
+
+Overview of changes in libqrtr 1.0
+----------------------------------------
+
+Initial release.

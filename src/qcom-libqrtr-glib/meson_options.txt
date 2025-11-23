@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Copyright (C) 2021 Iñigo Martinez <inigomartinez@gmail.com>
+
+option('introspection', type: 'boolean', value: true, description: 'build introspection support')
+option('gtk_doc', type: 'boolean', value: false, description: 'use gtk-doc to build documentation')

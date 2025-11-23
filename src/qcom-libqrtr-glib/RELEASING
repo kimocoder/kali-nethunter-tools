@@ -1,0 +1,64 @@
+
+The libqrtr releases are generated using meson.
+
+0.1) For major releases:
+    * Increment qrtr_minor_version and reset qrtr_micro_version.
+    * Assuming API/ABI compatibility, increment both qrtr_glib_lt_current and
+      qrtr_glib_lt_age.
+
+0.2) For stable branch releases:
+    * Increment qrtr_micro_version.
+
+1) Add signed tag:
+    $ git tag -s 1.2.0
+
+   The description included in the signed tag could be:
+    Release 1.2.0
+
+2) Configure and build the whole project, making sure gtk-doc and introspection
+   are enabled:
+    $ meson setup build \
+        --prefix=/usr \
+        --buildtype=release \
+        -Dintrospection=true \
+        -Dgtk_doc=true
+    $ ninja -C build
+
+3) Run the test suite and install locally:
+    $ ninja -C build test
+    $ sudo ninja -C build install
+
+4) Create directories for the gtk-doc documentation in freedesktop.org, and also
+   update the 'latest' links:
+    $ ssh fd.o
+    [fd.o] $ cd ${libqmi}/libqrtr-glib/
+    [fd.o] $ rm latest
+    [fd.o] $ mkdir -p ${VERSION}
+    [fd.o] $ ln -s ${VERSION} latest
+
+5) Copy documentation from /usr/share/gtk-doc and fix online references manually
+    $ mkdir html
+    $ cp -r /usr/share/gtk-doc/html/libqrtr-glib/* html/
+    $ for FILE in $(ls html/*.html); do \
+        sed -i 's|<a[^>]* href="\.\./glib/[^"]*|<a href="https://docs.gtk.org/glib/|g' $FILE; \
+        sed -i 's|<a[^>]* href="\.\./gobject/[^"]*|<a href="https://docs.gtk.org/gobject/|g' $FILE; \
+        sed -i 's|<a[^>]* href="\.\./gio/[^"]*|<a href="https://docs.gtk.org/gio/|g' $FILE; \
+      done
+
+6) Upload the modified HTML files to freedesktop.org:
+    $ scp html/* fd.o:${libqmi}/libqrtr-glib/${VERSION}/
+
+7.1) For major releases:
+     * Fork new stable branch (e.g. qrtr-${MAJOR}-${MINOR})
+     * Post-release version bump in the master branch, increment qrtr_minor_version.
+     * Post-release version bump in the stable branch, increment qrtr_micro_version.
+
+7.2) For stable branch releases:
+     * Post-release version bump, increment qrtr_micro_version.
+
+-------------------------------------------------------------------------------
+
+*) Verifying the signed tag requires the public key of the person who signed it,
+   e.g.:
+
+    $ curl https://www.freedesktop.org/software/libqrtr/0x3CAD53398973FFFA.asc | gpg --import
