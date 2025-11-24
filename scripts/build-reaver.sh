@@ -111,8 +111,24 @@ log_cmd make -j"$PARALLEL_JOBS"
 log "Step 5: Installing $TOOL_NAME..."
 mkdir -p "$INSTALL_DIR/bin"
 cp reaver "$INSTALL_DIR/bin/" 2>/dev/null || cp wash "$INSTALL_DIR/bin/" 2>/dev/null || true
-[ -f reaver ] && "$STRIP" "$INSTALL_DIR/bin/reaver" 2>/dev/null || true
-[ -f wash ] && cp wash "$INSTALL_DIR/bin/" && "$STRIP" "$INSTALL_DIR/bin/wash" 2>/dev/null || true
+
+# Fix TLS alignment for Android
+# Detect architecture from the binary itself, not from TARGET_ARCH
+for binary in reaver wash; do
+  if [ -f "$INSTALL_DIR/bin/$binary" ]; then
+    # Check if binary is 64-bit
+    if file "$INSTALL_DIR/bin/$binary" | grep -q "64-bit"; then
+      TLS_ALIGN=64
+    else
+      TLS_ALIGN=32
+    fi
+    log "Fixing TLS alignment for $binary to $TLS_ALIGN bytes..."
+    python3 "$SCRIPT_DIR/fix-tls-alignment.py" "$INSTALL_DIR/bin/$binary" $TLS_ALIGN 2>&1 | tee -a "$LOG_FILE" || log "WARNING: TLS alignment fix failed for $binary"
+  fi
+done
+
+[ -f "$INSTALL_DIR/bin/reaver" ] && "$STRIP" "$INSTALL_DIR/bin/reaver" 2>/dev/null || true
+[ -f "$INSTALL_DIR/bin/wash" ] && "$STRIP" "$INSTALL_DIR/bin/wash" 2>/dev/null || true
 
 log "Step 6: Verifying installation..."
 if [ ! -d "$INSTALL_DIR/bin" ]; then
