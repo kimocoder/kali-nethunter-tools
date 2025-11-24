@@ -52,8 +52,12 @@ def fix_tls_alignment(filename, new_align=64):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print("Usage: fix-tls-alignment.py <elf-file>")
+        print("Usage: fix-tls-alignment.py <elf-file> [alignment]")
         sys.exit(1)
     
-    success = fix_tls_alignment(sys.argv[1])
+    alignment = 64  # Default for ARM64
+    if len(sys.argv) >= 3:
+        alignment = int(sys.argv[2])
+    
+    success = fix_tls_alignment(sys.argv[1], alignment)
     sys.exit(0 if success else 1)
