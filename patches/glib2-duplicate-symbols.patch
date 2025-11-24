@@ -1,0 +1,10 @@
+--- a/glib/gutils.h
++++ b/glib/gutils.h
+@@ -1,3 +1,7 @@
++/* Prevent duplicate symbols by making inline functions static */
++#ifndef G_INLINE_FUNC
++#define G_INLINE_FUNC static inline
++#endif
+ /* GLIB - Library of useful routines for C programming
+  * Copyright (C) 1995-1997  Peter Mattis, Spencer Kimball and Josh MacDonald
+  *
