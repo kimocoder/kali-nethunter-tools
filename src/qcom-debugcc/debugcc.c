@@ -1,0 +1,373 @@
+// SPDX-License-Identifier: BSD-3-Clause
+/* Copyright (c) 2019, Linaro Ltd. */
+
+#include <sys/mman.h>
+#include <err.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <getopt.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#include "debugcc.h"
+
+static unsigned int measure_ticks(struct gcc_mux *gcc, unsigned int ticks)
+{
+	uint32_t val;
+
+	writel(ticks, gcc->mux.base + gcc->debug_ctl_reg);
+	do {
+		val = readl(gcc->mux.base + gcc->debug_status_reg);
+	} while (val & BIT(25));
+
+	writel(ticks | BIT(20), gcc->mux.base + gcc->debug_ctl_reg);
+	do {
+		val = readl(gcc->mux.base + gcc->debug_status_reg);
+	} while (!(val & BIT(25)));
+
+	val &= 0x1ffffff;
+
+	writel(ticks, gcc->mux.base + gcc->debug_ctl_reg);
+
+	return val;
+}
+
+static void mux_prepare_enable(struct debug_mux *mux, int selector)
+{
+	uint32_t val;
+
+	if (mux->mux_mask) {
+		val = readl(mux->base + mux->mux_reg);
+		val &= ~mux->mux_mask;
+		val |= selector << mux->mux_shift;
+		writel(val, mux->base + mux->mux_reg);
+	}
+
+	if (mux->div_mask) {
+		val = readl(mux->base + mux->div_reg);
+		val &= ~mux->div_mask;
+		val |= (mux->div_val - 1) << mux->div_shift;
+		writel(val, mux->base + mux->div_reg);
+	}
+
+	mux_enable(mux);
+
+	if (mux->parent)
+		mux_prepare_enable(mux->parent, mux->parent_mux_val);
+}
+
+void mux_enable(struct debug_mux *mux)
+{
+	uint32_t val;
+
+	if (mux->enable_mask) {
+		val = readl(mux->base + mux->enable_reg);
+		val |= mux->enable_mask;
+		writel(val, mux->base + mux->enable_reg);
+	}
+}
+
+void mux_disable(struct debug_mux *mux)
+{
+	uint32_t val;
+
+	if (mux->parent)
+		mux_disable(mux->parent);
+
+	if (mux->enable_mask) {
+		val = readl(mux->base + mux->enable_reg);
+		val &= ~mux->enable_mask;
+		writel(val, mux->base + mux->enable_reg);
+	}
+}
+
+unsigned long measure_gcc(const struct measure_clk *clk,
+			  const struct debug_mux *mux)
+{
+	unsigned int xo_rate = 4800000;
+	uint64_t raw_count_short;
+	uint64_t raw_count_full;
+	struct gcc_mux *gcc = container_of(mux, struct gcc_mux, mux);
+	unsigned long xo_div4;
+
+	if (gcc->xo_rate)
+		xo_rate = gcc->xo_rate;
+
+	xo_div4 = readl(mux->base + gcc->xo_div4_reg);
+	if (gcc->xo_div4_val)
+		writel(xo_div4 | gcc->xo_div4_val, mux->base + gcc->xo_div4_reg);
+	else
+		writel(xo_div4 | 1, mux->base + gcc->xo_div4_reg);
+
+	raw_count_short = measure_ticks(gcc, 0x1000);
+	raw_count_full = measure_ticks(gcc, 0x10000);
+
+	writel(xo_div4, mux->base + gcc->xo_div4_reg);
+
+	if (raw_count_full == raw_count_short) {
+		return 0;
+	}
+
+	raw_count_full = ((raw_count_full * 10) + 15) * xo_rate;
+	raw_count_full = raw_count_full / ((0x10000 * 10) + 35);
+
+	if (mux->div_val)
+		raw_count_full *= mux->div_val;
+
+	return raw_count_full;
+}
+
+unsigned long measure_leaf(const struct measure_clk *clk,
+			   const struct debug_mux *mux)
+{
+	unsigned long count;
+
+	if (!mux->parent) {
+		printf("No parent in measure_leaf, mux '%s'\n", mux->block_name ? : "gcc");
+		return 0;
+	}
+
+	count = mux->parent->measure(clk, mux->parent);
+
+	if (mux->div_val)
+		count *= mux->div_val;
+
+	return count;
+}
+
+unsigned long measure_mccc(const struct measure_clk *clk,
+			   const struct debug_mux *mux)
+{
+	/* MCCC is always on, just read the rate and return. */
+	return 1000000000000ULL / readl(clk->clk_mux->base + clk->mux);
+}
+
+static void measure(const struct measure_clk *clk)
+{
+	unsigned long clk_rate;
+
+	mux_prepare_enable(clk->clk_mux, clk->mux);
+
+	clk_rate = clk->clk_mux->measure(clk, clk->clk_mux);
+
+	if (clk->fixed_div)
+		clk_rate *= clk->fixed_div;
+
+	mux_disable(clk->clk_mux);
+
+	if (clk_rate == 0) {
+		printf("%50s: off\n", clk->name);
+		return;
+	}
+
+	printf("%50s: %fMHz (%ldHz)\n", clk->name, clk_rate / 1000000.0, clk_rate);
+}
+
+static const struct debugcc_platform *find_platform(const char *name)
+{
+	const struct debugcc_platform **p;
+
+	for (p = platforms; *p; p++) {
+		if (!strcmp((*p)->name, name))
+			return *p;
+	}
+
+	return NULL;
+}
+
+/**
+ * match_platform() - match platform with executable name
+ * @argv: argv[0] of the executable
+ *
+ * Return: A debugcc_platform when a match is found, otherwise NULL
+ *
+ * Matches %s-debugcc against the registered platforms
+ */
+static const struct debugcc_platform *match_platform(const char *argv)
+{
+	const struct debugcc_platform **p;
+	const char *name;
+	size_t len;
+
+	for (p = platforms; *p; p++) {
+		name = (*p)->name;
+
+		len = strlen(name);
+
+		if (!strncmp(name, argv, len) && !strcmp(argv + len, "-debugcc"))
+			return *p;
+	}
+
+	return NULL;
+}
+
+static const struct measure_clk *find_clock(const struct debugcc_platform *platform,
+					    const char *name)
+{
+	const struct measure_clk *clk;
+
+	for (clk = platform->clocks; clk->name; clk++) {
+		if (!strcmp(clk->name, name))
+			return clk;
+	}
+
+	return NULL;
+}
+
+static bool clock_from_block(const struct measure_clk *clk, const char *block_name)
+{
+	return  !block_name ||
+		(!clk->clk_mux && !strcmp(block_name, CORE_CC_BLOCK)) ||
+		(clk->clk_mux && clk->clk_mux->block_name && !strcmp(block_name, clk->clk_mux->block_name));
+}
+
+static void list_clocks_block(const struct debugcc_platform *platform, const char *block_name)
+{
+	const struct measure_clk *clk;
+
+	for (clk = platform->clocks; clk->name; clk++) {
+		if (!clock_from_block(clk, block_name))
+			continue;
+
+		if (clk->clk_mux && clk->clk_mux->block_name)
+			printf("%-40s %s\n", clk->name, clk->clk_mux->block_name);
+		else
+			printf("%s\n", clk->name);
+	}
+}
+
+int mmap_mux(int devmem, struct debug_mux *mux)
+{
+	/* Do nothing if this mux has already been mapped */
+	if (!mux || mux->base)
+		return 0;
+
+	mux->base = mmap(0, mux->size, PROT_READ | PROT_WRITE, MAP_SHARED, devmem, mux->phys);
+	if (mux->base == (void *)-1) {
+		warn("failed to map %#lx", mux->phys);
+		return -1;
+	}
+
+	return mmap_mux(devmem, mux->parent);
+}
+
+/**
+ * mmap_hardware() - loop over all clock and make sure hardware is mmapped
+ * @devmem: file descriptor to an opened /dev/mem
+ * @platform: debugcc_platform with list of clocks to mmap
+ *
+ * Return: 0 on succees, -1 on failure
+ */
+static int mmap_hardware(int devmem, const struct debugcc_platform *platform)
+{
+	const struct measure_clk *clk;
+	int ret;
+
+	for (clk = platform->clocks; clk->name; clk++) {
+		ret = mmap_mux(devmem, clk->clk_mux);
+		if (ret < 0)
+			return ret;
+	}
+
+	return 0;
+}
+
+static void usage(void)
+{
+	const struct debugcc_platform **p;
+
+	fprintf(stderr, "debugcc <-p platform> [-b blk] <-a | -l | clk>\n");
+	fprintf(stderr, "<platform>-debugcc [-b blk] <-a | -l | clk>\n");
+
+	fprintf(stderr, "available platforms:");
+	for (p = platforms; *p; p++)
+		fprintf(stderr, " %s", (*p)->name);
+	fprintf(stderr, "\n");
+
+	exit(0);
+}
+
+int main(int argc, char **argv)
+{
+	const struct debugcc_platform *platform = NULL;
+	const struct measure_clk *clk = NULL;
+	bool do_list_clocks = false;
+	bool all_clocks = false;
+	const char *block_name = NULL;
+	int devmem;
+	int opt;
+	int ret;
+
+	while ((opt = getopt(argc, argv, "ab:lp:")) != -1) {
+		switch (opt) {
+		case 'a':
+			all_clocks = true;
+			break;
+		case 'b':
+			block_name = strdup(optarg);
+			break;
+		case 'l':
+			do_list_clocks = true;
+			break;
+		case 'p':
+			platform = find_platform(optarg);
+			break;
+		default:
+			usage();
+			/* NOTREACHED */
+		}
+	}
+
+	if (!platform) {
+		platform = match_platform(argv[0]);
+		if (!platform)
+			usage();
+	}
+
+	if (do_list_clocks) {
+		list_clocks_block(platform, block_name);
+		exit(0);
+	}
+
+	if (!all_clocks) {
+		if (optind >= argc)
+			usage();
+
+		clk = find_clock(platform, argv[optind]);
+		if (!clk) {
+			fprintf(stderr, "no clock named \"%s\"\n", argv[optind]);
+			exit(1);
+		}
+	}
+
+	devmem = open("/dev/mem", O_RDWR | O_SYNC);
+	if (devmem < 0)
+		err(1, "failed to open /dev/mem");
+
+	if (platform->premap) {
+		ret = platform->premap(devmem);
+		if (ret < 0)
+			exit (1);
+	}
+
+	ret = mmap_hardware(devmem, platform);
+	if (ret < 0)
+		exit(1);
+
+	if (clk) {
+		measure(clk);
+	} else {
+		for (clk = platform->clocks; clk->name; clk++) {
+			if (clock_from_block(clk, block_name)) {
+				measure(clk);
+			}
+		}
+	}
+
+	return 0;
+}
