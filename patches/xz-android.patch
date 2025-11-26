@@ -1,0 +1,26 @@
+--- a/src/common/sysdefs.h
++++ b/src/common/sysdefs.h
+@@ -136,11 +136,13 @@
+ // size_t and ssize_t are defined unconditionally in the autotools build.
+ // We do it here too to keep things simpler.
+ #ifdef __cplusplus
++#ifndef __ANDROID__
+ #      if SIZE_MAX == UINT32_MAX
+ typedef uint32_t size_t;
+ #      elif SIZE_MAX == UINT64_MAX
+ typedef uint64_t size_t;
+ #      else
++#      endif
+ #              error size_t is not 32-bit or 64-bit
+ #      endif
+ #endif
+@@ -159,7 +161,9 @@
+ // few compilers support that. A hack is used that works on most systems:
+ // use "unsigned char" as the underlying type for _Bool.
+ #ifndef __cplusplus
++#      ifndef __ANDROID__
+ typedef unsigned char _Bool;
++#      endif
+ #      define bool _Bool
+ #      define false 0
+ #      define true 1
