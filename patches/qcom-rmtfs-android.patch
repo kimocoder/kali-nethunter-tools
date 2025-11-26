@@ -1,0 +1,33 @@
+--- a/Makefile
++++ b/Makefile
+@@ -1,8 +1,8 @@
+ OUT := rmtfs
+ 
+ CFLAGS += -Wall -g -O2
+-LDFLAGS += -lqrtr -ludev -lpthread
+-prefix = /usr/local
++LDFLAGS += -lqrtr
++prefix ?= /usr/local
+ bindir := $(prefix)/bin
+ servicedir := $(prefix)/lib/systemd/system
+ 
+@@ -14,9 +14,6 @@ OBJS := $(SRCS:.c=.o)
+ $(OUT): $(OBJS)
+ 	$(CC) -o $@ $^ $(LDFLAGS)
+ 
+-%.c: %.qmi
+-	qmic -k < $<
+-
+ %.service: %.service.in
+ 	@sed -e 's+RMTFS_PATH+$(bindir)+g' -e 's+RMTFS_EFS_PATH+$(RMTFS_EFS_PATH)+g' $< > $@
+ 
+--- a/sharedmem.c
++++ b/sharedmem.c
+@@ -6,7 +6,7 @@
+ #include <fcntl.h>
+ #include <inttypes.h>
+ #ifndef ANDROID
+ #include <libudev.h>
+ #else
+ #include <sys/endian.h>
+ #endif
