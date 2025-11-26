@@ -8,7 +8,7 @@ source "$SCRIPT_DIR/build-env.sh"
 
 TOOL_NAME="qcom-pdmapper"
 TOOL_VERSION="master"
-TOOL_DEPS=()
+TOOL_DEPS=("xz" "libqrtr")
 TOOL_CONFIGURE_OPTS=""
 TOOL_PATCHES=()
 
@@ -82,11 +82,11 @@ fi
 
 # Build with custom flags
 # Note: pd-mapper requires libqrtr and liblzma
-# These should be available on target Qualcomm devices
+# Both are provided by dependencies
 log_cmd make \
   CC="$CC" \
-  CFLAGS="$CFLAGS -I$SYSROOT/usr/include" \
-  LDFLAGS="$LDFLAGS -lqrtr -llzma" \
+  CFLAGS="$CFLAGS -I$PREFIX/xz/include -I$PREFIX/libqrtr/include" \
+  LDFLAGS="$LDFLAGS -L$PREFIX/xz/lib -L$PREFIX/libqrtr/lib -llzma -lqrtr" \
   -j"$PARALLEL_JOBS" || {
     log "ERROR: Build failed. This tool requires:"
     log "  - libqrtr (Qualcomm IPC Router library)"
