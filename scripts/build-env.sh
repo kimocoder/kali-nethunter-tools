@@ -92,6 +92,80 @@ export LOG_DIR="${LOG_DIR:-$SCRIPT_DIR/logs}"
 mkdir -p "$LOG_DIR" 2>/dev/null || true
 
 # ============================================================================
+# TLS Alignment Fix Function
+# ============================================================================
+# Fix TLS alignment for Android binaries
+# Usage: fix_tls_alignment <binary_path>
+fix_tls_alignment() {
+  local binary="$1"
+  
+  if [ ! -f "$binary" ]; then
+    echo "WARNING: Binary not found: $binary" >&2
+    return 1
+  fi
+  
+  # Determine which fix script to use based on architecture
+  local fix_script=""
+  if [ "$TARGET_ARCH" = "arm64" ] || [ "$TARGET_ARCH" = "aarch64" ]; then
+    fix_script="$SCRIPT_DIR/fix-tls-alignment.py"
+    local required_align="64"
+  elif [ "$TARGET_ARCH" = "arm" ] || [ "$TARGET_ARCH" = "armv7a" ]; then
+    fix_script="$SCRIPT_DIR/fix-tls-alignment-arm32.py"
+    local required_align="32"
+  else
+    echo "WARNING: Unknown architecture for TLS fix: $TARGET_ARCH" >&2
+    return 1
+  fi
+  
+  if [ ! -f "$fix_script" ]; then
+    echo "WARNING: TLS fix script not found: $fix_script" >&2
+    return 1
+  fi
+  
+  # Apply the fix
+  python3 "$fix_script" "$binary" 2>&1 || {
+    echo "WARNING: TLS alignment fix failed for $binary" >&2
+    return 1
+  }
+  
+  return 0
+}
+
+# Fix TLS alignment for all binaries in a directory
+# Usage: fix_tls_alignment_dir <directory>
+fix_tls_alignment_dir() {
+  local dir="$1"
+  local count=0
+  local failed=0
+  
+  if [ ! -d "$dir" ]; then
+    echo "WARNING: Directory not found: $dir" >&2
+    return 1
+  fi
+  
+  # Find all ELF binaries in the directory
+  while IFS= read -r -d '' binary; do
+    if file "$binary" | grep -q "ELF"; then
+      if fix_tls_alignment "$binary"; then
+        ((count++))
+      else
+        ((failed++))
+      fi
+    fi
+  done < <(find "$dir" -type f -executable -print0)
+  
+  if [ $count -gt 0 ]; then
+    echo "Fixed TLS alignment for $count binaries in $dir"
+  fi
+  
+  if [ $failed -gt 0 ]; then
+    echo "WARNING: Failed to fix TLS alignment for $failed binaries" >&2
+  fi
+  
+  return 0
+}
+
+# ============================================================================
 # Export Summary (for debugging)
 # ============================================================================
 if [ "${VERBOSE:-0}" = "1" ]; then

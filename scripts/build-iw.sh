@@ -122,9 +122,18 @@ else
 fi
 
 # ============================================================================
+# Fix TLS Alignment
+# ============================================================================
+log "Step 5: Fixing TLS alignment..."
+
+if [ -f "$INSTALL_DIR/bin/iw" ]; then
+  fix_tls_alignment "$INSTALL_DIR/bin/iw" || log "WARNING: TLS alignment fix failed for iw"
+fi
+
+# ============================================================================
 # Verify Installation
 # ============================================================================
-log "Step 5: Verifying installation..."
+log "Step 6: Verifying installation..."
 
 if [ ! -f "$INSTALL_DIR/bin/iw" ]; then
   log "ERROR: iw executable not found in $INSTALL_DIR/bin"

@@ -81,7 +81,10 @@ mkdir -p "$INSTALL_DIR/bin"
 cp src/mdk4 "$INSTALL_DIR/bin/"
 $STRIP "$INSTALL_DIR/bin/mdk4"
 
-log "Step 5: Verifying installation..."
+log "Step 5: Fixing TLS alignment..."
+fix_tls_alignment_dir "$INSTALL_DIR/bin" || log "WARNING: TLS alignment fix may have failed"
+
+log "Step 6: Verifying installation..."
 if [ ! -f "$INSTALL_DIR/bin/mdk4" ]; then
   log "ERROR: mdk4 executable not found"
   exit 1

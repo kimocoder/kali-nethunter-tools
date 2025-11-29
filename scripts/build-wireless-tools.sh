@@ -102,22 +102,10 @@ if [ -f "iwlib.h" ]; then
   cp iwlib.h "$INSTALL_DIR/include/"
 fi
 
-log "Step 5: Fixing TLS alignment for ARM64..."
+log "Step 5: Fixing TLS alignment..."
 
-# Fix TLS alignment for ARM64 binaries
-if [ "$TARGET_ARCH" = "arm64" ] || [ "$TARGET_ARCH" = "aarch64" ]; then
-  TLS_FIX_SCRIPT="$SCRIPT_DIR/fix-tls-alignment.py"
-  if [ -f "$TLS_FIX_SCRIPT" ]; then
-    for prog in iwconfig iwlist iwpriv iwspy iwgetid iwevent ifrename; do
-      if [ -f "$INSTALL_DIR/sbin/$prog" ]; then
-        log "Fixing TLS alignment for $prog..."
-        python3 "$TLS_FIX_SCRIPT" "$INSTALL_DIR/sbin/$prog" || log "WARNING: TLS fix failed for $prog"
-      fi
-    done
-  else
-    log "WARNING: TLS fix script not found at $TLS_FIX_SCRIPT"
-  fi
-fi
+# Fix TLS alignment for all binaries in sbin directory
+fix_tls_alignment_dir "$INSTALL_DIR/sbin" || log "WARNING: Some TLS alignment fixes may have failed"
 
 log "Step 6: Verifying installation..."
 
