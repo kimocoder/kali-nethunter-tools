@@ -237,3 +237,22 @@ void explicit_bzero(void *s, size_t n)
 	__asm__ __volatile__("" : : "r"(s) : "memory");
 }
 #endif
+
+/* Android missing functions - only implement what's truly missing */
+#if defined(__ANDROID__)
+/* sigtimedwait fallback - Android doesn't have this */
+int sigtimedwait(const sigset_t *set, siginfo_t *info, const struct timespec *timeout) __attribute__((weak));
+int sigtimedwait(const sigset_t *set, siginfo_t *info, const struct timespec *timeout)
+{
+	/* Fallback implementation using sigwait */
+	int sig;
+	if (sigwait(set, &sig) == 0) {
+		if (info) {
+			memset(info, 0, sizeof(*info));
+			info->si_signo = sig;
+		}
+		return sig;
+	}
+	return -1;
+}
+#endif

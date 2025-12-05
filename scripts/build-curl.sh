@@ -8,7 +8,7 @@ source "$SCRIPT_DIR/build-env.sh"
 
 TOOL_NAME="curl"
 TOOL_VERSION="8.0.0"
-TOOL_DEPS=()
+TOOL_DEPS=(openssl zlib)
 TOOL_CONFIGURE_OPTS="--disable-shared"
 TOOL_PATCHES=("curl-android.patch")
 
@@ -91,7 +91,11 @@ log_cmd ./configure \
   --host="$TARGET_TRIPLE" \
   --prefix="$INSTALL_DIR" \
   $TOOL_CONFIGURE_OPTS \
-  --without-ssl \
+  --with-openssl="$PREFIX/openssl" \
+  --with-ca-bundle=/system/etc/security/cacerts \
+  --with-zlib="$PREFIX/zlib" \
+  CPPFLAGS="-I$PREFIX/openssl/include -I$PREFIX/zlib/include" \
+  LDFLAGS="-L$PREFIX/openssl/lib -L$PREFIX/zlib/lib" \
   --without-libpsl \
   --disable-ldap \
   --disable-ldaps \

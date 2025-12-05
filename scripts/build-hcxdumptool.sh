@@ -73,22 +73,17 @@ make clean 2>/dev/null || true
 
 log_cmd make \
   CC="$CC" \
-  CFLAGS="$CFLAGS -I$PREFIX/libpcap/include -I$PREFIX/openssl/include -I$PREFIX/ifaddrs/include" \
-  LDFLAGS="-static -L$PREFIX/libpcap/lib -L$PREFIX/openssl/lib -L$PREFIX/ifaddrs/lib -lpcap -lssl -lcrypto -lifaddrs -ldl -Wl,-z,max-page-size=16384" \
+  CFLAGS="$CFLAGS -fPIE -I$PREFIX/libpcap/include -I$PREFIX/openssl/include -I$PREFIX/ifaddrs/include" \
+  LDFLAGS="-pie -L$PREFIX/libpcap/lib -L$PREFIX/openssl/lib -L$PREFIX/ifaddrs/lib -lpcap -lssl -lcrypto -lifaddrs -ldl -Wl,-z,max-page-size=16384" \
   -j"$PARALLEL_JOBS"
 
 log "Step 5: Installing $TOOL_NAME..."
 
 if [ -x "hcxdumptool" ]; then
   log_cmd cp hcxdumptool "$INSTALL_DIR/bin/"
-  # Fix TLS alignment for Android (ARM requires 32, ARM64 requires 64)
-  if [ "$TARGET_ARCH" = "arm64" ]; then
-    TLS_ALIGN=64
-  else
-    TLS_ALIGN=32
-  fi
-  log "Fixing TLS alignment to $TLS_ALIGN..."
-  python3 "$SCRIPT_DIR/fix-tls-alignment.py" "$INSTALL_DIR/bin/hcxdumptool" $TLS_ALIGN 2>&1 | tee -a "$LOG_FILE" || log "WARNING: TLS alignment fix failed"
+  # Fix TLS alignment for Android
+  log "Fixing TLS alignment for hcxdumptool..."
+  fix_tls_alignment "$INSTALL_DIR/bin/hcxdumptool" || log "WARNING: TLS alignment fix failed"
   log_cmd "$STRIP" "$INSTALL_DIR/bin/hcxdumptool"
 fi
 

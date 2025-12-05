@@ -15,7 +15,7 @@ TOOL_NAME="busybox"
 TOOL_VERSION="1.38.0"
 TOOL_DEPS=()  # No dependencies
 TOOL_CONFIGURE_OPTS="--enable-static"
-TOOL_PATCHES=("busybox-android.patch" "busybox-android-api29.patch")
+TOOL_PATCHES=()  # Patches manually applied to source
 
 # ============================================================================
 # Directories
@@ -61,9 +61,16 @@ cd "$SRC_DIR"
 log "Step 2: Applying patches..."
 
 for patch in "${TOOL_PATCHES[@]}"; do
-  if [ -f "$SCRIPT_DIR/patches/$patch" ]; then
-    log "Applying patch: $patch"
-    patch -p1 < "$SCRIPT_DIR/patches/$patch" || log "Patch already applied or failed (continuing)"
+  if [ -f "$SCRIPT_DIR/../patches/$patch" ]; then
+    # Check if patch is already applied
+    if patch -p1 --dry-run -R < "$SCRIPT_DIR/../patches/$patch" >/dev/null 2>&1; then
+      log "Patch $patch already applied, skipping"
+    else
+      log "Applying patch: $patch"
+      patch -p1 < "$SCRIPT_DIR/../patches/$patch" 2>&1 | tee -a "$LOG_FILE" || {
+        log "WARNING: Patch application had issues (continuing)"
+      }
+    fi
   fi
 done
 
@@ -84,6 +91,9 @@ sed -i 's/# CONFIG_STATIC_LIBGCC is not set/CONFIG_STATIC_LIBGCC=y/' .config
 
 # Set CROSS_COMPILER_PREFIX to empty since we're using CC directly
 sed -i 's/CONFIG_CROSS_COMPILER_PREFIX=".*"/CONFIG_CROSS_COMPILER_PREFIX=""/' .config
+
+# Disable TC (traffic control) - missing kernel headers on Android
+sed -i 's/^CONFIG_TC=y/# CONFIG_TC is not set/' .config
 
 # Set the sysroot
 sed -i "s|CONFIG_SYSROOT=\".*\"|CONFIG_SYSROOT=\"$SYSROOT\"|" .config

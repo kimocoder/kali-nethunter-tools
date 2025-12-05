@@ -104,7 +104,8 @@ export PKG_CONFIG_PATH="$PREFIX/libpcap/lib/pkgconfig:$PREFIX/glib2/lib/pkgconfi
 
 # Build lemon for host system first
 log "Building lemon parser generator for host..."
-gcc "$WIRESHARK_SRC/tools/lemon/lemon.c" -o /tmp/lemon
+LEMON_BIN="$BUILD_DIR/lemon"
+gcc "$WIRESHARK_SRC/tools/lemon/lemon.c" -o "$LEMON_BIN"
 
 # Create CMake initial cache to skip problematic tests
 cat > InitialCache.cmake << 'EOF'
@@ -131,7 +132,7 @@ log_cmd cmake .. \
   -DCMAKE_ANDROID_NDK="$ANDROID_NDK" \
   -DCMAKE_C_COMPILER="$CC" \
   -DCMAKE_CXX_COMPILER="$CXX" \
-  -DLEMON_EXECUTABLE=/tmp/lemon \
+  -DLEMON_EXECUTABLE="$LEMON_BIN" \
   -DCMAKE_C_FLAGS="${CFLAGS/-D_GNU_SOURCE/} -I$PREFIX/libpcap/include -I$PREFIX/glib2/include/glib-2.0 -I$PREFIX/glib2/lib/glib-2.0/include -I$PREFIX/zlib/include -I$PREFIX/c-ares/include -I$PREFIX/libgcrypt/include -I$PREFIX/libgpg-error/include -I$PREFIX/libxml2/include/libxml2 -I$PREFIX/libnl3/include/libnl3 -I$PREFIX/ifaddrs/include -Wno-documentation -Wno-shorten-64-to-32 -Wno-incompatible-pointer-types -Wno-int-to-void-pointer-cast -Wno-void-pointer-to-int-cast -Wno-incompatible-function-pointer-types -Wno-constant-conversion -Wno-implicit-function-declaration" \
   -DCMAKE_CXX_FLAGS="${CXXFLAGS/-D_GNU_SOURCE/} -I$PREFIX/libpcap/include -I$PREFIX/glib2/include/glib-2.0 -I$PREFIX/glib2/lib/glib-2.0/include -I$PREFIX/zlib/include -I$PREFIX/c-ares/include -I$PREFIX/libgcrypt/include -I$PREFIX/libgpg-error/include -I$PREFIX/libxml2/include/libxml2 -I$PREFIX/libnl3/include/libnl3 -I$PREFIX/ifaddrs/include -Wno-documentation -Wno-shorten-64-to-32 -Wno-incompatible-pointer-types -Wno-int-to-void-pointer-cast -Wno-void-pointer-to-int-cast -Wno-incompatible-function-pointer-types -Wno-constant-conversion -Wno-implicit-function-declaration" \
   -DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS -static -L$PREFIX/libpcap/lib -L$PREFIX/glib2/lib -L$PREFIX/zlib/lib -L$PREFIX/c-ares/lib -L$PREFIX/libgcrypt/lib -L$PREFIX/libgpg-error/lib -L$PREFIX/libxml2/lib -L$PREFIX/libintl-lite/lib -L$PREFIX/pcre2/lib -L$PREFIX/libffi/lib -L$PREFIX/libnl3/lib -L$PREFIX/ifaddrs/lib -L$PREFIX/libiconv/lib $PREFIX/libintl-lite/lib/libintl.a $PREFIX/glib2/lib/libglib-2.0.a $PREFIX/glib2/lib/libgobject-2.0.a $PREFIX/pcre2/lib/libpcre2-8.a $PREFIX/libffi/lib/libffi.a $PREFIX/zlib/lib/libz.a $PREFIX/libnl3/lib/libnl-3.a $PREFIX/libnl3/lib/libnl-genl-3.a $PREFIX/libnl3/lib/libnl-route-3.a $PREFIX/ifaddrs/lib/libifaddrs.a $PREFIX/libiconv/lib/libiconv.a -lc++ -lm" \

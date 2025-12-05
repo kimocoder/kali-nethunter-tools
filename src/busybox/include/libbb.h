@@ -157,6 +157,19 @@
 //if this is still needed, add a fix along the lines of
 //  ifdef SPECIFIC_BROKEN_LIBC_CHECK / typedef socklen_t / endif
 //in platform.h instead!
+
+/* Android missing function declarations */
+#if defined(__ANDROID__)
+void explicit_bzero(void *s, size_t n);
+/* These exist in Android but aren't always declared */
+extern int sigtimedwait(const sigset_t *set, siginfo_t *info, const struct timespec *timeout);
+extern int sethostname(const char *name, size_t len);
+extern ssize_t getrandom(void *buf, size_t buflen, unsigned int flags);
+extern int swapon(const char *path, int swapflags);
+extern int swapoff(const char *path);
+extern char *hasmntopt(const struct mntent *mnt, const char *opt);
+#endif
+
 #endif
 #ifndef HAVE_CLEARENV
 # define clearenv() do { if (environ) environ[0] = NULL; } while (0)

@@ -73,8 +73,8 @@ log_cmd ./configure \
   --with-libgpg-error-prefix="$PREFIX/libgpg-error" \
   CC="$CC" \
   CXX="$CXX" \
-  CFLAGS="$CFLAGS -I$PREFIX/libgpg-error/include" \
-  CXXFLAGS="$CXXFLAGS -I$PREFIX/libgpg-error/include" \
+  CFLAGS="${CFLAGS//-fno-emulated-tls/} -I$PREFIX/libgpg-error/include" \
+  CXXFLAGS="${CXXFLAGS//-fno-emulated-tls/} -I$PREFIX/libgpg-error/include" \
   LDFLAGS="$LDFLAGS -L$PREFIX/libgpg-error/lib"
 
 log "Step 2: Building $TOOL_NAME..."

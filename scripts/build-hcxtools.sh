@@ -85,19 +85,12 @@ log_cmd make \
 
 log "Step 4: Installing $TOOL_NAME..."
 
-# Fix TLS alignment for Android (ARM requires 32, ARM64 requires 64)
-if [ "$TARGET_ARCH" = "arm64" ]; then
-  TLS_ALIGN=64
-else
-  TLS_ALIGN=32
-fi
-
 for binary in hcx*; do
   if [ -x "$binary" ] && [ -f "$binary" ] && [[ ! "$binary" =~ \.(c|h|o)$ ]]; then
     log_cmd cp "$binary" "$INSTALL_DIR/bin/"
     # Fix TLS alignment for Android
-    log "Fixing TLS alignment for $binary to $TLS_ALIGN..."
-    python3 "$SCRIPT_DIR/fix-tls-alignment.py" "$INSTALL_DIR/bin/$binary" $TLS_ALIGN 2>&1 | tee -a "$LOG_FILE" || log "WARNING: TLS alignment fix failed for $binary"
+    log "Fixing TLS alignment for $binary..."
+    fix_tls_alignment "$INSTALL_DIR/bin/$binary" || log "WARNING: TLS alignment fix failed for $binary"
     log_cmd "$STRIP" "$INSTALL_DIR/bin/$binary"
   fi
 done
