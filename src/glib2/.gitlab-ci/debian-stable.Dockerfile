@@ -1,5 +1,5 @@
 ARG ARCHITECTURE_PREFIX=
-FROM ${ARCHITECTURE_PREFIX}debian:bookworm
+FROM ${ARCHITECTURE_PREFIX}debian:bookworm-20260623
 
 RUN apt-get update -qq && apt-get install --no-install-recommends -qq -y \
     bindfs \
