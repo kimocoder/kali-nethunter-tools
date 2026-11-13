@@ -13,12 +13,12 @@ jobs:
     steps:
     - name: Build Fuzzers
       id: build
-      uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@a380569f8dfef6d142d233725391a6168b41b639 # master
+      uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@fe1478d57b3b5e66acdff48abbab6adcb6e7ff37 # master
       with:
         oss-fuzz-project-name: 'pcre2'
         dry-run: false
     - name: Run Fuzzers
-      uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@a380569f8dfef6d142d233725391a6168b41b639 # master
+      uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@fe1478d57b3b5e66acdff48abbab6adcb6e7ff37 # master
       with:
         oss-fuzz-project-name: 'pcre2'
         fuzz-seconds: 300
